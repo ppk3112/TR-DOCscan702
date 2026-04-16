@@ -99,12 +99,6 @@
             // 🏷️ State สำหรับเลือกประเภท (DC หรือ โรงตัด)
             const [deliveryType, setDeliveryType] = useState('DC'); // 'DC' หรือ 'FACTORY'
             
-            const [date, setDate] = useState('');
-            const [time, setTime] = useState('');
-            const [isTimeLocked, setIsTimeLocked] = useState(true);
-            const [showPinModal, setShowPinModal] = useState(false);
-            const [pinValue, setPinValue] = useState('');
-            
             const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleDateString('en-CA').substring(0, 7));
             const [monthHistoryData, setMonthHistoryData] = useState([]);
             const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -229,18 +223,6 @@
             useEffect(() => {
                 localStorage.setItem('delivery_basket', JSON.stringify(currentItems));
             }, [currentItems]);
-
-            useEffect(() => {
-                if (!isTimeLocked) return;
-                const updateCurrentTime = () => {
-                    const now = new Date();
-                    setDate(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
-                    setTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
-                };
-                updateCurrentTime(); 
-                const interval = setInterval(updateCurrentTime, 10000);
-                return () => clearInterval(interval);
-            }, [isTimeLocked]);
 
             useEffect(() => { fetchHistoryForMonth(selectedMonth); }, [selectedMonth]);
 
@@ -523,12 +505,21 @@
             };
 
             const executeSaveBatch = async () => {
-                if (currentItems.length === 0 || !date || !time) return;
+                if (currentItems.length === 0) return;
                 setIsSaving(true); setSaveSuccess(false);
+
+                // ดึงเวลา ณ ปัจจุบันเพื่อส่งข้อมูล
+                const now = new Date();
+                const currentDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
                 const newBatch = {
                     id: "BATCH-" + Date.now().toString().slice(-6),
-                    items: [...currentItems], date: date, time: time, dueDate: dueDate, timestamp: new Date().getTime()
+                    items: [...currentItems], 
+                    date: currentDateStr, 
+                    time: currentTimeStr, 
+                    dueDate: dueDate, 
+                    timestamp: now.getTime()
                 };
 
                 try {
@@ -897,28 +888,6 @@
                         </div>
                     )}
 
-                    {/* ป็อปอัปปลดล็อคเวลา */}
-                    {showPinModal && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] border border-white/50 animate-in zoom-in-95 duration-300">
-                                <div className="text-center mb-6">
-                                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 border-[4px] border-white shadow-sm">
-                                        <i className="fa-solid fa-lock text-2xl"></i>
-                                    </div>
-                                    <h3 className="text-lg font-bold text-slate-800">ปลดล็อคเวลา</h3>
-                                </div>
-                                <input type="password" pattern="[0-9]*" inputMode="numeric" autoFocus
-                                    value={pinValue} onChange={(e) => setPinValue(e.target.value)}
-                                    className="w-full text-center tracking-[0.5em] text-2xl font-bold py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 outline-none transition-all mb-5 shadow-inner"
-                                    placeholder="------" />
-                                <div className="flex gap-3">
-                                    <button onClick={() => { setShowPinModal(false); setPinValue(''); }} className="flex-1 py-3.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-2xl font-bold transition-all active:scale-95">ยกเลิก</button>
-                                    <button onClick={() => { if (pinValue === '311240') { setIsTimeLocked(false); setShowPinModal(false); setPinValue(''); } else { alert('รหัสผ่านไม่ถูกต้อง'); setPinValue(''); } }} className="flex-1 py-3.5 text-white bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-bold shadow-lg shadow-emerald-500/30 transition-all active:scale-95">ยืนยัน</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     {/* --------- แท็บ 1: หน้าสแกนจัดส่ง --------- */}
                     <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${activeTab === 'scan' ? 'block' : 'hidden'}`}>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -981,20 +950,28 @@
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex gap-3 mt-5 pt-5 bg-white/80 backdrop-blur-sm p-4 rounded-3xl shadow-sm border border-slate-100 relative group transition-all">
-                                        <button type="button" onClick={() => { if(isTimeLocked) setShowPinModal(true); else setIsTimeLocked(true); }}
-                                            className={`absolute -top-3 right-4 px-3 py-1 text-[10px] font-bold rounded-full shadow-md flex items-center gap-1.5 transition-colors border ${isTimeLocked ? 'bg-slate-800 text-white border-slate-700 hover:bg-slate-700' : 'bg-red-50 text-red-600 border-red-200 animate-pulse'}`}>
-                                            <i className={`fa-solid ${isTimeLocked ? 'fa-lock' : 'fa-lock-open'}`}></i> {isTimeLocked ? 'ล็อคเวลา' : 'ปลดล็อค'}
-                                        </button>
-                                        <div className="flex-1">
-                                            <label className="text-[10px] font-bold text-slate-400 mb-1 block uppercase tracking-wider ml-1">วันที่ส่งบิล</label>
-                                            <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={isTimeLocked} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 focus:bg-white transition-colors" />
+
+                                    {/* ✨ ส่วนใหม่: กล่องคัดลอกบิลรอบล่าสุด ย้ายมาตรงนี้ ✨ */}
+                                    {lastSavedMessage && (
+                                        <div className="mt-5 pt-4 bg-blue-50/60 backdrop-blur-sm border border-blue-200 rounded-3xl p-4 shadow-sm flex items-center justify-between transition-all">
+                                            <div className="flex-1 pr-3">
+                                                <h4 className="text-sm font-black text-blue-800 flex items-center gap-2">
+                                                    <i className="fa-solid fa-clock-rotate-left text-blue-600"></i> ข้อความที่ส่งล่าสุด
+                                                </h4>
+                                                <p className="text-[11px] text-blue-600/80 mt-1 font-medium leading-snug">กดคัดลอกอีกครั้ง กรณีที่เผลอปิดหน้าจอไป</p>
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    setLineMessageToCopy(lastSavedMessage);
+                                                    setShowCopyModal(true);
+                                                }}
+                                                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md shadow-blue-500/30 transition-all active:scale-95 text-xs flex items-center gap-2 shrink-0"
+                                            >
+                                                <i className="fa-solid fa-copy"></i> คัดลอก
+                                            </button>
                                         </div>
-                                        <div className="flex-1">
-                                            <label className="text-[10px] font-bold text-slate-400 mb-1 block uppercase tracking-wider ml-1">เวลา</label>
-                                            <input type="time" required value={time} onChange={(e) => setTime(e.target.value)} disabled={isTimeLocked} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 focus:bg-white transition-colors" />
-                                        </div>
-                                    </div>
+                                    )}
+
                                 </div>
                                 <div className={`p-6 rounded-[32px] border-2 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${checkIsUrgent(dueDate) ? 'bg-red-50/80 backdrop-blur-sm border-red-200' : 'bg-white/95 backdrop-blur-sm border-emerald-100'}`}>
                                     <div className="flex items-center justify-between mb-4">
@@ -1007,27 +984,6 @@
                                         className={`w-full px-5 py-3.5 bg-white border border-slate-200 rounded-[20px] outline-none text-base font-bold shadow-sm transition-all
                                         ${checkIsUrgent(dueDate) ? 'border-red-300 focus:ring-4 focus:ring-red-100 text-red-900' : 'focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 text-emerald-900'}`} />
                                 </div>
-
-                                {/* ✨ ส่วนใหม่: กล่องคัดลอกบิลรอบล่าสุด ✨ */}
-                                {lastSavedMessage && (
-                                    <div className="bg-blue-50/60 backdrop-blur-sm border border-blue-200 rounded-[32px] p-6 shadow-sm flex items-center justify-between transition-all">
-                                        <div className="flex-1">
-                                            <h4 className="text-sm font-black text-blue-800 flex items-center gap-2">
-                                                <i className="fa-solid fa-clock-rotate-left text-blue-600"></i> ข้อความที่ส่งล่าสุด
-                                            </h4>
-                                            <p className="text-xs text-blue-600/80 mt-1 font-medium">กดคัดลอกอีกครั้ง กรณีที่เผลอปิดหน้าจอไป</p>
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                setLineMessageToCopy(lastSavedMessage);
-                                                setShowCopyModal(true);
-                                            }}
-                                            className="ml-4 px-5 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 text-xs flex items-center gap-2"
-                                        >
-                                            <i className="fa-solid fa-copy text-sm"></i> คัดลอก
-                                        </button>
-                                    </div>
-                                )}
                             </div>
 
                             {/* กรอบขวามือ (ตะกร้ารอส่งบิล) */}
@@ -1087,6 +1043,19 @@
                     {/* --------- แท็บ 2: หน้าสรุปการส่งและกราฟ --------- */}
                     <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${activeTab === 'history' ? 'block' : 'hidden'}`}>
                         
+                        {/* ✨ ส่วนใหม่: กล่องคัดลอกสรุปประจำวัน (ปรับขนาดให้เล็กลงกะทัดรัด) ✨ */}
+                        <div className="flex items-center justify-between bg-blue-50 border border-blue-100 p-2.5 pl-5 rounded-[24px] shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <i className="fa-solid fa-comment-dots text-blue-500 text-lg"></i>
+                                <span className="text-blue-900 font-bold text-sm">คัดลอกสรุปยอดวันนี้</span>
+                            </div>
+                            <button onClick={handleGetDailySummary} disabled={isFetchingSummary}
+                                className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-[18px] font-bold transition-all active:scale-95 text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 disabled:opacity-50">
+                                {isFetchingSummary ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-copy"></i>}
+                                <span className="whitespace-nowrap">ดึงข้อความ</span>
+                            </button>
+                        </div>
+
                         <div className="flex flex-col sm:flex-row justify-between items-center bg-white/95 backdrop-blur-sm px-6 py-5 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 gap-4">
                             <div className="flex items-center gap-4 w-full sm:w-auto">
                                 <div className="bg-slate-50 p-3 rounded-2xl text-slate-500 border border-slate-100 shadow-sm"><i className="fa-regular fa-calendar-days text-xl"></i></div>
@@ -1137,25 +1106,6 @@
                                 <span className="text-[10px] sm:text-xs font-bold text-indigo-600 mb-1.5"><i className="fa-solid fa-moon"></i> หลัง 18.00</span>
                                 <span className="text-2xl sm:text-3xl font-black text-indigo-700">{todayEvening}</span>
                             </div>
-                        </div>
-
-                        {/* ✨ ส่วนใหม่: กล่องคัดลอกสรุปประจำวันแบบแยกส่วน ✨ */}
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-[32px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col sm:flex-row items-center justify-between gap-5 relative overflow-hidden">
-                            <div className="absolute -right-6 -top-6 text-blue-500/10 text-9xl pointer-events-none">
-                                <i className="fa-brands fa-line"></i>
-                            </div>
-                            <div className="flex items-center gap-5 z-10 w-full sm:w-auto">
-                                <div className="w-14 h-14 bg-white text-blue-600 rounded-[20px] flex items-center justify-center text-2xl shadow-sm border border-blue-100 flex-shrink-0">
-                                    <i className="fa-regular fa-comment-dots"></i>
-                                </div>
-                                <h3 className="text-blue-900 font-black text-lg">คัดลอกสรุปยอดวันนี้</h3>
-                            </div>
-                            <button onClick={handleGetDailySummary} disabled={isFetchingSummary}
-                                className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[20px] font-bold transition-all active:scale-95 shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2.5 disabled:opacity-50 z-10 group relative overflow-hidden">
-                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                                {isFetchingSummary ? <i className="fa-solid fa-circle-notch animate-spin relative z-10"></i> : <i className="fa-solid fa-copy relative z-10 group-hover:scale-110 transition-transform duration-300"></i>}
-                                <span className="whitespace-nowrap relative z-10">ดึงข้อความ & คัดลอก</span>
-                            </button>
                         </div>
 
                         <div className="bg-white/95 backdrop-blur-sm rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
