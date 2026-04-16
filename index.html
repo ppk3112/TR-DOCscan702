@@ -173,7 +173,15 @@
 
                 try {
                     const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCodes`);
-                    const json = await res.json();
+                    const text = await res.text();
+                    
+                    // ดักจับการตอบกลับผิดพลาด (ถ้าส่งกลับมาเป็นหน้า HTML เช่น หน้า Error ของ Google)
+                    if (text.trim().startsWith('<')) {
+                        console.error("API returned HTML instead of JSON. Check deployment settings (Who has access must be 'Anyone').");
+                        return;
+                    }
+
+                    const json = JSON.parse(text);
                     if (json.status === 'success' && json.data) {
                         const uppercaseCodes = json.data.map(code => String(code).trim().toUpperCase());
                         setAllSentCodesCache(new Set(uppercaseCodes));
@@ -243,13 +251,20 @@
                 setIsLoadingHistory(true);
                 try {
                     const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getHistory&month=${monthStr}`);
-                    const json = await res.json();
+                    const text = await res.text();
+                    
+                    // ป้องกันการพังจากการแปลง JSON ผิดพลาด ถ้า Apps Script ส่ง HTML กลับมา
+                    if (text.trim().startsWith('<')) {
+                        throw new Error("เซิร์ฟเวอร์ส่งกลับเป็นหน้า HTML (กรุณาตรวจสอบว่าตั้งค่า Deployment 'Who has access' เป็น 'Anyone' หรือยัง)");
+                    }
+
+                    const json = JSON.parse(text);
                     if (json.status === 'success' && json.data) {
                         setMonthHistoryData(json.data);
                         localStorage.setItem(cacheKey, JSON.stringify(json.data)); // บันทึกทับข้อมูลล่าสุด
                     }
                 } catch (error) { 
-                    console.error('Failed to fetch history', error); 
+                    console.error('Failed to fetch history:', error.message || error); 
                 } finally { 
                     setIsLoadingHistory(false); 
                 }
@@ -468,7 +483,16 @@
                         body: JSON.stringify(newBatch)
                     });
 
-                    const result = await response.json();
+                    const text = await response.text();
+                    
+                    // ป้องกันการพัง ถ้า Apps Script พังแล้วส่ง HTML กลับมา
+                    if (text.trim().startsWith('<')) {
+                        alert("❌ เซิร์ฟเวอร์ตอบกลับผิดพลาด (เป็นหน้าเว็บ HTML)\n\n👉 วิธีแก้:\n1. ไปที่ Google Apps Script\n2. กด Deploy > Manage deployments\n3. เช็คว่า 'Who has access' เลือกเป็น 'Anyone' (ทุกคน) หรือไม่");
+                        setIsSaving(false);
+                        return;
+                    }
+
+                    const result = JSON.parse(text);
 
                     if (result.status === 'error') {
                         if (result.message === 'DUPLICATE_FOUND') {
