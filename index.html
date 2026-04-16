@@ -109,6 +109,7 @@
             const [monthHistoryData, setMonthHistoryData] = useState([]);
             const [isLoadingHistory, setIsLoadingHistory] = useState(false);
             const [isExporting, setIsExporting] = useState(false);
+            const [isFetchingSummary, setIsFetchingSummary] = useState(false); // สถานะการดึงข้อความสรุป
             
             // 🛡️ State สำหรับเก็บเลขบิลทั้งหมดที่เคยส่งไปแล้วในระบบ
             const [allSentCodesCache, setAllSentCodesCache] = useState(new Set());
@@ -116,9 +117,13 @@
             const [duplicateWarning, setDuplicateWarning] = useState(null);
             const [showConfirmModal, setShowConfirmModal] = useState(false);
             
-            // 🗑️ State ใหม่ สำหรับจัดการ Pop-up ล้างตะกร้าทั้งหมด
+            // 🗑️ State สำหรับจัดการ Pop-up ล้างตะกร้าทั้งหมด
             const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
             
+            // 📋 State สำหรับจัดการ Pop-up คัดลอกข้อความ
+            const [showCopyModal, setShowCopyModal] = useState(false);
+            const [lineMessageToCopy, setLineMessageToCopy] = useState('');
+
             const [isScanning, setIsScanning] = useState(false);
             const [isSaving, setIsSaving] = useState(false);
             const [saveSuccess, setSaveSuccess] = useState(false);
@@ -467,6 +472,53 @@
                 setEditingIndex(null);
             };
 
+            // ==========================================
+            // 📋 ฟังก์ชันสำหรับคัดลอกข้อความ
+            // ==========================================
+            const handleCopyText = () => {
+                // ใช้วิธีสร้าง textarea แบบซ่อนเพื่อคัดลอก (ทำงานได้ดีใน Iframe ของ Apps Script)
+                const textArea = document.createElement("textarea");
+                textArea.value = lineMessageToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert("คัดลอกข้อความสำเร็จ!");
+                } catch (err) {
+                    console.error('Copy failed', err);
+                    alert("ไม่สามารถคัดลอกได้ กรุณาคัดลอกด้วยตัวเอง");
+                }
+                document.body.removeChild(textArea);
+            };
+
+            // 📋 ดึงสรุปยอดรายวันเพื่อมาโชว์ให้คัดลอก (ฟังก์ชันใหม่)
+            const handleGetDailySummary = async () => {
+                setIsFetchingSummary(true);
+                try {
+                    const todayStr = new Date().toLocaleDateString('en-CA');
+                    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailySummaryText&date=${todayStr}`);
+                    const text = await response.text();
+                    
+                    if (text.trim().startsWith('<')) {
+                        alert("❌ เซิร์ฟเวอร์ตอบกลับเป็นหน้าเว็บ HTML (กรุณาเช็คการตั้งค่า Apps Script)");
+                        return;
+                    }
+
+                    const result = JSON.parse(text);
+                    if (result.status === 'success') {
+                        setLineMessageToCopy(result.data);
+                        setShowCopyModal(true);
+                    } else {
+                        alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + (result.message || 'ไม่สามารถดึงข้อมูลได้'));
+                    }
+                } catch (error) {
+                    console.error("Fetch Summary Error:", error);
+                    alert("❌ ไม่สามารถดึงข้อมูลสรุปได้ กรุณาลองใหม่อีกครั้ง");
+                } finally {
+                    setIsFetchingSummary(false);
+                }
+            };
+
             const executeSaveBatch = async () => {
                 if (currentItems.length === 0 || !date || !time) return;
                 setIsSaving(true); setSaveSuccess(false);
@@ -510,6 +562,14 @@
                     // 🎉 แสดงเอฟเฟกต์ส่งสำเร็จ!
                     setSaveSuccess(true);
                     playSuccessBeep();
+                    
+                    // 📌 ถ้ามีข้อความจากไลน์ส่งกลับมา ให้หน่วงเวลาแสดง Popup คัดลอกหลังจาก Effect ติ๊กถูกเสร็จสิ้น
+                    if (result.lineMessage) {
+                        setLineMessageToCopy(result.lineMessage);
+                        setTimeout(() => {
+                            setShowCopyModal(true);
+                        }, 1200); 
+                    }
                     
                     fetchAllCodes(); 
                     fetchHistoryForMonth(selectedMonth);
@@ -699,6 +759,34 @@
                         <div className="fixed top-5 left-4 right-4 z-[110] bg-red-600/95 backdrop-blur-sm text-white p-4 rounded-2xl shadow-[0_10px_40px_rgba(220,38,38,0.4)] flex items-center gap-3 animate-in slide-in-from-top-5 duration-300 border border-red-500">
                             <i className="fa-solid fa-triangle-exclamation text-xl"></i>
                             <div className="flex-1 font-bold text-sm tracking-wide">{duplicateWarning}</div>
+                        </div>
+                    )}
+
+                    {/* 📋 ป็อปอัปคัดลอกข้อความ (แสดงหลังจากบันทึกสำเร็จ หรือดึงสรุปยอดประจำวัน) */}
+                    {showCopyModal && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[160] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] border border-white/50 animate-in zoom-in-95 duration-300">
+                                <div className="text-center mb-4">
+                                    <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-3 border-[4px] border-white shadow-sm">
+                                        <i className="fa-regular fa-copy text-2xl"></i>
+                                    </div>
+                                    <h3 className="text-lg font-black text-slate-800">คัดลอกข้อความแจ้งเตือน</h3>
+                                    <p className="text-xs text-slate-500 mt-1">เผื่อกรณีระบบไลน์ไม่แจ้งเตือน (โควต้าเต็ม)</p>
+                                </div>
+                                
+                                <div className="bg-slate-50 p-3 rounded-2xl mb-5 max-h-[40vh] overflow-y-auto border border-slate-200 custom-scrollbar text-left">
+                                    <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans">{lineMessageToCopy}</pre>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button onClick={() => setShowCopyModal(false)} className="flex-1 py-3.5 text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-2xl font-bold transition-all active:scale-95 text-sm">
+                                        ปิด
+                                    </button>
+                                    <button onClick={handleCopyText} className="flex-1 py-3.5 text-white bg-blue-600 hover:bg-blue-700 rounded-2xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 text-sm flex justify-center items-center gap-2">
+                                        <i className="fa-solid fa-copy"></i> คัดลอก
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                     
@@ -968,7 +1056,7 @@
                         </div>
                     </div>
 
-                    {/* --------- แท็บ 2: หน้าประวัติการส่งและกราฟ --------- */}
+                    {/* --------- แท็บ 2: หน้าสรุปการส่งและกราฟ --------- */}
                     <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${activeTab === 'history' ? 'block' : 'hidden'}`}>
                         
                         <div className="flex flex-col sm:flex-row justify-between items-center bg-white/95 backdrop-blur-sm px-6 py-5 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 gap-4">
@@ -981,11 +1069,20 @@
                                 </div>
                             </div>
                             
-                            <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} 
-                                className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-6 py-3.5 rounded-2xl font-bold transition-all active:scale-95 border border-emerald-200 disabled:opacity-50 shadow-sm">
-                                {isExporting ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-file-excel text-emerald-600"></i>}
-                                <span>ดาวน์โหลด Excel</span>
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                                {/* 📋 ปุ่มใหม่: ดึงข้อความสรุปรายวัน */}
+                                <button onClick={handleGetDailySummary} disabled={isFetchingSummary}
+                                    className="flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 px-5 py-3.5 rounded-2xl font-bold transition-all active:scale-95 border border-blue-200 disabled:opacity-50 shadow-sm">
+                                    {isFetchingSummary ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-regular fa-copy text-blue-600"></i>}
+                                    <span className="whitespace-nowrap">คัดลอกสรุปวันนี้</span>
+                                </button>
+
+                                <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} 
+                                    className="flex-1 sm:flex-none flex items-center justify-center gap-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-5 py-3.5 rounded-2xl font-bold transition-all active:scale-95 border border-emerald-200 disabled:opacity-50 shadow-sm">
+                                    {isExporting ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-file-excel text-emerald-600"></i>}
+                                    <span className="whitespace-nowrap">ดาวน์โหลด Excel</span>
+                                </button>
+                            </div>
                         </div>
 
                         <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[32px] p-8 shadow-xl shadow-slate-900/10 text-white flex justify-between items-center relative overflow-hidden">
@@ -1056,7 +1153,7 @@
                             </button>
                             <button onClick={() => setActiveTab('history')} className={`flex-1 flex justify-center items-center h-14 rounded-[24px] transition-all duration-300 ${activeTab === 'history' ? 'bg-white/90 text-emerald-600 shadow-sm' : 'text-slate-600 hover:bg-white/50'}`}>
                                 <i className={`fa-solid fa-clipboard-list text-xl transition-transform ${activeTab === 'history' ? 'scale-110' : ''}`}></i>
-                                <span className="ml-2.5 font-bold text-sm tracking-wide">ประวัติ</span>
+                                <span className="ml-2.5 font-bold text-sm tracking-wide">สรุป</span>
                             </button>
                         </div>
                     </div>
