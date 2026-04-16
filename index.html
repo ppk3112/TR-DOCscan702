@@ -299,6 +299,33 @@
                 } catch (e) {}
             };
 
+            // 🗣️ แจ้งเตือนด้วยเสียงพูดภาษาไทย (เสียงผู้หญิง)
+            const playDuplicateVoice = () => {
+                try {
+                    if ('speechSynthesis' in window) {
+                        // ยกเลิกเสียงพูดที่ค้างอยู่ก่อนหน้า
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance('บิลซ้ำค่ะ');
+                        utterance.lang = 'th-TH'; // กำหนดภาษาไทย
+                        
+                        // พยายามหาเสียงภาษาไทยในระบบ (ส่วนใหญ่ค่าเริ่มต้นของทุก OS จะเป็นเสียงผู้หญิง เช่น Google ภาษาไทย, Siri Kanya)
+                        const voices = window.speechSynthesis.getVoices();
+                        const thaiVoice = voices.find(voice => voice.lang.includes('th'));
+                        if (thaiVoice) {
+                            utterance.voice = thaiVoice;
+                        }
+                        
+                        // ปรับ Pitch ให้สูงขึ้นเล็กน้อย เพื่อให้โทนเสียงมีความเป็นผู้หญิง/นุ่มนวลขึ้น
+                        utterance.pitch = 1.3; 
+                        utterance.rate = 1.0;
+                        
+                        window.speechSynthesis.speak(utterance);
+                    }
+                } catch (e) {
+                    console.error("Speech synthesis failed", e);
+                }
+            };
+
             // 🎶 เพิ่มเสียงตริ๊งตอนบันทึกสำเร็จ
             const playSuccessBeep = () => {
                 try {
@@ -334,7 +361,8 @@
             };
 
             const showDuplicateError = (msg) => {
-                playErrorBeep(); 
+                // เอาเสียง Error Beep ตื๊ดๆ แบบเดิมออกตามที่ต้องการ
+                playDuplicateVoice(); // ใช้เสียงพูดผู้หญิงแทน
                 setDuplicateWarning(msg);
                 setTimeout(() => setDuplicateWarning(null), 5000); 
             };
