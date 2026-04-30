@@ -736,21 +736,26 @@
                         sheet.addRow([]); // เว้นบรรทัด 1
                         sheet.addRow([]); // เว้นบรรทัด 2
 
-                        // หัวข้อตารางใหม่
+                        // หัวข้อตารางใหม่ (ขยายครอบคลุมถึงคอลัมน์ E)
                         const titleRow = sheet.addRow(['📌 สรุปรายละเอียดบิลที่ส่งหลัง 18.00 น. (รอบเย็น)']);
                         titleRow.getCell(1).font = { name: 'Arial', bold: true, size: 14, color: { argb: 'FF1E3A8A' } }; // สีน้ำเงินเข้ม
-                        sheet.mergeCells(`A${titleRow.number}:D${titleRow.number}`);
+                        sheet.mergeCells(`A${titleRow.number}:E${titleRow.number}`);
 
-                        // Header ของตารางใหม่
-                        const eHeader = sheet.addRow(['วันที่ส่งบิล', 'ดิวส่งวันที่', 'จำนวน (เที่ยว)']);
-                        eHeader.eachCell((cell) => {
+                        // Header ของตารางใหม่ (ใช้ 5 ช่องสำหรับทำ Merge)
+                        const eHeader = sheet.addRow(['วันที่ส่งบิล', 'ดิวส่งวันที่', '', 'จำนวน (เที่ยว)', '']);
+                        sheet.mergeCells(`B${eHeader.number}:C${eHeader.number}`);
+                        sheet.mergeCells(`D${eHeader.number}:E${eHeader.number}`);
+                        
+                        for(let i=1; i<=5; i++) {
+                            const cell = eHeader.getCell(i);
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } }; // สีฟ้า Blue-500
                             cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } }; // สีขาว
                             cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
                             cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        });
+                        }
 
                         let totalEveningCount = 0;
+                        let previousSendDate = null; // เพิ่มตัวแปรสำหรับจำวันที่ของแถวบน
 
                         // ฟังก์ชันแปลงวันที่ให้เป็นภาษาไทยแบบสวยงาม
                         const formatThaiForExcel = (dStr) => {
@@ -764,36 +769,60 @@
                             const rowData = eveningSummary[key];
                             totalEveningCount += rowData.count;
 
+                            // เช็คว่าเป็นรายการแรกของวันส่งบิลนั้นๆ หรือไม่
+                            const isFirstOfThisDate = rowData.sendDate !== previousSendDate;
+                            previousSendDate = rowData.sendDate;
+
                             const eDataRow = sheet.addRow([
                                 formatThaiForExcel(rowData.sendDate), 
                                 formatThaiForExcel(rowData.dueDate), 
-                                rowData.count
+                                '',
+                                rowData.count,
+                                ''
                             ]);
+
+                            // ผสานเซลล์สำหรับข้อมูล
+                            sheet.mergeCells(`B${eDataRow.number}:C${eDataRow.number}`);
+                            sheet.mergeCells(`D${eDataRow.number}:E${eDataRow.number}`);
 
                             // สลับสีพื้นหลัง ขาว กับ เทาอ่อน เพื่อให้อ่านง่าย
                             const bgColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC'; 
 
-                            eDataRow.eachCell((cell, colNumber) => {
+                            for(let i=1; i<=5; i++) {
+                                const cell = eDataRow.getCell(i);
                                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
-                                // ให้คอลัมน์ "จำนวน" เป็นตัวหนาสีแดง
-                                cell.font = { name: 'Arial', color: { argb: colNumber === 3 ? 'FFDC2626' : 'FF334155' }, bold: colNumber === 3 }; 
+                                
+                                // จัดการรูปแบบฟอนต์แยกตามคอลัมน์
+                                if (i === 1) {
+                                    // คอลัมน์วันที่ส่งบิล: ตัวหนาสีเข้มแค่อันแรก นอกนั้นตัวบางสีเทา
+                                    cell.font = { name: 'Arial', color: { argb: isFirstOfThisDate ? 'FF1E293B' : 'FF64748B' }, bold: isFirstOfThisDate }; 
+                                } else if (i === 4 || i === 5) {
+                                    // คอลัมน์จำนวน (เที่ยว): ตัวหนาสีแดง
+                                    cell.font = { name: 'Arial', color: { argb: 'FFDC2626' }, bold: true };
+                                } else {
+                                    // คอลัมน์อื่นๆ: ตัวบางสีปกติ
+                                    cell.font = { name: 'Arial', color: { argb: 'FF334155' }, bold: false };
+                                }
+                                
                                 cell.border = { top: {style:'thin', color: {argb:'FFE2E8F0'}}, left: {style:'thin', color: {argb:'FFE2E8F0'}}, bottom: {style:'thin', color: {argb:'FFE2E8F0'}}, right: {style:'thin', color: {argb:'FFE2E8F0'}} };
                                 cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                            });
+                            }
                         });
 
                         // แถวสรุปยอดรวมด้านล่างสุด
-                        const eFooterRow = sheet.addRow(['ยอดรวมทั้งเดือน', '', totalEveningCount]);
-                        sheet.mergeCells(`A${eFooterRow.number}:B${eFooterRow.number}`);
+                        const eFooterRow = sheet.addRow(['ยอดรวมทั้งเดือน', '', '', totalEveningCount, '']);
+                        sheet.mergeCells(`A${eFooterRow.number}:C${eFooterRow.number}`);
+                        sheet.mergeCells(`D${eFooterRow.number}:E${eFooterRow.number}`);
                         
                         eFooterRow.getCell(1).alignment = { horizontal: 'right', vertical: 'middle' };
-                        eFooterRow.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+                        eFooterRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
                         
-                        eFooterRow.eachCell((cell) => {
+                        for(let i=1; i<=5; i++) {
+                            const cell = eFooterRow.getCell(i);
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }; // สีแดงอ่อน
                             cell.font = { name: 'Arial', bold: true, color: { argb: 'FF991B1B' } }; // สีแดงเข้ม
                             cell.border = { top: {style:'medium', color: {argb:'FFDC2626'}}, bottom: {style:'medium', color: {argb:'FFDC2626'}}, left: {style:'thin', color: {argb:'FFDC2626'}}, right: {style:'thin', color: {argb:'FFDC2626'}} };
-                        });
+                        }
                     }
                     // ==========================================
 
