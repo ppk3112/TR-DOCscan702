@@ -666,7 +666,6 @@
                 setIsExporting(true);
                 try {
                     const workbook = new window.ExcelJS.Workbook();
-                    // ตั้งค่าให้ซ่อนเส้นขอบ Grid ของ Excel ออกทั้งหมด เพื่อให้ดูสะอาดตาเหมือนหน้า A4
                     const sheet = workbook.addWorksheet('สรุปยอดส่งบิล', {
                         views: [{state: 'frozen', xSplit: 1, ySplit: 2, showGridLines: false}]
                     });
@@ -676,8 +675,7 @@
                     const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
                     const thaiYear = year + 543;
 
-                    // ปรับโครงสร้าง เอาแถวงานด่วนออกทั้งหมด
-                    const headerRow = ['วันที่']; 
+                    const headerRow = ['หัวข้อ']; 
                     const morningRow = ['ก่อนเที่ยง']; 
                     const afternoonRow = ['ช่วงบ่าย']; 
                     const eveningRow = ['หลัง 18.00 น.']; 
@@ -693,16 +691,19 @@
                         totalRow.push(stats[i].total); sumTotal += stats[i].total;
                     }
 
-                    headerRow.push('รวมทั้งเดือน'); 
+                    headerRow.push('Total'); 
                     morningRow.push(sumMorning); 
                     afternoonRow.push(sumAfternoon); 
                     eveningRow.push(sumEvening); 
                     totalRow.push(sumTotal);
 
-                    // สร้าง Title Report (ฟอนต์สีดำ) แสดงแค่เดือน ปี
-                    const titleRow = sheet.addRow([`${thaiMonth} ${thaiYear}`]);
-                    titleRow.getCell(1).font = { name: 'Arial', bold: true, size: 16, color: { argb: 'FF000000' } };
-                    sheet.mergeCells('A1:G1');
+                    // สร้าง Title Report ใส่แค่หัวข้อช่องเดียวและจัดสีเหลืองเหมือนตัวอย่าง
+                    const titleRow = sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
+                    const titleCell = titleRow.getCell(1);
+                    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                    titleCell.font = { name: 'Arial', bold: true, size: 12, color: { argb: 'FF000000' } };
+                    titleCell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
+                    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
                     // สร้างตารางข้อมูล
                     const r2 = sheet.addRow(headerRow); 
@@ -711,44 +712,31 @@
                     const r5 = sheet.addRow(eveningRow); 
                     const r6 = sheet.addRow(totalRow); 
 
-                    // ธีมตารางแบบมืออาชีพสีเทาอ่อนสะอาดตา (Minimal Grayscale/Light Theme)
-                    const styleRow = (row, bgArgb, fontColorArgb, isBold = false) => {
-                        row.eachCell((cell, colNumber) => {
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
-                            cell.font = { name: 'Arial', size: 10, color: { argb: fontColorArgb }, bold: isBold };
-                            // เส้นขอบสีดำแบบปกติ
-                            cell.border = { 
-                                top: {style:'thin', color: {argb:'FF000000'}}, 
-                                left: {style:'thin', color: {argb:'FF000000'}}, 
-                                bottom: {style:'thin', color: {argb:'FF000000'}}, 
-                                right: {style:'thin', color: {argb:'FF000000'}} 
-                            };
-                            cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
-                        });
-                    };
+                    const numCols = daysInMonth + 2;
 
-                    styleRow(r2, 'FFF4F4F4', 'FF000000', true);   // Header: Light Gray
-                    styleRow(r3, 'FFFFFFFF', 'FF000000', false);  // Morning: White
-                    styleRow(r4, 'FFFFFFFF', 'FF000000', false);  // Afternoon: White
-                    styleRow(r5, 'FFFFFFFF', 'FF000000', false);  // Evening: White
-                    
-                    // แถบยอดรวม ใช้สีเทาอ่อน ตัดกับตัวหนังสือดำ
-                    r6.eachCell((cell, colNumber) => {
-                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } }; // Light Gray
-                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true };
-                        cell.border = { 
-                            top: {style:'thin', color: {argb:'FF000000'}}, 
-                            bottom: {style:'thin', color: {argb:'FF000000'}},
-                            left: {style:'thin', color: {argb:'FF000000'}}, 
-                            right: {style:'thin', color: {argb:'FF000000'}} 
-                        };
-                        cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
-                    });
+                    for (let r of [r2, r3, r4, r5, r6]) {
+                        for (let c = 1; c <= numCols; c++) {
+                            const cell = r.getCell(c);
+                            
+                            cell.font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: (r === r2 || c === numCols || r === r6) };
+                            cell.alignment = { vertical: 'middle', horizontal: c === 1 ? 'left' : 'center' };
+                            // ตีกรอบดำปกติทุกเซลล์
+                            cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
+
+                            if (r === r2) {
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } }; // สีฟ้าอ่อนเหมือนในรูป
+                            } else if (c === numCols) {
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // สีเหลืองที่ยอด Total
+                            } else {
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } }; // ขาวล้วน
+                            }
+                        }
+                    }
 
                     // ปรับความกว้างคอลัมน์ให้สมส่วน
-                    sheet.getColumn(1).width = 16; 
+                    sheet.getColumn(1).width = 24; 
                     for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 5.5; 
-                    sheet.getColumn(daysInMonth+2).width = 14; 
+                    sheet.getColumn(numCols).width = 8; 
 
                     // ==========================================
                     // 🌟 ส่วนตารางสรุปยอดส่งบิลหลัง 18.00 น.
@@ -782,7 +770,7 @@
 
                         const titleRowE = sheet.addRow(['📌 รายละเอียดการส่งบิลรอบดึก (หลัง 18.00 น.)']);
                         titleRowE.getCell(1).font = { name: 'Arial', bold: true, size: 12, color: { argb: 'FF000000' } };
-                        sheet.mergeCells(`A${titleRowE.number}:E${titleRowE.number}`);
+                        // ไม่ตีขอบเซลล์นี้เพื่อให้ไม่เกินขอบตารางจริง
 
                         const eHeader = sheet.addRow(['วันที่ส่งบิล', 'ดิวส่งวันที่', '', 'จำนวน (เที่ยว)', '']);
                         sheet.mergeCells(`B${eHeader.number}:C${eHeader.number}`);
@@ -793,8 +781,8 @@
 
                         for(let i=1; i<=5; i++) {
                             const cell = eHeader.getCell(i);
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F4F4' } }; // Light Gray Header
-                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; // Black Font
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } }; // สีฟ้าอ่อน
+                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; // สีดำ
                             cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                             cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         }
@@ -831,11 +819,9 @@
                             sheet.mergeCells(`B${eDataRow.number}:C${eDataRow.number}`);
                             sheet.mergeCells(`D${eDataRow.number}:E${eDataRow.number}`);
 
-                            const bgColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF9F9F9'; 
-
                             for(let i=1; i<=5; i++) {
                                 const cell = eDataRow.getCell(i);
-                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } }; // สีขาวล้วน
                                 
                                 if (i === 1) {
                                     cell.font = { name: 'Arial', color: { argb: 'FF000000' }, bold: isFirstOfThisDate }; 
@@ -854,7 +840,7 @@
                             sheet.autoFilter = `A${eveningTableStartRow}:E${eveningTableEndRow}`;
                         }
 
-                        // แถวรวมทั้งหมดแบบ Professional
+                        // แถวรวมทั้งหมด
                         const eFooterRow = sheet.addRow(['รวมเที่ยวจัดส่งรอบดึกทั้งหมด', '', '', totalEveningCount, '']);
                         sheet.mergeCells(`A${eFooterRow.number}:C${eFooterRow.number}`);
                         sheet.mergeCells(`D${eFooterRow.number}:E${eFooterRow.number}`);
@@ -864,8 +850,8 @@
                         
                         for(let i=1; i<=5; i++) {
                             const cell = eFooterRow.getCell(i);
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } }; // Light Gray
-                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; // Black
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // สีเหลือง
+                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; 
                             cell.border = { 
                                 top: {style:'thin', color: {argb:'FF000000'}}, 
                                 bottom: {style:'thin', color: {argb:'FF000000'}}, 
