@@ -709,6 +709,94 @@
                     for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 6; 
                     sheet.getColumn(daysInMonth+2).width = 16; 
 
+                    // ==========================================
+                    // 🌟 ส่วนที่เพิ่มใหม่: ตารางสรุปยอดส่งบิลหลัง 18.00 น.
+                    // ==========================================
+                    
+                    // รวบรวมข้อมูลหลัง 18:00 น. จากข้อมูลที่มี
+                    const eveningSummary = {};
+                    monthHistoryData.forEach(item => {
+                        const hour = parseInt(item.time.split(':')[0], 10);
+                        if (hour >= 18) {
+                            const key = `${item.date}_${item.dueDate}`;
+                            if (!eveningSummary[key]) {
+                                eveningSummary[key] = {
+                                    sendDate: item.date,
+                                    dueDate: item.dueDate,
+                                    count: 0
+                                };
+                            }
+                            eveningSummary[key].count += (Number(item.count) || 0);
+                        }
+                    });
+
+                    const eveningKeys = Object.keys(eveningSummary).sort();
+
+                    if (eveningKeys.length > 0) {
+                        sheet.addRow([]); // เว้นบรรทัด 1
+                        sheet.addRow([]); // เว้นบรรทัด 2
+
+                        // หัวข้อตารางใหม่
+                        const titleRow = sheet.addRow(['📌 สรุปรายละเอียดบิลที่ส่งหลัง 18.00 น. (รอบเย็น)']);
+                        titleRow.getCell(1).font = { name: 'Arial', bold: true, size: 14, color: { argb: 'FF1E3A8A' } }; // สีน้ำเงินเข้ม
+                        sheet.mergeCells(`A${titleRow.number}:D${titleRow.number}`);
+
+                        // Header ของตารางใหม่
+                        const eHeader = sheet.addRow(['วันที่ส่งบิล', 'ดิวส่งวันที่', 'จำนวน (เที่ยว)']);
+                        eHeader.eachCell((cell) => {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } }; // สีฟ้า Blue-500
+                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } }; // สีขาว
+                            cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        });
+
+                        let totalEveningCount = 0;
+
+                        // ฟังก์ชันแปลงวันที่ให้เป็นภาษาไทยแบบสวยงาม
+                        const formatThaiForExcel = (dStr) => {
+                            const d = new Date(dStr);
+                            if (isNaN(d.getTime())) return dStr;
+                            return `${d.getDate()} ${["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."][d.getMonth()]} ${d.getFullYear()+543}`;
+                        };
+
+                        // ใส่ข้อมูล
+                        eveningKeys.forEach((key, index) => {
+                            const rowData = eveningSummary[key];
+                            totalEveningCount += rowData.count;
+
+                            const eDataRow = sheet.addRow([
+                                formatThaiForExcel(rowData.sendDate), 
+                                formatThaiForExcel(rowData.dueDate), 
+                                rowData.count
+                            ]);
+
+                            // สลับสีพื้นหลัง ขาว กับ เทาอ่อน เพื่อให้อ่านง่าย
+                            const bgColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC'; 
+
+                            eDataRow.eachCell((cell, colNumber) => {
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+                                // ให้คอลัมน์ "จำนวน" เป็นตัวหนาสีแดง
+                                cell.font = { name: 'Arial', color: { argb: colNumber === 3 ? 'FFDC2626' : 'FF334155' }, bold: colNumber === 3 }; 
+                                cell.border = { top: {style:'thin', color: {argb:'FFE2E8F0'}}, left: {style:'thin', color: {argb:'FFE2E8F0'}}, bottom: {style:'thin', color: {argb:'FFE2E8F0'}}, right: {style:'thin', color: {argb:'FFE2E8F0'}} };
+                                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            });
+                        });
+
+                        // แถวสรุปยอดรวมด้านล่างสุด
+                        const eFooterRow = sheet.addRow(['ยอดรวมทั้งเดือน', '', totalEveningCount]);
+                        sheet.mergeCells(`A${eFooterRow.number}:B${eFooterRow.number}`);
+                        
+                        eFooterRow.getCell(1).alignment = { horizontal: 'right', vertical: 'middle' };
+                        eFooterRow.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+                        
+                        eFooterRow.eachCell((cell) => {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }; // สีแดงอ่อน
+                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF991B1B' } }; // สีแดงเข้ม
+                            cell.border = { top: {style:'medium', color: {argb:'FFDC2626'}}, bottom: {style:'medium', color: {argb:'FFDC2626'}}, left: {style:'thin', color: {argb:'FFDC2626'}}, right: {style:'thin', color: {argb:'FFDC2626'}} };
+                        });
+                    }
+                    // ==========================================
+
                     const buffer = await workbook.xlsx.writeBuffer();
                     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                     window.saveAs(blob, `สรุปยอดส่งบิล_${thaiMonth}_${thaiYear}.xlsx`);
