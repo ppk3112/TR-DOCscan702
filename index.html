@@ -699,9 +699,9 @@
                     eveningRow.push(sumEvening); 
                     totalRow.push(sumTotal);
 
-                    // สร้าง Title Report (ฟอนต์สีดำ)
-                    const titleRow = sheet.addRow([`รายงานสรุปยอดส่งบิลจัดสินค้าประจำเดือน ${thaiMonth} ${thaiYear}`]);
-                    titleRow.getCell(1).font = { name: 'Arial', bold: true, size: 14, color: { argb: 'FF000000' } };
+                    // สร้าง Title Report (ฟอนต์สีดำ) แสดงแค่เดือน ปี
+                    const titleRow = sheet.addRow([`${thaiMonth} ${thaiYear}`]);
+                    titleRow.getCell(1).font = { name: 'Arial', bold: true, size: 16, color: { argb: 'FF000000' } };
                     sheet.mergeCells('A1:G1');
 
                     // สร้างตารางข้อมูล
@@ -711,7 +711,7 @@
                     const r5 = sheet.addRow(eveningRow); 
                     const r6 = sheet.addRow(totalRow); 
 
-                    // ธีมตารางแบบมืออาชีพสีสว่าง (Professional Corporate Theme - Lighter Colors)
+                    // ธีมตารางแบบมืออาชีพสีเทาอ่อนสะอาดตา (Minimal Grayscale/Light Theme)
                     const styleRow = (row, bgArgb, fontColorArgb, isBold = false) => {
                         row.eachCell((cell, colNumber) => {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
@@ -727,14 +727,14 @@
                         });
                     };
 
-                    styleRow(r2, 'FFDBEAFE', 'FF000000', true);   // Header: Light Blue (Blue-100) / Black Font
-                    styleRow(r3, 'FFFFFFFF', 'FF000000', false);  // Morning: White / Black Font
-                    styleRow(r4, 'FFF8FAFC', 'FF000000', false);  // Afternoon: Light Slate / Black Font
-                    styleRow(r5, 'FFF1F5F9', 'FF000000', false);  // Evening: Slate 100 / Black Font
+                    styleRow(r2, 'FFF4F4F4', 'FF000000', true);   // Header: Light Gray
+                    styleRow(r3, 'FFFFFFFF', 'FF000000', false);  // Morning: White
+                    styleRow(r4, 'FFFFFFFF', 'FF000000', false);  // Afternoon: White
+                    styleRow(r5, 'FFFFFFFF', 'FF000000', false);  // Evening: White
                     
-                    // แถบยอดรวม ใช้สีฟ้าพาสเทล ตัดกับตัวหนังสือดำ
+                    // แถบยอดรวม ใช้สีเทาอ่อน ตัดกับตัวหนังสือดำ
                     r6.eachCell((cell, colNumber) => {
-                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFDBFE' } }; // Blue-200
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } }; // Light Gray
                         cell.font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true };
                         cell.border = { 
                             top: {style:'thin', color: {argb:'FF000000'}}, 
@@ -793,7 +793,7 @@
 
                         for(let i=1; i<=5; i++) {
                             const cell = eHeader.getCell(i);
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } }; // Light Blue Header
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F4F4' } }; // Light Gray Header
                             cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; // Black Font
                             cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                             cell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -831,7 +831,7 @@
                             sheet.mergeCells(`B${eDataRow.number}:C${eDataRow.number}`);
                             sheet.mergeCells(`D${eDataRow.number}:E${eDataRow.number}`);
 
-                            const bgColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC'; 
+                            const bgColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF9F9F9'; 
 
                             for(let i=1; i<=5; i++) {
                                 const cell = eDataRow.getCell(i);
@@ -864,7 +864,7 @@
                         
                         for(let i=1; i<=5; i++) {
                             const cell = eFooterRow.getCell(i);
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFDBFE' } }; // Blue-200
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAEAEA' } }; // Light Gray
                             cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; // Black
                             cell.border = { 
                                 top: {style:'thin', color: {argb:'FF000000'}}, 
