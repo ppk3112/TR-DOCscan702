@@ -694,11 +694,13 @@
 
                     const r2 = sheet.addRow(headerRow); const r3 = sheet.addRow(morningRow); const r4 = sheet.addRow(afternoonRow); const r5 = sheet.addRow(eveningRow); const r6 = sheet.addRow(urgentRow); const r7 = sheet.addRow(totalRow);
 
+                    // ปรับแต่งสีตารางหลัก และ เปลี่ยนเส้นขอบให้เป็น "สีดำเส้นทึบ" (FF000000)
                     const styleRow = (row, bgArgb, fontColorArgb, isBold = false) => {
                         row.eachCell((cell, colNumber) => {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
                             cell.font = { name: 'Arial', size: 11, color: { argb: fontColorArgb }, bold: isBold };
-                            cell.border = { top: {style:'thin', color: {argb:'FFCBD5E1'}}, left: {style:'thin', color: {argb:'FFCBD5E1'}}, bottom: {style:'thin', color: {argb:'FFCBD5E1'}}, right: {style:'thin', color: {argb:'FFCBD5E1'}} };
+                            // ตีกรอบเป็นสีดำเส้นทึบให้เห็นชัดเจน
+                            cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                             cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
                         });
                     };
@@ -710,7 +712,7 @@
                     sheet.getColumn(daysInMonth+2).width = 16; 
 
                     // ==========================================
-                    // 🌟 ส่วนที่เพิ่มใหม่: ตารางสรุปยอดส่งบิลหลัง 18.00 น.
+                    // 🌟 ส่วนตารางสรุปยอดส่งบิลหลัง 18.00 น.
                     // ==========================================
                     
                     // รวบรวมข้อมูลหลัง 18:00 น. จากข้อมูลที่มี
@@ -750,7 +752,8 @@
                             const cell = eHeader.getCell(i);
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } }; // สีฟ้า Blue-500
                             cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } }; // สีขาว
-                            cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                            // ตีกรอบหัวตารางสีดำเส้นทึบ
+                            cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                             cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         }
 
@@ -794,8 +797,8 @@
                                 
                                 // จัดการรูปแบบฟอนต์แยกตามคอลัมน์
                                 if (i === 1) {
-                                    // คอลัมน์วันที่ส่งบิล: ตัวหนาสีเข้มแค่อันแรก นอกนั้นตัวบางสีเทา
-                                    cell.font = { name: 'Arial', color: { argb: isFirstOfThisDate ? 'FF1E293B' : 'FF64748B' }, bold: isFirstOfThisDate }; 
+                                    // คอลัมน์วันที่ส่งบิล: ตัวหนาสีเข้มแค่อันแรก นอกนั้นใช้สีสว่าง (FFF1F5F9) ซึ่งจางแทบมองไม่เห็น
+                                    cell.font = { name: 'Arial', color: { argb: isFirstOfThisDate ? 'FF1E293B' : 'FFF1F5F9' }, bold: isFirstOfThisDate }; 
                                 } else if (i === 4 || i === 5) {
                                     // คอลัมน์จำนวน (เที่ยว): ตัวหนาสีแดง
                                     cell.font = { name: 'Arial', color: { argb: 'FFDC2626' }, bold: true };
@@ -804,7 +807,8 @@
                                     cell.font = { name: 'Arial', color: { argb: 'FF334155' }, bold: false };
                                 }
                                 
-                                cell.border = { top: {style:'thin', color: {argb:'FFE2E8F0'}}, left: {style:'thin', color: {argb:'FFE2E8F0'}}, bottom: {style:'thin', color: {argb:'FFE2E8F0'}}, right: {style:'thin', color: {argb:'FFE2E8F0'}} };
+                                // ตีกรอบข้อมูลสีดำเส้นทึบ
+                                cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                                 cell.alignment = { horizontal: 'center', vertical: 'middle' };
                             }
                         });
@@ -821,7 +825,8 @@
                             const cell = eFooterRow.getCell(i);
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }; // สีแดงอ่อน
                             cell.font = { name: 'Arial', bold: true, color: { argb: 'FF991B1B' } }; // สีแดงเข้ม
-                            cell.border = { top: {style:'medium', color: {argb:'FFDC2626'}}, bottom: {style:'medium', color: {argb:'FFDC2626'}}, left: {style:'thin', color: {argb:'FFDC2626'}}, right: {style:'thin', color: {argb:'FFDC2626'}} };
+                            // ตีกรอบส่วนท้ายเป็นสีดำเส้นทึบด้วยเช่นกันเพื่อให้เข้าชุด
+                            cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                         }
                     }
                     // ==========================================
