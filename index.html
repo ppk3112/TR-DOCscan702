@@ -666,7 +666,11 @@
                 setIsExporting(true);
                 try {
                     const workbook = new window.ExcelJS.Workbook();
-                    const sheet = workbook.addWorksheet('สรุปยอดส่งบิล', {views: [{state: 'frozen', xSplit: 1, ySplit: 2}]});
+                    // ตั้งค่าให้ซ่อนเส้นขอบ Grid ของ Excel ออกทั้งหมด เพื่อให้ดูสะอาดตาเหมือนหน้า A4
+                    const sheet = workbook.addWorksheet('สรุปยอดส่งบิล', {
+                        views: [{state: 'frozen', xSplit: 1, ySplit: 2, showGridLines: false}]
+                    });
+                    
                     const year = parseInt(selectedMonth.split('-')[0]);
                     const month = parseInt(selectedMonth.split('-')[1]);
                     const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
@@ -695,9 +699,9 @@
                     eveningRow.push(sumEvening); 
                     totalRow.push(sumTotal);
 
-                    // สร้าง Title Report
+                    // สร้าง Title Report (ฟอนต์สีดำ)
                     const titleRow = sheet.addRow([`รายงานสรุปยอดส่งบิลจัดสินค้าประจำเดือน ${thaiMonth} ${thaiYear}`]);
-                    titleRow.getCell(1).font = { name: 'Arial', bold: true, size: 14, color: { argb: 'FF1E3A8A' } };
+                    titleRow.getCell(1).font = { name: 'Arial', bold: true, size: 14, color: { argb: 'FF000000' } };
                     sheet.mergeCells('A1:G1');
 
                     // สร้างตารางข้อมูล
@@ -707,36 +711,36 @@
                     const r5 = sheet.addRow(eveningRow); 
                     const r6 = sheet.addRow(totalRow); 
 
-                    // ธีมตารางแบบมืออาชีพ (Professional Corporate Theme)
+                    // ธีมตารางแบบมืออาชีพสีสว่าง (Professional Corporate Theme - Lighter Colors)
                     const styleRow = (row, bgArgb, fontColorArgb, isBold = false) => {
                         row.eachCell((cell, colNumber) => {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
                             cell.font = { name: 'Arial', size: 10, color: { argb: fontColorArgb }, bold: isBold };
-                            // เส้นขอบสี Slate 400 ไม่ดำจนเกินไป ช่วยให้สบายตา
+                            // เส้นขอบสีดำแบบปกติ
                             cell.border = { 
-                                top: {style:'thin', color: {argb:'FF94A3B8'}}, 
-                                left: {style:'thin', color: {argb:'FF94A3B8'}}, 
-                                bottom: {style:'thin', color: {argb:'FF94A3B8'}}, 
-                                right: {style:'thin', color: {argb:'FF94A3B8'}} 
+                                top: {style:'thin', color: {argb:'FF000000'}}, 
+                                left: {style:'thin', color: {argb:'FF000000'}}, 
+                                bottom: {style:'thin', color: {argb:'FF000000'}}, 
+                                right: {style:'thin', color: {argb:'FF000000'}} 
                             };
                             cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
                         });
                     };
 
-                    styleRow(r2, 'FF1E3A8A', 'FFFFFFFF', true);   // Header: Dark Blue
-                    styleRow(r3, 'FFFFFFFF', 'FF334155', false);  // Morning: White
-                    styleRow(r4, 'FFF8FAFC', 'FF334155', false);  // Afternoon: Light Slate
-                    styleRow(r5, 'FFF1F5F9', 'FF334155', false);  // Evening: Slate 100
+                    styleRow(r2, 'FFDBEAFE', 'FF000000', true);   // Header: Light Blue (Blue-100) / Black Font
+                    styleRow(r3, 'FFFFFFFF', 'FF000000', false);  // Morning: White / Black Font
+                    styleRow(r4, 'FFF8FAFC', 'FF000000', false);  // Afternoon: Light Slate / Black Font
+                    styleRow(r5, 'FFF1F5F9', 'FF000000', false);  // Evening: Slate 100 / Black Font
                     
-                    // แถบยอดรวม ใช้สีฟ้าอ่อน ตัดกับตัวหนังสือกรมท่าเข้ม + เส้นคู่ด้านบนและล่าง (Double Border)
+                    // แถบยอดรวม ใช้สีฟ้าพาสเทล ตัดกับตัวหนังสือดำ
                     r6.eachCell((cell, colNumber) => {
-                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } };
-                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF1E3A8A' }, bold: true };
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFDBFE' } }; // Blue-200
+                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true };
                         cell.border = { 
-                            top: {style:'double', color: {argb:'FF1E3A8A'}}, 
-                            bottom: {style:'double', color: {argb:'FF1E3A8A'}},
-                            left: {style:'thin', color: {argb:'FF94A3B8'}}, 
-                            right: {style:'thin', color: {argb:'FF94A3B8'}} 
+                            top: {style:'thin', color: {argb:'FF000000'}}, 
+                            bottom: {style:'thin', color: {argb:'FF000000'}},
+                            left: {style:'thin', color: {argb:'FF000000'}}, 
+                            right: {style:'thin', color: {argb:'FF000000'}} 
                         };
                         cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
                     });
@@ -777,7 +781,7 @@
                         sheet.addRow([]); // เว้นบรรทัด
 
                         const titleRowE = sheet.addRow(['📌 รายละเอียดการส่งบิลรอบดึก (หลัง 18.00 น.)']);
-                        titleRowE.getCell(1).font = { name: 'Arial', bold: true, size: 12, color: { argb: 'FF1E3A8A' } };
+                        titleRowE.getCell(1).font = { name: 'Arial', bold: true, size: 12, color: { argb: 'FF000000' } };
                         sheet.mergeCells(`A${titleRowE.number}:E${titleRowE.number}`);
 
                         const eHeader = sheet.addRow(['วันที่ส่งบิล', 'ดิวส่งวันที่', '', 'จำนวน (เที่ยว)', '']);
@@ -789,9 +793,9 @@
 
                         for(let i=1; i<=5; i++) {
                             const cell = eHeader.getCell(i);
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A8A' } }; // Dark Blue Header
-                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' } };
-                            cell.border = { top: {style:'thin', color: {argb:'FF94A3B8'}}, left: {style:'thin', color: {argb:'FF94A3B8'}}, bottom: {style:'thin', color: {argb:'FF94A3B8'}}, right: {style:'thin', color: {argb:'FF94A3B8'}} };
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } }; // Light Blue Header
+                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; // Black Font
+                            cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                             cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         }
 
@@ -834,14 +838,14 @@
                                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
                                 
                                 if (i === 1) {
-                                    cell.font = { name: 'Arial', color: { argb: 'FF0F172A' }, bold: isFirstOfThisDate }; 
+                                    cell.font = { name: 'Arial', color: { argb: 'FF000000' }, bold: isFirstOfThisDate }; 
                                 } else if (i === 4 || i === 5) {
-                                    cell.font = { name: 'Arial', color: { argb: 'FF1E3A8A' }, bold: true }; // ใช้สีกรมท่าเข้มแทนสีแดง
+                                    cell.font = { name: 'Arial', color: { argb: 'FF000000' }, bold: true }; 
                                 } else {
-                                    cell.font = { name: 'Arial', color: { argb: 'FF334155' }, bold: false };
+                                    cell.font = { name: 'Arial', color: { argb: 'FF000000' }, bold: false };
                                 }
                                 
-                                cell.border = { top: {style:'thin', color: {argb:'FFCBD5E1'}}, left: {style:'thin', color: {argb:'FFCBD5E1'}}, bottom: {style:'thin', color: {argb:'FFCBD5E1'}}, right: {style:'thin', color: {argb:'FFCBD5E1'}} };
+                                cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                                 cell.alignment = { horizontal: 'center', vertical: 'middle' };
                             }
                         });
@@ -860,14 +864,13 @@
                         
                         for(let i=1; i<=5; i++) {
                             const cell = eFooterRow.getCell(i);
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } }; // Light Blue
-                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF1E3A8A' } }; // Dark Blue
-                            // เส้นขอบคู่ (Double Line) เฉพาะขอบบนและขอบล่าง
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBFDBFE' } }; // Blue-200
+                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; // Black
                             cell.border = { 
-                                top: {style:'double', color: {argb:'FF1E3A8A'}}, 
-                                bottom: {style:'double', color: {argb:'FF1E3A8A'}}, 
-                                left: {style:'thin', color: {argb:'FF94A3B8'}}, 
-                                right: {style:'thin', color: {argb:'FF94A3B8'}} 
+                                top: {style:'thin', color: {argb:'FF000000'}}, 
+                                bottom: {style:'thin', color: {argb:'FF000000'}}, 
+                                left: {style:'thin', color: {argb:'FF000000'}}, 
+                                right: {style:'thin', color: {argb:'FF000000'}} 
                             };
                         }
                     }
