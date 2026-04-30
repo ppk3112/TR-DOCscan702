@@ -604,7 +604,7 @@
                 }
             }, [isActive, selectedMonth, refreshTrigger]);
 
-            // ประมวลผลข้อมูลสถิติ
+            // ประมวลผลข้อมูลสถิติ (แก้ไขตรวจสอบความถูกต้องของยอดรวม)
             const getMonthlyStats = () => {
                 const year = parseInt(selectedMonth.split('-')[0]);
                 const month = parseInt(selectedMonth.split('-')[1]);
@@ -616,14 +616,19 @@
                 const todayStr = new Date().toLocaleDateString('en-CA');
 
                 monthHistoryData.forEach(item => {
+                    // ป้องกันการดึงข้อมูลผิดเดือนมาบวก
+                    if (item.date.substring(0, 7) !== selectedMonth) return;
+
                     const day = parseInt(item.date.split('-')[2]) - 1;
-                    const count = Number(item.count) || 0;
+                    const count = item.count !== undefined ? Number(item.count) : 1;
                     
                     if (day >= 0 && day < daysInMonth) {
                         totalMonthCount += count;
                         stats[day].total += count;
 
-                        const hour = parseInt(item.time.split(':')[0], 10);
+                        const hourStr = item.time ? item.time.split(':')[0] : '0';
+                        const hour = parseInt(hourStr, 10) || 0;
+                        
                         if (hour < 12) stats[day].morning += count;
                         else if (hour < 18) stats[day].afternoon += count;
                         else stats[day].evening += count;
@@ -636,7 +641,8 @@
 
                     if (item.date === todayStr) {
                         todayTotal += count;
-                        const hour = parseInt(item.time.split(':')[0], 10);
+                        const hourStr = item.time ? item.time.split(':')[0] : '0';
+                        const hour = parseInt(hourStr, 10) || 0;
                         if (hour < 12) todayMorning += count;
                         else if (hour < 18) todayAfternoon += count;
                         else todayEvening += count;
@@ -674,7 +680,14 @@
                     const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
                     const thaiYear = year + 543;
 
-                    const headerRow = ['วันที่']; const morningRow = ['ก่อนเที่ยง']; const afternoonRow = ['ช่วงบ่าย']; const eveningRow = ['หลัง 18.00 น.']; const urgentRow = ['งานด่วน']; const totalRow = ['รวมรายวัน'];
+                    // ปรับโครงสร้างเพื่อไม่ให้สับสนเรื่องยอดรวม
+                    const headerRow = ['วันที่']; 
+                    const morningRow = ['ก่อนเที่ยง']; 
+                    const afternoonRow = ['ช่วงบ่าย']; 
+                    const eveningRow = ['หลัง 18.00 น.']; 
+                    const totalRow = ['รวมรายวัน']; // ย้ายยอดรวมขึ้นมาต่อจากช่วงเวลา
+                    const urgentRow = ['(ในนี้เป็นงานด่วน)']; // แยกงานด่วนออกมาด้านล่างให้ชัดเจนว่าเป็นข้อมูลย่อย
+                    
                     let sumMorning=0, sumAfternoon=0, sumEvening=0, sumUrgent=0, sumTotal=0;
 
                     for(let i=0; i<daysInMonth; i++) {
@@ -682,30 +695,45 @@
                         morningRow.push(stats[i].morning); sumMorning += stats[i].morning;
                         afternoonRow.push(stats[i].afternoon); sumAfternoon += stats[i].afternoon;
                         eveningRow.push(stats[i].evening); sumEvening += stats[i].evening;
-                        urgentRow.push(stats[i].urgent); sumUrgent += stats[i].urgent;
                         totalRow.push(stats[i].total); sumTotal += stats[i].total;
+                        urgentRow.push(stats[i].urgent); sumUrgent += stats[i].urgent;
                     }
 
-                    headerRow.push('รวมทั้งเดือน'); morningRow.push(sumMorning); afternoonRow.push(sumAfternoon); eveningRow.push(sumEvening); urgentRow.push(sumUrgent); totalRow.push(sumTotal);
+                    headerRow.push('รวมทั้งเดือน'); 
+                    morningRow.push(sumMorning); 
+                    afternoonRow.push(sumAfternoon); 
+                    eveningRow.push(sumEvening); 
+                    totalRow.push(sumTotal);
+                    urgentRow.push(sumUrgent); 
 
                     sheet.addRow([`${thaiMonth} ${thaiYear}`]);
                     sheet.getCell('A1').font = { name: 'Arial', bold: true, size: 16 };
                     sheet.mergeCells('A1:C1');
 
-                    const r2 = sheet.addRow(headerRow); const r3 = sheet.addRow(morningRow); const r4 = sheet.addRow(afternoonRow); const r5 = sheet.addRow(eveningRow); const r6 = sheet.addRow(urgentRow); const r7 = sheet.addRow(totalRow);
+                    // เพิ่มแถวลงในชีท (ลำดับใหม่)
+                    const r2 = sheet.addRow(headerRow); 
+                    const r3 = sheet.addRow(morningRow); 
+                    const r4 = sheet.addRow(afternoonRow); 
+                    const r5 = sheet.addRow(eveningRow); 
+                    const r6 = sheet.addRow(totalRow); 
+                    const r7 = sheet.addRow(urgentRow); 
 
-                    // ปรับแต่งสีตารางหลัก และ เปลี่ยนเส้นขอบให้เป็น "สีดำเส้นทึบ" (FF000000)
                     const styleRow = (row, bgArgb, fontColorArgb, isBold = false) => {
                         row.eachCell((cell, colNumber) => {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
                             cell.font = { name: 'Arial', size: 11, color: { argb: fontColorArgb }, bold: isBold };
-                            // ตีกรอบเป็นสีดำเส้นทึบให้เห็นชัดเจน
+                            // เปลี่ยนตีกรอบตารางบนเป็นสีดำเส้นทึบ
                             cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                             cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
                         });
                     };
 
-                    styleRow(r2, 'FF1E293B', 'FFFFFFFF', true); styleRow(r3, 'FFFFEDD5', 'FFC2410C'); styleRow(r4, 'FFFFFBDB', 'FFB45309'); styleRow(r5, 'FFE0E7FF', 'FF4338CA'); styleRow(r6, 'FFFEE2E2', 'FFB91C1C', true); styleRow(r7, 'FFD1FAE5', 'FF047857', true); 
+                    styleRow(r2, 'FF1E293B', 'FFFFFFFF', true); 
+                    styleRow(r3, 'FFFFEDD5', 'FFC2410C'); 
+                    styleRow(r4, 'FFFFFBDB', 'FFB45309'); 
+                    styleRow(r5, 'FFE0E7FF', 'FF4338CA'); 
+                    styleRow(r6, 'FFD1FAE5', 'FF047857', true); // ยอดรวม
+                    styleRow(r7, 'FFFEE2E2', 'FFB91C1C', false); // งานด่วน
 
                     sheet.getColumn(1).width = 24; 
                     for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 6; 
@@ -718,7 +746,10 @@
                     // รวบรวมข้อมูลหลัง 18:00 น. จากข้อมูลที่มี
                     const eveningSummary = {};
                     monthHistoryData.forEach(item => {
-                        const hour = parseInt(item.time.split(':')[0], 10);
+                        if (item.date.substring(0, 7) !== selectedMonth) return; // ป้องกันข้ามเดือน
+                        
+                        const hourStr = item.time ? item.time.split(':')[0] : '0';
+                        const hour = parseInt(hourStr, 10) || 0;
                         if (hour >= 18) {
                             const key = `${item.date}_${item.dueDate}`;
                             if (!eveningSummary[key]) {
@@ -728,7 +759,8 @@
                                     count: 0
                                 };
                             }
-                            eveningSummary[key].count += (Number(item.count) || 0);
+                            const eCount = item.count !== undefined ? Number(item.count) : 1;
+                            eveningSummary[key].count += eCount;
                         }
                     });
 
@@ -748,6 +780,9 @@
                         sheet.mergeCells(`B${eHeader.number}:C${eHeader.number}`);
                         sheet.mergeCells(`D${eHeader.number}:E${eHeader.number}`);
                         
+                        const eveningTableStartRow = eHeader.number;
+                        let eveningTableEndRow = eHeader.number;
+
                         for(let i=1; i<=5; i++) {
                             const cell = eHeader.getCell(i);
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } }; // สีฟ้า Blue-500
@@ -783,6 +818,8 @@
                                 rowData.count,
                                 ''
                             ]);
+                            
+                            eveningTableEndRow = eDataRow.number; // บันทึกแถวสุดท้ายสำหรับทำ Filter
 
                             // ผสานเซลล์สำหรับข้อมูล
                             sheet.mergeCells(`B${eDataRow.number}:C${eDataRow.number}`);
@@ -797,7 +834,7 @@
                                 
                                 // จัดการรูปแบบฟอนต์แยกตามคอลัมน์
                                 if (i === 1) {
-                                    // คอลัมน์วันที่ส่งบิล: ตัวหนาสีเข้มแค่อันแรก นอกนั้นใช้สีสว่าง (FFF1F5F9) ซึ่งจางแทบมองไม่เห็น
+                                    // วันที่ส่งบิล: ตัวหนาสีเข้มแค่อันแรก นอกนั้นใช้สีสว่าง (FFF1F5F9) ซึ่งจางแทบมองไม่เห็น
                                     cell.font = { name: 'Arial', color: { argb: isFirstOfThisDate ? 'FF1E293B' : 'FFF1F5F9' }, bold: isFirstOfThisDate }; 
                                 } else if (i === 4 || i === 5) {
                                     // คอลัมน์จำนวน (เที่ยว): ตัวหนาสีแดง
@@ -813,6 +850,11 @@
                             }
                         });
 
+                        // เพิ่ม AutoFilter ให้ตารางหลัง 18.00 น.
+                        if (eveningTableEndRow > eveningTableStartRow) {
+                            sheet.autoFilter = `A${eveningTableStartRow}:E${eveningTableEndRow}`;
+                        }
+
                         // แถวสรุปยอดรวมด้านล่างสุด
                         const eFooterRow = sheet.addRow(['ยอดรวมทั้งเดือน', '', '', totalEveningCount, '']);
                         sheet.mergeCells(`A${eFooterRow.number}:C${eFooterRow.number}`);
@@ -825,7 +867,7 @@
                             const cell = eFooterRow.getCell(i);
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } }; // สีแดงอ่อน
                             cell.font = { name: 'Arial', bold: true, color: { argb: 'FF991B1B' } }; // สีแดงเข้ม
-                            // ตีกรอบส่วนท้ายเป็นสีดำเส้นทึบด้วยเช่นกันเพื่อให้เข้าชุด
+                            // ตีกรอบส่วนท้ายเป็นสีดำเส้นทึบด้วยเช่นกัน
                             cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
                         }
                     }
