@@ -687,7 +687,7 @@
                 });
             }, [stats, isActive, daysInMonth]);
 
-            // ✅ ฟังก์ชัน Export Excel ที่ปรับแก้ตามโจทย์เป๊ะ 100%
+            // ✅ ฟังก์ชัน Export Excel ที่ปรับแก้ตามโจทย์เป๊ะ (ตารางเดียว, Angsana New, 12)
             const handleExportExcel = async () => {
                 if (!window.ExcelJS) { alert('ระบบสร้างไฟล์กำลังโหลด...'); return; }
                 setIsExporting(true);
@@ -699,73 +699,7 @@
                     const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
                     const thaiYear = year + 543;
 
-                    // ==========================================
-                    // 📊 ตารางที่ 1: ตารางสรุปแบบเดิม (ดั้งเดิม)
-                    // ==========================================
-                    const headerRow = ['วันที่']; 
-                    const morningRow = ['ก่อนเที่ยง']; 
-                    const afternoonRow = ['ช่วงบ่าย']; 
-                    const eveningRow = ['หลัง 18.00 น.']; 
-                    const urgentRow = ['งานด่วน']; 
-                    const totalRow = ['รวมรายวัน'];
-
-                    let sumMorning=0, sumAfternoon=0, sumEvening=0, sumUrgent=0, sumTotal=0;
-
-                    for(let i=0; i<daysInMonth; i++) {
-                        headerRow.push(i+1);
-                        morningRow.push(stats[i].morning); sumMorning += stats[i].morning;
-                        afternoonRow.push(stats[i].afternoon); sumAfternoon += stats[i].afternoon;
-                        eveningRow.push(stats[i].evening); sumEvening += stats[i].evening;
-                        urgentRow.push(stats[i].urgent); sumUrgent += stats[i].urgent;
-                        totalRow.push(stats[i].total); sumTotal += stats[i].total;
-                    }
-
-                    headerRow.push('รวมทั้งเดือน'); 
-                    morningRow.push(sumMorning); 
-                    afternoonRow.push(sumAfternoon); 
-                    eveningRow.push(sumEvening); 
-                    urgentRow.push(sumUrgent); 
-                    totalRow.push(sumTotal);
-
-                    sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
-                    sheet.getCell('A1').font = { name: 'Arial', bold: true, size: 16 };
-                    sheet.mergeCells('A1:C1');
-
-                    const r2 = sheet.addRow(headerRow); 
-                    const r3 = sheet.addRow(morningRow); 
-                    const r4 = sheet.addRow(afternoonRow); 
-                    const r5 = sheet.addRow(eveningRow); 
-                    const r6 = sheet.addRow(urgentRow); 
-                    const r7 = sheet.addRow(totalRow);
-
-                    const styleRow = (row, bgArgb, fontColorArgb, isBold = false) => {
-                        row.eachCell((cell, colNumber) => {
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
-                            cell.font = { name: 'Arial', size: 11, color: { argb: fontColorArgb }, bold: isBold };
-                            cell.border = { top: {style:'thin', color: {argb:'FFCBD5E1'}}, left: {style:'thin', color: {argb:'FFCBD5E1'}}, bottom: {style:'thin', color: {argb:'FFCBD5E1'}}, right: {style:'thin', color: {argb:'FFCBD5E1'}} };
-                            cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
-                        });
-                    };
-
-                    styleRow(r2, 'FF1E293B', 'FFFFFFFF', true); 
-                    styleRow(r3, 'FFFFEDD5', 'FFC2410C'); 
-                    styleRow(r4, 'FFFFFBDB', 'FFB45309'); 
-                    styleRow(r5, 'FFE0E7FF', 'FF4338CA'); 
-                    styleRow(r6, 'FFFEE2E2', 'FFB91C1C', true); 
-                    styleRow(r7, 'FFD1FAE5', 'FF047857', true); 
-
-
-                    // ==========================================
-                    // 📈 ตารางที่ 2: ตารางเปรียบเทียบ (ต่อท้ายตารางเดิม)
-                    // ==========================================
-                    sheet.addRow([]); // เว้น 1 บรรทัด
-                    
-                    sheet.addRow(['ตารางเปรียบเทียบข้อมูลส่งบิล']);
-                    const titleCell = sheet.getCell(`A${sheet.rowCount}`);
-                    titleCell.font = { name: 'Arial', bold: true, size: 12 };
-                    sheet.mergeCells(`A${sheet.rowCount}:C${sheet.rowCount}`);
-
-                    // ตั้งชื่อแถวและเปลี่ยนคำเป็น "ส่งบิล"
+                    // ตั้งชื่อแถวให้ตรงกับที่ต้องการ
                     const compHeader = ['วันที่'];
                     const compTotal = ['จำนวนเที่ยวทั้งหมด'];
                     const compBefore1Day = ['ส่งบิลก่อนวันนัดส่ง 1 วัน (ทั้งหมด)'];
@@ -777,16 +711,16 @@
                     const compEvening_b3p = ['    - ดิวส่งล่วงหน้า 3 วันขึ้นไป'];
                     const compEvening_after = ['    - ดิวส่งล่าช้า (หลังคิวส่ง)'];
 
-                    let sumCompBefore1Day=0, sumCompSameDay=0, sumCompAfterDue=0;
-                    let sumCompEvening_b1=0, sumCompEvening_b2=0, sumCompEvening_b3p=0, sumCompEvening_after=0;
+                    let sumTotal=0, sumCompBefore1Day=0, sumCompSameDay=0, sumCompAfterDue=0;
+                    let sumEvening=0, sumCompEvening_b1=0, sumCompEvening_b2=0, sumCompEvening_b3p=0, sumCompEvening_after=0;
 
                     for(let i=0; i<daysInMonth; i++) {
                         compHeader.push(i+1);
-                        compTotal.push(stats[i].total);
+                        compTotal.push(stats[i].total); sumTotal += stats[i].total;
                         compBefore1Day.push(stats[i].before1Day); sumCompBefore1Day += stats[i].before1Day;
                         compSameDay.push(stats[i].sameDay); sumCompSameDay += stats[i].sameDay;
                         compAfterDue.push(stats[i].afterDue); sumCompAfterDue += stats[i].afterDue;
-                        compEvening.push(stats[i].evening);
+                        compEvening.push(stats[i].evening); sumEvening += stats[i].evening;
                         compEvening_b1.push(stats[i].evening_before1Day); sumCompEvening_b1 += stats[i].evening_before1Day;
                         compEvening_b2.push(stats[i].evening_before2Days); sumCompEvening_b2 += stats[i].evening_before2Days;
                         compEvening_b3p.push(stats[i].evening_before3DaysPlus); sumCompEvening_b3p += stats[i].evening_before3DaysPlus;
@@ -804,6 +738,13 @@
                     compEvening_b3p.push(sumCompEvening_b3p);
                     compEvening_after.push(sumCompEvening_after);
 
+                    // สร้างเซลล์ชื่อเดือน (แถวบนสุด)
+                    sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
+                    const titleCell = sheet.getCell('A1');
+                    titleCell.font = { name: 'Angsana New', bold: true, size: 16 };
+                    sheet.mergeCells('A1:C1');
+
+                    // เพิ่มข้อมูลแต่ละแถวลง Sheet
                     const rComp1 = sheet.addRow(compHeader);
                     const rComp2 = sheet.addRow(compTotal);
                     const rComp3 = sheet.addRow(compBefore1Day);
@@ -815,30 +756,31 @@
                     const rComp6_3 = sheet.addRow(compEvening_b3p);
                     const rComp6_4 = sheet.addRow(compEvening_after);
 
-                    // ตกแต่งสีตารางที่ 2
+                    // ฟังก์ชันตกแต่งเซลล์ (Angsana New, ขนาด 12)
                     const styleCompRow = (row, bgArgb, fontColorArgb, isBold = false) => {
                         row.eachCell((cell, colNumber) => {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
-                            cell.font = { name: 'Arial', size: 10, color: { argb: fontColorArgb }, bold: isBold };
+                            cell.font = { name: 'Angsana New', size: 12, color: { argb: fontColorArgb }, bold: isBold };
                             cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
                             cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
                         });
-                        // สีเหลืองสำหรับคอลัมน์ Total
+                        // สีเหลืองสำหรับคอลัมน์ Total ช่องสุดท้าย
                         const lastColNumber = daysInMonth + 2;
                         const lastCell = row.getCell(lastColNumber);
                         lastCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
-                        lastCell.font = { name: 'Arial', size: 10, color: { argb: fontColorArgb }, bold: true };
+                        lastCell.font = { name: 'Angsana New', size: 12, color: { argb: fontColorArgb }, bold: true };
                     };
 
+                    // แต่งสีหัวตารางวันที่
                     rComp1.eachCell((cell, colNumber) => {
                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
-                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true };
+                        cell.font = { name: 'Angsana New', size: 12, color: { argb: 'FF000000' }, bold: true };
                         cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
                         cell.alignment = { vertical: 'middle', horizontal: 'center' };
                     });
 
                     styleCompRow(rComp2, 'FFFFFFFF', 'FFFF0000', true); 
-                    rComp2.getCell(1).font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true }; 
+                    rComp2.getCell(1).font = { name: 'Angsana New', size: 12, color: { argb: 'FF000000' }, bold: true }; 
 
                     styleCompRow(rComp3, 'FFFFFFFF', 'FF000000');
                     styleCompRow(rComp4, 'FFFFFFFF', 'FF000000');
@@ -856,9 +798,10 @@
                     rComp6_3.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
                     rComp6_4.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
-                    // กำหนดความกว้างคอลัมน์
-                    sheet.getColumn(1).width = 34; 
+                    // กำหนดความกว้างคอลัมน์ (ขยายคอลัมน์แรกเพื่อให้ฟอนต์ Angsana แสดงได้สวยงามไม่ตกบรรทัด)
+                    sheet.getColumn(1).width = 40; 
                     for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 5; 
+                    sheet.getColumn(daysInMonth+2).width = 8;
 
                     const buffer = await workbook.xlsx.writeBuffer();
                     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
