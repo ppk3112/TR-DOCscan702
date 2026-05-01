@@ -590,25 +590,23 @@
                 }
             }, [isActive, selectedMonth, refreshTrigger]);
 
-            // ประมวลผลข้อมูลสถิติ (อัปเดตใหม่เพื่อความแม่นยำในการหาลอจิกวันดิว)
+            // ประมวลผลข้อมูลสถิติ
             const getMonthlyStats = () => {
                 const year = parseInt(selectedMonth.split('-')[0]);
                 const month = parseInt(selectedMonth.split('-')[1]);
                 const daysInMonth = new Date(year, month, 0).getDate();
                 
-                // เพิ่ม fields สำหรับแยกรายละเอียดใน Excel ตามที่แจ้ง
                 const stats = Array.from({length: daysInMonth}, () => ({ 
                     morning:0, afternoon:0, evening:0, 
                     urgent:0, total:0, 
-                    before1Day: 0, sameDay: 0, afterDue: 0,
-                    evening_before1Day: 0, evening_before2Days: 0, evening_before3DaysPlus: 0, evening_sameDay: 0, evening_afterDue: 0
+                    before1Day: 0, before2DaysPlus: 0, sameDay: 0, afterDue: 0,
+                    evening_before1Day: 0, evening_before2Days: 0, evening_before3DaysPlus: 0, evening_afterDue: 0
                 }));
                 
                 let totalMonthCount = 0;
                 let todayTotal = 0, todayMorning = 0, todayAfternoon = 0, todayEvening = 0;
                 const todayStr = new Date().toLocaleDateString('en-CA');
 
-                // Helper ฟังก์ชันสำหรับสร้าง Date object โดยไม่ต้องกังวลเรื่อง Timezone
                 const parseDateLocal = (dStr) => {
                     const parts = dStr.split('-');
                     return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
@@ -627,32 +625,29 @@
                         else if (hour < 18) stats[day].afternoon += count;
                         else stats[day].evening += count;
 
-                        // ✅ ตรวจสอบวันรับบิล เทียบกับ วันดิวส่ง
                         const scanDateObj = parseDateLocal(item.date);
                         const dueDateObj = parseDateLocal(item.dueDate);
                         
-                        // คำนวณความต่างของวัน (เป็นจำนวนเต็มวัน)
                         const diffTime = dueDateObj.getTime() - scanDateObj.getTime();
                         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
                         if (diffDays === 1) {
-                            stats[day].before1Day += count; // รับก่อนดิวส่ง 1 วัน
+                            stats[day].before1Day += count; 
+                        } else if (diffDays >= 2) {
+                            stats[day].before2DaysPlus += count; 
                         } else if (diffDays === 0) {
-                            stats[day].sameDay += count;    // รับตรงกับดิวส่งพอดี
+                            stats[day].sameDay += count;    
                         } else if (diffDays < 0) {
-                            stats[day].afterDue += count;   // ล่าช้า (รับหลังจากวันดิวส่งไปแล้ว)
+                            stats[day].afterDue += count;   
                         }
 
-                        // คำนวณแยกรายละเอียดเฉพาะบิลที่ส่งหลัง 18.00 น.
                         if (hour >= 18) {
                             if (diffDays === 1) stats[day].evening_before1Day += count;
                             else if (diffDays === 2) stats[day].evening_before2Days += count;
                             else if (diffDays >= 3) stats[day].evening_before3DaysPlus += count;
-                            else if (diffDays === 0) stats[day].evening_sameDay += count;
                             else if (diffDays < 0) stats[day].evening_afterDue += count;
                         }
 
-                        // ส่วนการแสดงผล "งานด่วน" สำหรับ UI (ยังคงเก็บไว้แสดงในหน้าแอป)
                         const sendDate = new Date(item.date); sendDate.setHours(0,0,0,0);
                         const nextDay = new Date(sendDate); nextDay.setDate(sendDate.getDate() + 1);
                         const dDate = new Date(item.dueDate); dDate.setHours(0,0,0,0);
@@ -687,7 +682,7 @@
                 });
             }, [stats, isActive, daysInMonth]);
 
-            // ✅ ฟังก์ชัน Export Excel ที่ปรับแก้ตามโจทย์เป๊ะ (ตารางเดียว, Angsana New, 12)
+            // ✅ ฟังก์ชัน Export Excel
             const handleExportExcel = async () => {
                 if (!window.ExcelJS) { alert('ระบบสร้างไฟล์กำลังโหลด...'); return; }
                 setIsExporting(true);
@@ -699,25 +694,26 @@
                     const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
                     const thaiYear = year + 543;
 
-                    // ตั้งชื่อแถวให้ตรงกับที่ต้องการ
                     const compHeader = ['วันที่'];
                     const compTotal = ['จำนวนเที่ยวทั้งหมด'];
-                    const compBefore1Day = ['ส่งบิลก่อนวันนัดส่ง 1 วัน (ทั้งหมด)'];
-                    const compSameDay = ['ส่งบิลในวันนัดส่ง (ทั้งหมด)'];
-                    const compAfterDue = ['ส่งบิลหลังคิวส่ง (ล่าช้า) (ทั้งหมด)'];
+                    const compBefore1Day = ['ส่งบิลก่อนวันนัดส่ง 1 วัน (งานด่วน)'];
+                    const compBefore2DaysPlus = ['ส่งบิลก่อนดิวส่ง 2 วันขึ้นไป'];
+                    const compSameDay = ['ส่งบิลในวันนัดส่ง'];
+                    const compAfterDue = ['ส่งบิลหลังคิวส่ง (ล่าช้า)'];
                     const compEvening = ['ส่งบิลหลัง 18.00 น. (รวม)'];
                     const compEvening_b1 = ['    - ดิวส่งล่วงหน้า 1 วัน'];
                     const compEvening_b2 = ['    - ดิวส่งล่วงหน้า 2 วัน'];
                     const compEvening_b3p = ['    - ดิวส่งล่วงหน้า 3 วันขึ้นไป'];
                     const compEvening_after = ['    - ดิวส่งล่าช้า (หลังคิวส่ง)'];
 
-                    let sumTotal=0, sumCompBefore1Day=0, sumCompSameDay=0, sumCompAfterDue=0;
+                    let sumTotal=0, sumCompBefore1Day=0, sumCompBefore2DaysPlus=0, sumCompSameDay=0, sumCompAfterDue=0;
                     let sumEvening=0, sumCompEvening_b1=0, sumCompEvening_b2=0, sumCompEvening_b3p=0, sumCompEvening_after=0;
 
                     for(let i=0; i<daysInMonth; i++) {
                         compHeader.push(i+1);
                         compTotal.push(stats[i].total); sumTotal += stats[i].total;
                         compBefore1Day.push(stats[i].before1Day); sumCompBefore1Day += stats[i].before1Day;
+                        compBefore2DaysPlus.push(stats[i].before2DaysPlus); sumCompBefore2DaysPlus += stats[i].before2DaysPlus;
                         compSameDay.push(stats[i].sameDay); sumCompSameDay += stats[i].sameDay;
                         compAfterDue.push(stats[i].afterDue); sumCompAfterDue += stats[i].afterDue;
                         compEvening.push(stats[i].evening); sumEvening += stats[i].evening;
@@ -730,6 +726,7 @@
                     compHeader.push('Total');
                     compTotal.push(sumTotal);
                     compBefore1Day.push(sumCompBefore1Day);
+                    compBefore2DaysPlus.push(sumCompBefore2DaysPlus);
                     compSameDay.push(sumCompSameDay);
                     compAfterDue.push(sumCompAfterDue);
                     compEvening.push(sumEvening);
@@ -738,25 +735,23 @@
                     compEvening_b3p.push(sumCompEvening_b3p);
                     compEvening_after.push(sumCompEvening_after);
 
-                    // สร้างเซลล์ชื่อเดือน (แถวบนสุด)
                     sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
                     const titleCell = sheet.getCell('A1');
                     titleCell.font = { name: 'Angsana New', bold: true, size: 16 };
                     sheet.mergeCells('A1:C1');
 
-                    // เพิ่มข้อมูลแต่ละแถวลง Sheet
                     const rComp1 = sheet.addRow(compHeader);
                     const rComp2 = sheet.addRow(compTotal);
-                    const rComp3 = sheet.addRow(compBefore1Day);
-                    const rComp4 = sheet.addRow(compSameDay);
-                    const rComp5 = sheet.addRow(compAfterDue);
-                    const rComp6 = sheet.addRow(compEvening);
-                    const rComp6_1 = sheet.addRow(compEvening_b1);
-                    const rComp6_2 = sheet.addRow(compEvening_b2);
-                    const rComp6_3 = sheet.addRow(compEvening_b3p);
-                    const rComp6_4 = sheet.addRow(compEvening_after);
+                    const rComp3 = sheet.addRow(compBefore1Day); // สลับมาอยู่ก่อน
+                    const rComp4 = sheet.addRow(compBefore2DaysPlus); // สลับมาอยู่หลัง
+                    const rComp5 = sheet.addRow(compSameDay);
+                    const rComp6 = sheet.addRow(compAfterDue);
+                    const rComp7 = sheet.addRow(compEvening);
+                    const rComp7_1 = sheet.addRow(compEvening_b1);
+                    const rComp7_2 = sheet.addRow(compEvening_b2);
+                    const rComp7_3 = sheet.addRow(compEvening_b3p);
+                    const rComp7_4 = sheet.addRow(compEvening_after);
 
-                    // ฟังก์ชันตกแต่งเซลล์ (Angsana New, ขนาด 12)
                     const styleCompRow = (row, bgArgb, fontColorArgb, isBold = false) => {
                         row.eachCell((cell, colNumber) => {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
@@ -764,14 +759,12 @@
                             cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
                             cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
                         });
-                        // สีเหลืองสำหรับคอลัมน์ Total ช่องสุดท้าย
                         const lastColNumber = daysInMonth + 2;
                         const lastCell = row.getCell(lastColNumber);
                         lastCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
                         lastCell.font = { name: 'Angsana New', size: 12, color: { argb: fontColorArgb }, bold: true };
                     };
 
-                    // แต่งสีหัวตารางวันที่
                     rComp1.eachCell((cell, colNumber) => {
                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
                         cell.font = { name: 'Angsana New', size: 12, color: { argb: 'FF000000' }, bold: true };
@@ -785,20 +778,19 @@
                     styleCompRow(rComp3, 'FFFFFFFF', 'FF000000');
                     styleCompRow(rComp4, 'FFFFFFFF', 'FF000000');
                     styleCompRow(rComp5, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp6, 'FFFFFFFF', 'FF000000');
 
-                    styleCompRow(rComp6, 'FFEFF6FF', 'FF1E40AF', true); // สีฟ้าอ่อนสำหรับหัวข้อรวมหลัง 18.00 น.
-                    styleCompRow(rComp6_1, 'FFFFFFFF', 'FF475569'); // ข้อมูลย่อยสีเทาเข้ม
-                    styleCompRow(rComp6_2, 'FFFFFFFF', 'FF475569');
-                    styleCompRow(rComp6_3, 'FFFFFFFF', 'FF475569');
-                    styleCompRow(rComp6_4, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp7, 'FFEFF6FF', 'FF1E40AF', true); 
+                    styleCompRow(rComp7_1, 'FFFFFFFF', 'FF475569'); 
+                    styleCompRow(rComp7_2, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp7_3, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp7_4, 'FFFFFFFF', 'FF475569');
                     
-                    // ปรับการเยื้อง (Indent) ให้หมวดย่อยอ่านง่ายและเป็นระเบียบ
-                    rComp6_1.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-                    rComp6_2.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-                    rComp6_3.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-                    rComp6_4.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_1.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_2.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_3.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_4.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
-                    // กำหนดความกว้างคอลัมน์ (ขยายคอลัมน์แรกเพื่อให้ฟอนต์ Angsana แสดงได้สวยงามไม่ตกบรรทัด)
                     sheet.getColumn(1).width = 40; 
                     for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 5; 
                     sheet.getColumn(daysInMonth+2).width = 8;
@@ -917,6 +909,8 @@
             });
             const [isLiffReady, setIsLiffReady] = useState(false);
             const [activeTab, setActiveTab] = useState('scan');
+            
+            // ตัวสั่งให้หน้า History รีเฟรชข้อมูลเมื่อหน้าสแกนทำการบันทึกสำเร็จ
             const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0); 
 
             const wakeLockRef = useRef(null);
@@ -928,6 +922,7 @@
                 }
             };
 
+            // ระบบล็อคอิน LIFF
             useEffect(() => {
                 const initLiff = async () => {
                     try {
@@ -987,6 +982,7 @@
 
             return (
                 <div className="min-h-screen pb-32 relative bg-slate-50/50">
+                    {/* Header โชว์ข้อมูลผู้ใช้งาน */}
                     <div className="bg-white/80 backdrop-blur-md px-5 py-3.5 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-slate-100">
                         <div className="flex items-center gap-3.5">
                             <img src={userProfile.pictureUrl} alt="profile" className="w-11 h-11 rounded-full border-[3px] border-emerald-100 shadow-sm" />
@@ -998,9 +994,19 @@
                         <button onClick={() => {liff.logout(); setUserProfile(null); localStorage.removeItem('liff_profile_cache');}} className="text-[10px] text-red-500 bg-red-50 px-3 py-1.5 rounded-full font-bold">ออกจากระบบ</button>
                     </div>
 
-                    <ScannerTab isActive={activeTab === 'scan'} userProfile={userProfile} onSaveSuccess={() => setRefreshHistoryTrigger(prev => prev + 1)} />
-                    <HistoryTab isActive={activeTab === 'history'} refreshTrigger={refreshHistoryTrigger} />
+                    {/* ตัวรับจัดการเนื้อหาหลักที่แยกส่วนแล้ว (Component Split) */}
+                    <ScannerTab 
+                        isActive={activeTab === 'scan'} 
+                        userProfile={userProfile} 
+                        onSaveSuccess={() => setRefreshHistoryTrigger(prev => prev + 1)} 
+                    />
+                    
+                    <HistoryTab 
+                        isActive={activeTab === 'history'} 
+                        refreshTrigger={refreshHistoryTrigger} 
+                    />
 
+                    {/* แถบนำทางด้านล่าง */}
                     <div className="fixed bottom-6 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)] flex justify-center px-4 pointer-events-none">
                         <div className="bg-white/40 backdrop-blur-md border border-white/60 p-1.5 rounded-[30px] flex w-full max-w-[320px] pointer-events-auto shadow-lg">
                             <button onClick={() => setActiveTab('scan')} className={`flex-1 flex justify-center items-center h-14 rounded-[24px] transition-all ${activeTab === 'scan' ? 'bg-white/90 text-emerald-600 shadow-sm' : 'text-slate-600'}`}><i className="fa-solid fa-barcode text-xl"></i><span className="ml-2.5 font-bold text-sm">สแกนบิล</span></button>
