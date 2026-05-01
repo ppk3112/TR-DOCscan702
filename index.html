@@ -75,7 +75,7 @@
         const { useState, useEffect, useRef, useCallback } = React;
 
         // ==========================================
-        // 🛠️ ค่าคงที่และฟังก์ชันช่วยเหลือส่วนกลาง (แยกออกมาเพื่อไม่ให้โหลดซ้ำ)
+        // 🛠️ ค่าคงที่และฟังก์ชันช่วยเหลือส่วนกลาง
         // ==========================================
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRclDdXGntRfw_W6ygYGrSw0tLOrUmBLDRd12l-KNVahVWzX3rr-wkfzMcZt8o7fky3Q/exec';
 
@@ -147,9 +147,8 @@
             document.body.removeChild(textArea);
         };
 
-
         // ==========================================
-        // 🧩 Component: แท็บสแกน (Scanner Tab) - จัดการเฉพาะการสแกนและตะกร้า
+        // 🧩 Component: แท็บสแกน (Scanner Tab)
         // ==========================================
         const ScannerTab = ({ isActive, userProfile, onSaveSuccess }) => {
             const [currentItems, setCurrentItems] = useState(() => {
@@ -171,7 +170,6 @@
             const [saveSuccess, setSaveSuccess] = useState(false);
             const [isFlashlightOn, setIsFlashlightOn] = useState(false);
 
-            // Modals
             const [showConfirmModal, setShowConfirmModal] = useState(false);
             const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
             const [showCopyModal, setShowCopyModal] = useState(false);
@@ -189,14 +187,12 @@
             const currentItemsRef = useRef(currentItems);
             const allSentCodesCacheRef = useRef(allSentCodesCache);
 
-            // ซิงค์ Refs
             useEffect(() => { dueDateRef.current = dueDate; }, [dueDate]);
             useEffect(() => { deliveryTypeRef.current = deliveryType; }, [deliveryType]);
             useEffect(() => { currentItemsRef.current = currentItems; }, [currentItems]);
             useEffect(() => { allSentCodesCacheRef.current = allSentCodesCache; }, [allSentCodesCache]);
             useEffect(() => { localStorage.setItem('delivery_basket', JSON.stringify(currentItems)); }, [currentItems]);
 
-            // ดึงข้อมูลรหัสทั้งหมดเมื่อโหลดครั้งแรก
             useEffect(() => {
                 const fetchAllCodes = async () => {
                     const cachedCodes = localStorage.getItem('all_sent_codes_backup');
@@ -363,10 +359,8 @@
                         setTimeout(() => { setShowCopyModal(true); }, 1200); 
                     }
                     
-                    // ดึงรหัสใหม่และบอก HistoryTab ให้โหลดข้อมูลใหม่
                     onSaveSuccess();
                     
-                    // เพิ่มรหัสลงใน Cache ทันทีโดยไม่ต้องรอโหลดใหม่ทั้งหมด
                     const newCodesSet = new Set(allSentCodesCache);
                     newBatch.items.forEach(item => newCodesSet.add(item.code.trim().toUpperCase()));
                     setAllSentCodesCache(newCodesSet);
@@ -377,7 +371,6 @@
 
             return (
                 <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
-                    {/* แจ้งเตือนส่งสำเร็จ */}
                     {saveSuccess && (
                         <div className="fixed inset-0 bg-emerald-500/90 backdrop-blur-md z-[150] flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
                             <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-bounce"><i className="fa-solid fa-check text-7xl text-emerald-500"></i></div>
@@ -386,14 +379,12 @@
                         </div>
                     )}
 
-                    {/* แจ้งเตือนบิลซ้ำ */}
                     {duplicateWarning && (
                         <div className="fixed top-5 left-4 right-4 z-[110] bg-red-600/95 backdrop-blur-sm text-white p-4 rounded-2xl shadow flex items-center gap-3 animate-in slide-in-from-top-5">
                             <i className="fa-solid fa-triangle-exclamation text-xl"></i><div className="flex-1 font-bold text-sm">{duplicateWarning}</div>
                         </div>
                     )}
 
-                    {/* Popups (Scanner) */}
                     {showCopyModal && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[160] flex items-center justify-center p-4">
                             <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
@@ -468,7 +459,6 @@
                         </div>
                     )}
 
-                    {/* Layout หน้าสแกน */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         <div className="lg:col-span-7 space-y-6">
                             <div className="bg-white/95 backdrop-blur-sm p-6 rounded-[32px] shadow-sm border border-white/60">
@@ -550,7 +540,7 @@
         };
 
         // ==========================================
-        // 🧩 Component: แท็บสรุปประวัติ (History Tab) - จัดการกราฟและข้อมูลย้อนหลัง
+        // 🧩 Component: แท็บสรุปประวัติ (History Tab)
         // ==========================================
         const HistoryTab = ({ isActive, refreshTrigger }) => {
             const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleDateString('en-CA').substring(0, 7));
@@ -566,7 +556,6 @@
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
 
-            // Fetch History Data
             useEffect(() => {
                 if (!isActive) return;
 
@@ -597,44 +586,72 @@
                     if (cachedData && selectedMonth !== lastFetchedMonth) { 
                         try { setMonthHistoryData(JSON.parse(cachedData)); } catch(e) {} 
                     }
-                    
                     fetchHistory();
                 }
             }, [isActive, selectedMonth, refreshTrigger]);
 
-            // ประมวลผลข้อมูลสถิติ
+            // ประมวลผลข้อมูลสถิติ (อัปเดตใหม่เพื่อความแม่นยำในการหาลอจิกวันดิว)
             const getMonthlyStats = () => {
                 const year = parseInt(selectedMonth.split('-')[0]);
                 const month = parseInt(selectedMonth.split('-')[1]);
                 const daysInMonth = new Date(year, month, 0).getDate();
                 
-                const stats = Array.from({length: daysInMonth}, () => ({ morning:0, afternoon:0, evening:0, total:0 }));
+                // เพิ่ม fields สำหรับแยกรายละเอียดใน Excel ตามที่แจ้ง
+                const stats = Array.from({length: daysInMonth}, () => ({ 
+                    morning:0, afternoon:0, evening:0, 
+                    urgent:0, total:0, 
+                    before1Day: 0, sameDay: 0, afterDue: 0 
+                }));
+                
                 let totalMonthCount = 0;
                 let todayTotal = 0, todayMorning = 0, todayAfternoon = 0, todayEvening = 0;
                 const todayStr = new Date().toLocaleDateString('en-CA');
 
-                monthHistoryData.forEach(item => {
-                    if (item.date.substring(0, 7) !== selectedMonth) return; // ป้องกันข้ามเดือน
+                // Helper ฟังก์ชันสำหรับสร้าง Date object โดยไม่ต้องกังวลเรื่อง Timezone
+                const parseDateLocal = (dStr) => {
+                    const parts = dStr.split('-');
+                    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                };
 
+                monthHistoryData.forEach(item => {
                     const day = parseInt(item.date.split('-')[2]) - 1;
-                    const count = item.count !== undefined ? Number(item.count) : 1;
+                    const count = Number(item.count) || 0;
                     
                     if (day >= 0 && day < daysInMonth) {
                         totalMonthCount += count;
                         stats[day].total += count;
 
-                        const hourStr = item.time ? item.time.split(':')[0] : '0';
-                        const hour = parseInt(hourStr, 10) || 0;
-                        
+                        const hour = parseInt(item.time.split(':')[0], 10);
                         if (hour < 12) stats[day].morning += count;
                         else if (hour < 18) stats[day].afternoon += count;
                         else stats[day].evening += count;
+
+                        // ✅ ตรวจสอบวันรับบิล เทียบกับ วันดิวส่ง
+                        const scanDateObj = parseDateLocal(item.date);
+                        const dueDateObj = parseDateLocal(item.dueDate);
+                        
+                        // คำนวณความต่างของวัน (เป็นจำนวนเต็มวัน)
+                        const diffTime = dueDateObj.getTime() - scanDateObj.getTime();
+                        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffDays === 1) {
+                            stats[day].before1Day += count; // รับก่อนดิวส่ง 1 วัน
+                        } else if (diffDays === 0) {
+                            stats[day].sameDay += count;    // รับตรงกับดิวส่งพอดี
+                        } else if (diffDays < 0) {
+                            stats[day].afterDue += count;   // ล่าช้า (รับหลังจากวันดิวส่งไปแล้ว)
+                        }
+
+                        // ส่วนการแสดงผล "งานด่วน" สำหรับ UI (ยังคงเก็บไว้แสดงในหน้าแอป)
+                        const sendDate = new Date(item.date); sendDate.setHours(0,0,0,0);
+                        const nextDay = new Date(sendDate); nextDay.setDate(sendDate.getDate() + 1);
+                        const dDate = new Date(item.dueDate); dDate.setHours(0,0,0,0);
+                        if (dDate.getTime() <= nextDay.getTime()) stats[day].urgent += count;
                     }
 
                     if (item.date === todayStr) {
                         todayTotal += count;
-                        const hourStr = item.time ? item.time.split(':')[0] : '0';
-                        const hour = parseInt(hourStr, 10) || 0;
+                        const hour = parseInt(item.time.split(':')[0], 10);
                         if (hour < 12) todayMorning += count;
                         else if (hour < 18) todayAfternoon += count;
                         else todayEvening += count;
@@ -645,7 +662,6 @@
 
             const { stats, daysInMonth, totalMonthCount, todayTotal, todayMorning, todayAfternoon, todayEvening } = getMonthlyStats();
 
-            // วาดกราฟ
             useEffect(() => {
                 if (!isActive || !chartRef.current || !window.Chart) return;
                 if (chartInstance.current) chartInstance.current.destroy();
@@ -661,210 +677,112 @@
                 });
             }, [stats, isActive, daysInMonth]);
 
+            // ✅ ฟังก์ชัน Export Excel ที่ปรับแก้ตามโจทย์เป๊ะ 100%
             const handleExportExcel = async () => {
                 if (!window.ExcelJS) { alert('ระบบสร้างไฟล์กำลังโหลด...'); return; }
                 setIsExporting(true);
                 try {
                     const workbook = new window.ExcelJS.Workbook();
-                    const sheet = workbook.addWorksheet('สรุปยอดส่งบิล', {
-                        views: [{state: 'frozen', xSplit: 1, ySplit: 2, showGridLines: false}]
-                    });
-                    
+                    const sheet = workbook.addWorksheet('สรุปยอดส่งบิล');
                     const year = parseInt(selectedMonth.split('-')[0]);
                     const month = parseInt(selectedMonth.split('-')[1]);
                     const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
                     const thaiYear = year + 543;
 
-                    const headerRow = ['หัวข้อ']; 
-                    const morningRow = ['ก่อนเที่ยง']; 
-                    const afternoonRow = ['ช่วงบ่าย']; 
-                    const eveningRow = ['หลัง 18.00 น.']; 
-                    const totalRow = ['รวมรายวัน'];
-                    
-                    let sumMorning=0, sumAfternoon=0, sumEvening=0, sumTotal=0;
+                    // ตั้งชื่อแถวให้ตรงกับในตารางรูปภาพ
+                    const headerRow = ['ตัวส่ง']; 
+                    const totalRow = ['จำนวนเที่ยวทั้งหมด']; 
+                    const eveningRow = ['รับบิลหลัง 18.00 น.']; 
+                    const before1DayRow = ['รับบิลก่อนส่ง 1 วัน']; 
+                    const sameDayRow = ['รับบิลวันที่ส่ง']; 
+                    const afterDueRow = ['รับบิลหลังดิวส่ง (ล่าช้า)'];
+                    const morningRow = ['รับบิลก่อนเที่ยง (ก่อน 12.00 น.)'];
+                    const afternoonRow = ['รับบิลช่วงบ่าย (12.00 - 17.59 น.)'];
+
+                    // ผลรวมรายเดือน
+                    let sumTotal=0, sumEvening=0, sumBefore1Day=0, sumSameDay=0, sumAfterDue=0, sumMorning=0, sumAfternoon=0;
 
                     for(let i=0; i<daysInMonth; i++) {
                         headerRow.push(i+1);
+                        totalRow.push(stats[i].total); sumTotal += stats[i].total;
+                        eveningRow.push(stats[i].evening); sumEvening += stats[i].evening;
+                        before1DayRow.push(stats[i].before1Day); sumBefore1Day += stats[i].before1Day;
+                        sameDayRow.push(stats[i].sameDay); sumSameDay += stats[i].sameDay;
+                        afterDueRow.push(stats[i].afterDue); sumAfterDue += stats[i].afterDue;
                         morningRow.push(stats[i].morning); sumMorning += stats[i].morning;
                         afternoonRow.push(stats[i].afternoon); sumAfternoon += stats[i].afternoon;
-                        eveningRow.push(stats[i].evening); sumEvening += stats[i].evening;
-                        totalRow.push(stats[i].total); sumTotal += stats[i].total;
                     }
 
+                    // เพิ่มคอลัมน์รวมช่องสุดท้าย (Total)
                     headerRow.push('Total'); 
-                    morningRow.push(sumMorning); 
-                    afternoonRow.push(sumAfternoon); 
+                    totalRow.push(sumTotal); 
                     eveningRow.push(sumEvening); 
-                    totalRow.push(sumTotal);
+                    before1DayRow.push(sumBefore1Day); 
+                    sameDayRow.push(sumSameDay); 
+                    afterDueRow.push(sumAfterDue);
+                    morningRow.push(sumMorning);
+                    afternoonRow.push(sumAfternoon);
 
-                    // สร้าง Title Report ใส่แค่หัวข้อช่องเดียวและจัดสีเหลืองเหมือนตัวอย่าง
-                    const titleRow = sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
-                    const titleCell = titleRow.getCell(1);
-                    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
-                    titleCell.font = { name: 'Arial', bold: true, size: 12, color: { argb: 'FF000000' } };
-                    titleCell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
-                    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    // สร้างเซลล์เดือน (แถวบนสุด) จำลองสีเหลืองเหมือนในรูป
+                    sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
+                    sheet.getCell('A1').font = { name: 'Arial', bold: true, size: 12 };
+                    sheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                    sheet.mergeCells('A1:C1');
 
-                    // สร้างตารางข้อมูล
-                    const r2 = sheet.addRow(headerRow); 
-                    const r3 = sheet.addRow(morningRow); 
-                    const r4 = sheet.addRow(afternoonRow); 
-                    const r5 = sheet.addRow(eveningRow); 
-                    const r6 = sheet.addRow(totalRow); 
+                    // เพิ่มข้อมูลแต่ละแถวลง Sheet
+                    const rHeader = sheet.addRow(headerRow); 
+                    const rTotal = sheet.addRow(totalRow); 
+                    const rEvening = sheet.addRow(eveningRow); 
+                    const rBefore1Day = sheet.addRow(before1DayRow); 
+                    const rSameDay = sheet.addRow(sameDayRow); 
+                    const rAfterDue = sheet.addRow(afterDueRow);
+                    const rMorning = sheet.addRow(morningRow);
+                    const rAfternoon = sheet.addRow(afternoonRow);
 
-                    const numCols = daysInMonth + 2;
-
-                    for (let r of [r2, r3, r4, r5, r6]) {
-                        for (let c = 1; c <= numCols; c++) {
-                            const cell = r.getCell(c);
-                            
-                            cell.font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: (r === r2 || c === numCols || r === r6) };
-                            cell.alignment = { vertical: 'middle', horizontal: c === 1 ? 'left' : 'center' };
-                            // ตีกรอบดำปกติทุกเซลล์
-                            cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
-
-                            if (r === r2) {
-                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } }; // สีฟ้าอ่อนเหมือนในรูป
-                            } else if (c === numCols) {
-                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // สีเหลืองที่ยอด Total
-                            } else {
-                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } }; // ขาวล้วน
-                            }
-                        }
-                    }
-
-                    // ปรับความกว้างคอลัมน์ให้สมส่วน
-                    sheet.getColumn(1).width = 24; 
-                    for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 5.5; 
-                    sheet.getColumn(numCols).width = 8; 
-
-                    // ==========================================
-                    // 🌟 ส่วนตารางสรุปยอดส่งบิลหลัง 18.00 น.
-                    // ==========================================
-                    
-                    const eveningSummary = {};
-                    monthHistoryData.forEach(item => {
-                        if (item.date.substring(0, 7) !== selectedMonth) return; 
-                        
-                        const hourStr = item.time ? item.time.split(':')[0] : '0';
-                        const hour = parseInt(hourStr, 10) || 0;
-                        if (hour >= 18) {
-                            const key = `${item.date}_${item.dueDate}`;
-                            if (!eveningSummary[key]) {
-                                eveningSummary[key] = {
-                                    sendDate: item.date,
-                                    dueDate: item.dueDate,
-                                    count: 0
-                                };
-                            }
-                            const eCount = item.count !== undefined ? Number(item.count) : 1;
-                            eveningSummary[key].count += eCount;
-                        }
-                    });
-
-                    const eveningKeys = Object.keys(eveningSummary).sort();
-
-                    if (eveningKeys.length > 0) {
-                        sheet.addRow([]); // เว้นบรรทัด
-                        sheet.addRow([]); // เว้นบรรทัด
-
-                        const titleRowE = sheet.addRow(['📌 รายละเอียดการส่งบิลรอบดึก (หลัง 18.00 น.)']);
-                        titleRowE.getCell(1).font = { name: 'Arial', bold: true, size: 12, color: { argb: 'FF000000' } };
-                        // ไม่ตีขอบเซลล์นี้เพื่อให้ไม่เกินขอบตารางจริง
-
-                        const eHeader = sheet.addRow(['วันที่ส่งบิล', 'ดิวส่งวันที่', '', 'จำนวน (เที่ยว)', '']);
-                        sheet.mergeCells(`B${eHeader.number}:C${eHeader.number}`);
-                        sheet.mergeCells(`D${eHeader.number}:E${eHeader.number}`);
-                        
-                        const eveningTableStartRow = eHeader.number;
-                        let eveningTableEndRow = eHeader.number;
-
-                        for(let i=1; i<=5; i++) {
-                            const cell = eHeader.getCell(i);
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } }; // สีฟ้าอ่อน
-                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; // สีดำ
-                            cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
-                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        }
-
-                        let totalEveningCount = 0;
-                        let previousSendDate = null; 
-
-                        const formatThaiForExcel = (dStr) => {
-                            const d = new Date(dStr);
-                            if (isNaN(d.getTime())) return dStr;
-                            return `${d.getDate()} ${["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."][d.getMonth()]} ${d.getFullYear()+543}`;
-                        };
-
-                        eveningKeys.forEach((key, index) => {
-                            const rowData = eveningSummary[key];
-                            totalEveningCount += rowData.count;
-
-                            const isFirstOfThisDate = rowData.sendDate !== previousSendDate;
-                            previousSendDate = rowData.sendDate;
-
-                            // หากวันส่งบิลซ้ำ ให้เว้นว่างเป็น Blank ('') แบบมืออาชีพ
-                            const displayDate = isFirstOfThisDate ? formatThaiForExcel(rowData.sendDate) : '';
-
-                            const eDataRow = sheet.addRow([
-                                displayDate, 
-                                formatThaiForExcel(rowData.dueDate), 
-                                '',
-                                rowData.count,
-                                ''
-                            ]);
-                            
-                            eveningTableEndRow = eDataRow.number;
-
-                            sheet.mergeCells(`B${eDataRow.number}:C${eDataRow.number}`);
-                            sheet.mergeCells(`D${eDataRow.number}:E${eDataRow.number}`);
-
-                            for(let i=1; i<=5; i++) {
-                                const cell = eDataRow.getCell(i);
-                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } }; // สีขาวล้วน
-                                
-                                if (i === 1) {
-                                    cell.font = { name: 'Arial', color: { argb: 'FF000000' }, bold: isFirstOfThisDate }; 
-                                } else if (i === 4 || i === 5) {
-                                    cell.font = { name: 'Arial', color: { argb: 'FF000000' }, bold: true }; 
-                                } else {
-                                    cell.font = { name: 'Arial', color: { argb: 'FF000000' }, bold: false };
-                                }
-                                
-                                cell.border = { top: {style:'thin', color: {argb:'FF000000'}}, left: {style:'thin', color: {argb:'FF000000'}}, bottom: {style:'thin', color: {argb:'FF000000'}}, right: {style:'thin', color: {argb:'FF000000'}} };
-                                cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                            }
+                    // ฟังก์ชันตกแต่งสีแต่ละแถว
+                    const styleRow = (row, bgArgb, fontColorArgb, isBold = false) => {
+                        row.eachCell((cell, colNumber) => {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
+                            cell.font = { name: 'Arial', size: 10, color: { argb: fontColorArgb }, bold: isBold };
+                            cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                            cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
                         });
-
-                        if (eveningTableEndRow > eveningTableStartRow) {
-                            sheet.autoFilter = `A${eveningTableStartRow}:E${eveningTableEndRow}`;
-                        }
-
-                        // แถวรวมทั้งหมด
-                        const eFooterRow = sheet.addRow(['รวมเที่ยวจัดส่งรอบดึกทั้งหมด', '', '', totalEveningCount, '']);
-                        sheet.mergeCells(`A${eFooterRow.number}:C${eFooterRow.number}`);
-                        sheet.mergeCells(`D${eFooterRow.number}:E${eFooterRow.number}`);
                         
-                        eFooterRow.getCell(1).alignment = { horizontal: 'right', vertical: 'middle' };
-                        eFooterRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
-                        
-                        for(let i=1; i<=5; i++) {
-                            const cell = eFooterRow.getCell(i);
-                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // สีเหลือง
-                            cell.font = { name: 'Arial', bold: true, color: { argb: 'FF000000' } }; 
-                            cell.border = { 
-                                top: {style:'thin', color: {argb:'FF000000'}}, 
-                                bottom: {style:'thin', color: {argb:'FF000000'}}, 
-                                left: {style:'thin', color: {argb:'FF000000'}}, 
-                                right: {style:'thin', color: {argb:'FF000000'}} 
-                            };
-                        }
-                    }
-                    // ==========================================
+                        // แต่งสีคอลัมน์ Total ให้เป็นสีเหลือง
+                        const lastColNumber = daysInMonth + 2;
+                        const lastCell = row.getCell(lastColNumber);
+                        lastCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                        lastCell.font = { name: 'Arial', size: 10, color: { argb: fontColorArgb }, bold: true };
+                    };
+
+                    // แต่งสีหัวตาราง (วันที่ 1-31) เป็นสีฟ้าเหมือนในรูป
+                    rHeader.eachCell((cell, colNumber) => {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
+                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true };
+                        cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    });
+                    
+                    // แต่งสีแถวรวมทั้งหมด (ข้อความแดง)
+                    styleRow(rTotal, 'FFFFFFFF', 'FFFF0000', true); 
+                    rTotal.getCell(1).font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true }; // หัวข้อเป็นสีดำ
+
+                    // แต่งสีแถวอื่นๆ เป็นสีดำปกติ
+                    styleRow(rEvening, 'FFFFFFFF', 'FF000000');
+                    styleRow(rBefore1Day, 'FFFFFFFF', 'FF000000');
+                    styleRow(rSameDay, 'FFFFFFFF', 'FF000000');
+                    styleRow(rAfterDue, 'FFFFFFFF', 'FF000000');
+                    styleRow(rMorning, 'FFFFFFFF', 'FF000000');
+                    styleRow(rAfternoon, 'FFFFFFFF', 'FF000000');
+
+                    // ปรับขนาดความกว้างคอลัมน์
+                    sheet.getColumn(1).width = 30; 
+                    for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 5; 
+                    sheet.getColumn(daysInMonth+2).width = 8;
 
                     const buffer = await workbook.xlsx.writeBuffer();
                     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                    window.saveAs(blob, `รายงานยอดจัดส่งบิล_${thaiMonth}_${thaiYear}.xlsx`);
+                    window.saveAs(blob, `สรุปยอดส่งบิล_${thaiMonth}_${thaiYear}.xlsx`);
                 } catch (err) { alert('เกิดข้อผิดพลาดในการสร้างไฟล์ Excel'); } finally { setIsExporting(false); }
             };
 
@@ -885,13 +803,11 @@
             };
 
             const forceRefresh = () => {
-                setLastFetchedMonth(null); // ทำให้มันโหลดข้อมูลเดือนปัจจุบันใหม่แน่นอน
+                setLastFetchedMonth(null); 
             };
 
             return (
                 <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
-                    
-                    {/* Modal Copy ยอดสรุปรายวัน */}
                     {showCopyModal && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[160] flex items-center justify-center p-4">
                             <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
@@ -968,7 +884,6 @@
             );
         };
 
-
         // ==========================================
         // 🧩 Component หลัก: โครงสร้างและส่วนเชื่อมโยงทั้งหมด (App Wrapper)
         // ==========================================
@@ -979,8 +894,6 @@
             });
             const [isLiffReady, setIsLiffReady] = useState(false);
             const [activeTab, setActiveTab] = useState('scan');
-            
-            // ตัวสั่งให้หน้า History รีเฟรชข้อมูลเมื่อหน้าสแกนทำการบันทึกสำเร็จ
             const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0); 
 
             const wakeLockRef = useRef(null);
@@ -992,7 +905,6 @@
                 }
             };
 
-            // ระบบล็อคอิน LIFF
             useEffect(() => {
                 const initLiff = async () => {
                     try {
@@ -1052,7 +964,6 @@
 
             return (
                 <div className="min-h-screen pb-32 relative bg-slate-50/50">
-                    {/* Header โชว์ข้อมูลผู้ใช้งาน */}
                     <div className="bg-white/80 backdrop-blur-md px-5 py-3.5 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-slate-100">
                         <div className="flex items-center gap-3.5">
                             <img src={userProfile.pictureUrl} alt="profile" className="w-11 h-11 rounded-full border-[3px] border-emerald-100 shadow-sm" />
@@ -1064,19 +975,9 @@
                         <button onClick={() => {liff.logout(); setUserProfile(null); localStorage.removeItem('liff_profile_cache');}} className="text-[10px] text-red-500 bg-red-50 px-3 py-1.5 rounded-full font-bold">ออกจากระบบ</button>
                     </div>
 
-                    {/* ตัวรับจัดการเนื้อหาหลักที่แยกส่วนแล้ว (Component Split) */}
-                    <ScannerTab 
-                        isActive={activeTab === 'scan'} 
-                        userProfile={userProfile} 
-                        onSaveSuccess={() => setRefreshHistoryTrigger(prev => prev + 1)} 
-                    />
-                    
-                    <HistoryTab 
-                        isActive={activeTab === 'history'} 
-                        refreshTrigger={refreshHistoryTrigger} 
-                    />
+                    <ScannerTab isActive={activeTab === 'scan'} userProfile={userProfile} onSaveSuccess={() => setRefreshHistoryTrigger(prev => prev + 1)} />
+                    <HistoryTab isActive={activeTab === 'history'} refreshTrigger={refreshHistoryTrigger} />
 
-                    {/* แถบนำทางด้านล่าง */}
                     <div className="fixed bottom-6 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)] flex justify-center px-4 pointer-events-none">
                         <div className="bg-white/40 backdrop-blur-md border border-white/60 p-1.5 rounded-[30px] flex w-full max-w-[320px] pointer-events-auto shadow-lg">
                             <button onClick={() => setActiveTab('scan')} className={`flex-1 flex justify-center items-center h-14 rounded-[24px] transition-all ${activeTab === 'scan' ? 'bg-white/90 text-emerald-600 shadow-sm' : 'text-slate-600'}`}><i className="fa-solid fa-barcode text-xl"></i><span className="ml-2.5 font-bold text-sm">สแกนบิล</span></button>
