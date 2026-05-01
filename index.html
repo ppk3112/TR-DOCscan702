@@ -590,7 +590,7 @@
                 }
             }, [isActive, selectedMonth, refreshTrigger]);
 
-            // ประมวลผลข้อมูลสถิติ
+            // 🟢 ฟังก์ชันประมวลผลสถิติที่อัปเดตใหม่ แยกก้อนคำนวณอย่างเด็ดขาด
             const getMonthlyStats = () => {
                 const year = parseInt(selectedMonth.split('-')[0]);
                 const month = parseInt(selectedMonth.split('-')[1]);
@@ -623,7 +623,7 @@
                         const hour = parseInt(item.time.split(':')[0], 10);
                         if (hour < 12) stats[day].morning += count;
                         else if (hour < 18) stats[day].afternoon += count;
-                        else stats[day].evening += count;
+                        else stats[day].evening += count; // ก้อนหลักรอบเย็น
 
                         const scanDateObj = parseDateLocal(item.date);
                         const dueDateObj = parseDateLocal(item.dueDate);
@@ -631,23 +631,25 @@
                         const diffTime = dueDateObj.getTime() - scanDateObj.getTime();
                         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-                        if (diffDays === 1) {
-                            stats[day].before1Day += count; 
-                        } else if (diffDays >= 2) {
-                            stats[day].before2DaysPlus += count; 
-                        } else if (diffDays === 0) {
-                            stats[day].sameDay += count;    
-                        } else if (diffDays < 0) {
-                            stats[day].afterDue += count;   
-                        }
-
-                        if (hour >= 18) {
+                        // 🟢 แยกลอจิกนับยอดเด็ดขาด ไม่ให้ปนกันระหว่างก่อนกับหลัง 18.00 น.
+                        if (hour < 18) {
+                            if (diffDays === 1) {
+                                stats[day].before1Day += count; 
+                            } else if (diffDays >= 2) {
+                                stats[day].before2DaysPlus += count; 
+                            } else if (diffDays === 0) {
+                                stats[day].sameDay += count;    
+                            } else if (diffDays < 0) {
+                                stats[day].afterDue += count;   
+                            }
+                        } else {
                             if (diffDays === 1) stats[day].evening_before1Day += count;
                             else if (diffDays === 2) stats[day].evening_before2Days += count;
                             else if (diffDays >= 3) stats[day].evening_before3DaysPlus += count;
                             else if (diffDays < 0) stats[day].evening_afterDue += count;
                         }
 
+                        // แสดงสถานะงานด่วนในหน้า History ของแอป (ยังคงไว้ตามเดิม)
                         const sendDate = new Date(item.date); sendDate.setHours(0,0,0,0);
                         const nextDay = new Date(sendDate); nextDay.setDate(sendDate.getDate() + 1);
                         const dDate = new Date(item.dueDate); dDate.setHours(0,0,0,0);
@@ -682,7 +684,7 @@
                 });
             }, [stats, isActive, daysInMonth]);
 
-            // ✅ ฟังก์ชัน Export Excel
+            // ✅ ฟังก์ชัน Export Excel ตารางเดียว ตามเงื่อนไข
             const handleExportExcel = async () => {
                 if (!window.ExcelJS) { alert('ระบบสร้างไฟล์กำลังโหลด...'); return; }
                 setIsExporting(true);
@@ -742,8 +744,8 @@
 
                     const rComp1 = sheet.addRow(compHeader);
                     const rComp2 = sheet.addRow(compTotal);
-                    const rComp3 = sheet.addRow(compBefore1Day); // สลับมาอยู่ก่อน
-                    const rComp4 = sheet.addRow(compBefore2DaysPlus); // สลับมาอยู่หลัง
+                    const rComp3 = sheet.addRow(compBefore1Day); 
+                    const rComp4 = sheet.addRow(compBefore2DaysPlus); 
                     const rComp5 = sheet.addRow(compSameDay);
                     const rComp6 = sheet.addRow(compAfterDue);
                     const rComp7 = sheet.addRow(compEvening);
