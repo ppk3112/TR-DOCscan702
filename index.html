@@ -600,7 +600,8 @@
                 const stats = Array.from({length: daysInMonth}, () => ({ 
                     morning:0, afternoon:0, evening:0, 
                     urgent:0, total:0, 
-                    before1Day: 0, sameDay: 0, afterDue: 0 
+                    before1Day: 0, sameDay: 0, afterDue: 0,
+                    evening_before1Day: 0, evening_before2Days: 0, evening_before3DaysPlus: 0, evening_sameDay: 0, evening_afterDue: 0
                 }));
                 
                 let totalMonthCount = 0;
@@ -640,6 +641,15 @@
                             stats[day].sameDay += count;    // รับตรงกับดิวส่งพอดี
                         } else if (diffDays < 0) {
                             stats[day].afterDue += count;   // ล่าช้า (รับหลังจากวันดิวส่งไปแล้ว)
+                        }
+
+                        // คำนวณแยกรายละเอียดเฉพาะบิลที่ส่งหลัง 18.00 น.
+                        if (hour >= 18) {
+                            if (diffDays === 1) stats[day].evening_before1Day += count;
+                            else if (diffDays === 2) stats[day].evening_before2Days += count;
+                            else if (diffDays >= 3) stats[day].evening_before3DaysPlus += count;
+                            else if (diffDays === 0) stats[day].evening_sameDay += count;
+                            else if (diffDays < 0) stats[day].evening_afterDue += count;
                         }
 
                         // ส่วนการแสดงผล "งานด่วน" สำหรับ UI (ยังคงเก็บไว้แสดงในหน้าแอป)
@@ -689,96 +699,171 @@
                     const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
                     const thaiYear = year + 543;
 
-                    // ตั้งชื่อแถวให้ตรงกับในตารางรูปภาพ
-                    const headerRow = ['ตัวส่ง']; 
-                    const totalRow = ['จำนวนเที่ยวทั้งหมด']; 
-                    const eveningRow = ['รับบิลหลัง 18.00 น.']; 
-                    const before1DayRow = ['รับบิลก่อนส่ง 1 วัน']; 
-                    const sameDayRow = ['รับบิลวันที่ส่ง']; 
-                    const afterDueRow = ['รับบิลหลังดิวส่ง (ล่าช้า)'];
-                    const morningRow = ['รับบิลก่อนเที่ยง (ก่อน 12.00 น.)'];
-                    const afternoonRow = ['รับบิลช่วงบ่าย (12.00 - 17.59 น.)'];
+                    // ==========================================
+                    // 📊 ตารางที่ 1: ตารางสรุปแบบเดิม (ดั้งเดิม)
+                    // ==========================================
+                    const headerRow = ['วันที่']; 
+                    const morningRow = ['ก่อนเที่ยง']; 
+                    const afternoonRow = ['ช่วงบ่าย']; 
+                    const eveningRow = ['หลัง 18.00 น.']; 
+                    const urgentRow = ['งานด่วน']; 
+                    const totalRow = ['รวมรายวัน'];
 
-                    // ผลรวมรายเดือน
-                    let sumTotal=0, sumEvening=0, sumBefore1Day=0, sumSameDay=0, sumAfterDue=0, sumMorning=0, sumAfternoon=0;
+                    let sumMorning=0, sumAfternoon=0, sumEvening=0, sumUrgent=0, sumTotal=0;
 
                     for(let i=0; i<daysInMonth; i++) {
                         headerRow.push(i+1);
-                        totalRow.push(stats[i].total); sumTotal += stats[i].total;
-                        eveningRow.push(stats[i].evening); sumEvening += stats[i].evening;
-                        before1DayRow.push(stats[i].before1Day); sumBefore1Day += stats[i].before1Day;
-                        sameDayRow.push(stats[i].sameDay); sumSameDay += stats[i].sameDay;
-                        afterDueRow.push(stats[i].afterDue); sumAfterDue += stats[i].afterDue;
                         morningRow.push(stats[i].morning); sumMorning += stats[i].morning;
                         afternoonRow.push(stats[i].afternoon); sumAfternoon += stats[i].afternoon;
+                        eveningRow.push(stats[i].evening); sumEvening += stats[i].evening;
+                        urgentRow.push(stats[i].urgent); sumUrgent += stats[i].urgent;
+                        totalRow.push(stats[i].total); sumTotal += stats[i].total;
                     }
 
-                    // เพิ่มคอลัมน์รวมช่องสุดท้าย (Total)
-                    headerRow.push('Total'); 
-                    totalRow.push(sumTotal); 
+                    headerRow.push('รวมทั้งเดือน'); 
+                    morningRow.push(sumMorning); 
+                    afternoonRow.push(sumAfternoon); 
                     eveningRow.push(sumEvening); 
-                    before1DayRow.push(sumBefore1Day); 
-                    sameDayRow.push(sumSameDay); 
-                    afterDueRow.push(sumAfterDue);
-                    morningRow.push(sumMorning);
-                    afternoonRow.push(sumAfternoon);
+                    urgentRow.push(sumUrgent); 
+                    totalRow.push(sumTotal);
 
-                    // สร้างเซลล์เดือน (แถวบนสุด) จำลองสีเหลืองเหมือนในรูป
                     sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
-                    sheet.getCell('A1').font = { name: 'Arial', bold: true, size: 12 };
-                    sheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                    sheet.getCell('A1').font = { name: 'Arial', bold: true, size: 16 };
                     sheet.mergeCells('A1:C1');
 
-                    // เพิ่มข้อมูลแต่ละแถวลง Sheet
-                    const rHeader = sheet.addRow(headerRow); 
-                    const rTotal = sheet.addRow(totalRow); 
-                    const rEvening = sheet.addRow(eveningRow); 
-                    const rBefore1Day = sheet.addRow(before1DayRow); 
-                    const rSameDay = sheet.addRow(sameDayRow); 
-                    const rAfterDue = sheet.addRow(afterDueRow);
-                    const rMorning = sheet.addRow(morningRow);
-                    const rAfternoon = sheet.addRow(afternoonRow);
+                    const r2 = sheet.addRow(headerRow); 
+                    const r3 = sheet.addRow(morningRow); 
+                    const r4 = sheet.addRow(afternoonRow); 
+                    const r5 = sheet.addRow(eveningRow); 
+                    const r6 = sheet.addRow(urgentRow); 
+                    const r7 = sheet.addRow(totalRow);
 
-                    // ฟังก์ชันตกแต่งสีแต่ละแถว
                     const styleRow = (row, bgArgb, fontColorArgb, isBold = false) => {
+                        row.eachCell((cell, colNumber) => {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
+                            cell.font = { name: 'Arial', size: 11, color: { argb: fontColorArgb }, bold: isBold };
+                            cell.border = { top: {style:'thin', color: {argb:'FFCBD5E1'}}, left: {style:'thin', color: {argb:'FFCBD5E1'}}, bottom: {style:'thin', color: {argb:'FFCBD5E1'}}, right: {style:'thin', color: {argb:'FFCBD5E1'}} };
+                            cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
+                        });
+                    };
+
+                    styleRow(r2, 'FF1E293B', 'FFFFFFFF', true); 
+                    styleRow(r3, 'FFFFEDD5', 'FFC2410C'); 
+                    styleRow(r4, 'FFFFFBDB', 'FFB45309'); 
+                    styleRow(r5, 'FFE0E7FF', 'FF4338CA'); 
+                    styleRow(r6, 'FFFEE2E2', 'FFB91C1C', true); 
+                    styleRow(r7, 'FFD1FAE5', 'FF047857', true); 
+
+
+                    // ==========================================
+                    // 📈 ตารางที่ 2: ตารางเปรียบเทียบ (ต่อท้ายตารางเดิม)
+                    // ==========================================
+                    sheet.addRow([]); // เว้น 1 บรรทัด
+                    
+                    sheet.addRow(['ตารางเปรียบเทียบข้อมูลส่งบิล']);
+                    const titleCell = sheet.getCell(`A${sheet.rowCount}`);
+                    titleCell.font = { name: 'Arial', bold: true, size: 12 };
+                    sheet.mergeCells(`A${sheet.rowCount}:C${sheet.rowCount}`);
+
+                    // ตั้งชื่อแถวและเปลี่ยนคำเป็น "ส่งบิล"
+                    const compHeader = ['ตัวส่ง'];
+                    const compTotal = ['จำนวนเที่ยวทั้งหมด'];
+                    const compEvening = ['ส่งบิลหลัง 18.00 น. (รวม)'];
+                    const compEvening_b1 = ['    - ดิวส่งล่วงหน้า 1 วัน'];
+                    const compEvening_b2 = ['    - ดิวส่งล่วงหน้า 2 วัน'];
+                    const compEvening_b3p = ['    - ดิวส่งล่วงหน้า 3 วันขึ้นไป'];
+                    const compEvening_same = ['    - ดิวส่งในวันนัดส่ง'];
+                    const compEvening_after = ['    - ดิวส่งล่าช้า (หลังคิวส่ง)'];
+                    const compBefore1Day = ['ส่งบิลก่อนวันนัดส่ง 1 วัน (ทั้งหมด)'];
+                    const compSameDay = ['ส่งบิลในวันนัดส่ง (ทั้งหมด)'];
+                    const compAfterDue = ['ส่งบิลหลังคิวส่ง (ล่าช้า) (ทั้งหมด)'];
+
+                    let sumCompBefore1Day=0, sumCompSameDay=0, sumCompAfterDue=0;
+                    let sumCompEvening_b1=0, sumCompEvening_b2=0, sumCompEvening_b3p=0, sumCompEvening_same=0, sumCompEvening_after=0;
+
+                    for(let i=0; i<daysInMonth; i++) {
+                        compHeader.push(i+1);
+                        compTotal.push(stats[i].total);
+                        compEvening.push(stats[i].evening);
+                        compEvening_b1.push(stats[i].evening_before1Day); sumCompEvening_b1 += stats[i].evening_before1Day;
+                        compEvening_b2.push(stats[i].evening_before2Days); sumCompEvening_b2 += stats[i].evening_before2Days;
+                        compEvening_b3p.push(stats[i].evening_before3DaysPlus); sumCompEvening_b3p += stats[i].evening_before3DaysPlus;
+                        compEvening_same.push(stats[i].evening_sameDay); sumCompEvening_same += stats[i].evening_sameDay;
+                        compEvening_after.push(stats[i].evening_afterDue); sumCompEvening_after += stats[i].evening_afterDue;
+                        compBefore1Day.push(stats[i].before1Day); sumCompBefore1Day += stats[i].before1Day;
+                        compSameDay.push(stats[i].sameDay); sumCompSameDay += stats[i].sameDay;
+                        compAfterDue.push(stats[i].afterDue); sumCompAfterDue += stats[i].afterDue;
+                    }
+
+                    compHeader.push('Total');
+                    compTotal.push(sumTotal);
+                    compEvening.push(sumEvening);
+                    compEvening_b1.push(sumCompEvening_b1);
+                    compEvening_b2.push(sumCompEvening_b2);
+                    compEvening_b3p.push(sumCompEvening_b3p);
+                    compEvening_same.push(sumCompEvening_same);
+                    compEvening_after.push(sumCompEvening_after);
+                    compBefore1Day.push(sumCompBefore1Day);
+                    compSameDay.push(sumCompSameDay);
+                    compAfterDue.push(sumCompAfterDue);
+
+                    const rComp1 = sheet.addRow(compHeader);
+                    const rComp2 = sheet.addRow(compTotal);
+                    const rComp3 = sheet.addRow(compEvening);
+                    const rComp3_1 = sheet.addRow(compEvening_b1);
+                    const rComp3_2 = sheet.addRow(compEvening_b2);
+                    const rComp3_3 = sheet.addRow(compEvening_b3p);
+                    const rComp3_4 = sheet.addRow(compEvening_same);
+                    const rComp3_5 = sheet.addRow(compEvening_after);
+                    const rComp4 = sheet.addRow(compBefore1Day);
+                    const rComp5 = sheet.addRow(compSameDay);
+                    const rComp6 = sheet.addRow(compAfterDue);
+
+                    // ตกแต่งสีตารางที่ 2
+                    const styleCompRow = (row, bgArgb, fontColorArgb, isBold = false) => {
                         row.eachCell((cell, colNumber) => {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
                             cell.font = { name: 'Arial', size: 10, color: { argb: fontColorArgb }, bold: isBold };
                             cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
                             cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
                         });
-                        
-                        // แต่งสีคอลัมน์ Total ให้เป็นสีเหลือง
+                        // สีเหลืองสำหรับคอลัมน์ Total
                         const lastColNumber = daysInMonth + 2;
                         const lastCell = row.getCell(lastColNumber);
                         lastCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
                         lastCell.font = { name: 'Arial', size: 10, color: { argb: fontColorArgb }, bold: true };
                     };
 
-                    // แต่งสีหัวตาราง (วันที่ 1-31) เป็นสีฟ้าเหมือนในรูป
-                    rHeader.eachCell((cell, colNumber) => {
+                    rComp1.eachCell((cell, colNumber) => {
                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
                         cell.font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true };
                         cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
                         cell.alignment = { vertical: 'middle', horizontal: 'center' };
                     });
+
+                    styleCompRow(rComp2, 'FFFFFFFF', 'FFFF0000', true); 
+                    rComp2.getCell(1).font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true }; 
+
+                    styleCompRow(rComp3, 'FFEFF6FF', 'FF1E40AF', true); // สีฟ้าอ่อนสำหรับหัวข้อรวมหลัง 18.00 น.
+                    styleCompRow(rComp3_1, 'FFFFFFFF', 'FF475569'); // ข้อมูลย่อยสีเทาเข้ม
+                    styleCompRow(rComp3_2, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp3_3, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp3_4, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp3_5, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp4, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp5, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp6, 'FFFFFFFF', 'FF000000');
                     
-                    // แต่งสีแถวรวมทั้งหมด (ข้อความแดง)
-                    styleRow(rTotal, 'FFFFFFFF', 'FFFF0000', true); 
-                    rTotal.getCell(1).font = { name: 'Arial', size: 10, color: { argb: 'FF000000' }, bold: true }; // หัวข้อเป็นสีดำ
+                    // ปรับการเยื้อง (Indent) ให้หมวดย่อยอ่านง่ายและเป็นระเบียบ
+                    rComp3_1.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp3_2.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp3_3.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp3_4.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp3_5.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
-                    // แต่งสีแถวอื่นๆ เป็นสีดำปกติ
-                    styleRow(rEvening, 'FFFFFFFF', 'FF000000');
-                    styleRow(rBefore1Day, 'FFFFFFFF', 'FF000000');
-                    styleRow(rSameDay, 'FFFFFFFF', 'FF000000');
-                    styleRow(rAfterDue, 'FFFFFFFF', 'FF000000');
-                    styleRow(rMorning, 'FFFFFFFF', 'FF000000');
-                    styleRow(rAfternoon, 'FFFFFFFF', 'FF000000');
-
-                    // ปรับขนาดความกว้างคอลัมน์
-                    sheet.getColumn(1).width = 30; 
+                    // กำหนดความกว้างคอลัมน์
+                    sheet.getColumn(1).width = 34; 
                     for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 5; 
-                    sheet.getColumn(daysInMonth+2).width = 8;
 
                     const buffer = await workbook.xlsx.writeBuffer();
                     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
