@@ -77,7 +77,7 @@
         // ==========================================
         // 🛠️ ค่าคงที่และฟังก์ชันช่วยเหลือส่วนกลาง
         // ==========================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/a/macros/grandhomemart.co.th/s/AKfycbyRclDdXGntRfw_W6ygYGrSw0tLOrUmBLDRd12l-KNVahVWzX3rr-wkfzMcZt8o7fky3Q/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRclDdXGntRfw_W6ygYGrSw0tLOrUmBLDRd12l-KNVahVWzX3rr-wkfzMcZt8o7fky3Q/exec';
 
         const formatThaiDate = (dateString) => {
             const d = new Date(dateString);
@@ -290,25 +290,8 @@
 
             const handleManualAdd = (e) => {
                 e.preventDefault();
-                let val = inputValue.trim();
+                const val = inputValue.trim();
                 if (!val) return;
-
-                // 🌟 1. เช็คว่าต้องพิมพ์ 4 หรือ 10 หลักเท่านั้น
-                if (val.length !== 4 && val.length !== 10) {
-                    alert("⚠️ กรุณาพิมพ์เลขเที่ยว 4 หลัก (สำหรับงานเดือนนี้) หรือแบบเต็ม 10 หลัก (สำหรับงานย้อนหลัง) เท่านั้นครับ");
-                    return;
-                }
-
-                // 🌟 2. ถ้าพิมพ์ 4 หลัก ให้เติม ปี+เดือน+00 ด้านหน้าอัตโนมัติ
-                if (val.length === 4) {
-                    const now = new Date();
-                    const yy = String(now.getFullYear()).slice(-2); // ดึง 2 หลักท้ายของปี เช่น 2026 -> "26"
-                    const mm = String(now.getMonth() + 1).padStart(2, '0'); // ดึงเดือนแล้วใส่ 0 ข้างหน้า เช่น 5 -> "05"
-                    const prefix = `${yy}${mm}00`;
-                    val = `${prefix}${val}`; // นำมาต่อกัน จะได้เช่น 260500 + 1234
-                }
-
-                // นำค่า val ที่สมบูรณ์แล้วไปใช้งานต่อ (บันทึกลงตะกร้า)
                 const finalCode = deliveryType === 'FACTORY' ? `${val}(รับโรงตัด)` : val;
                 if (!checkDuplicate(finalCode)) {
                     setCurrentItems(prev => [{ code: finalCode, dueDate: dueDate }, ...prev]);
@@ -351,15 +334,13 @@
                 };
 
                 try {
-                    // ✅ แก้ไขเด็ดขาด: ลบ headers ออกทั้งหมด เพื่อบังคับให้เป็น Simple Request 100% 
-                    // ป้องกันบราวเซอร์และแอป LINE บล็อกการส่งข้อมูล (Bypass CORS Preflight)
                     const response = await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
+                        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify(newBatch)
                     });
 
                     const text = await response.text();
-                    if (text.trim().startsWith('<')) { alert("❌ เซิร์ฟเวอร์ตอบกลับผิดพลาด (URL อาจหมดอายุ หรือไม่ได้ตั้งสิทธิ์เป็น Anyone)"); setIsSaving(false); return; }
+                    if (text.trim().startsWith('<')) { alert("❌ เซิร์ฟเวอร์ตอบกลับผิดพลาด"); setIsSaving(false); return; }
 
                     const result = JSON.parse(text);
                     if (result.status === 'error') {
@@ -385,12 +366,7 @@
                     setAllSentCodesCache(newCodesSet);
 
                     setTimeout(() => setSaveSuccess(false), 3000);
-                } catch (error) { 
-                    console.error("Save Error:", error);
-                    alert(`❌ การเชื่อมต่อล้มเหลว (Failed to fetch)\n\nหากยังพบปัญหานี้ โปรดตรวจสอบหลังบ้าน:\n1. ก๊อปปี้ URL (เวอร์ชันล่าสุด) มาอัปเดตในตัวแปร GOOGLE_SCRIPT_URL บรรทัดที่ 67 หรือยัง?\n2. สิทธิ์การเข้าถึง (Who has access) ตั้งเป็น "ทุกคน (Anyone)" แล้วใช่ไหม?`); 
-                } finally { 
-                    setIsSaving(false); 
-                }
+                } catch (error) { alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ"); } finally { setIsSaving(false); }
             };
 
             return (
