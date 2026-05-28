@@ -15,408 +15,1000 @@
     <link rel="apple-touch-icon" sizes="167x167" href="https://i.postimg.cc/SxDzdXD5/79162.jpg">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f8fafc">
     
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        (function() {
+            var manifest = {
+                "name": "สแกนส่งบิล",
+                "short_name": "สแกนส่งบิล",
+                "start_url": window.location.href,
+                "display": "standalone",
+                "background_color": "#f8fafc",
+                "theme_color": "#f8fafc",
+                "icons": [
+                    { "src": "https://i.postimg.cc/SxDzdXD5/79162.jpg", "sizes": "192x192", "type": "image/jpeg" },
+                    { "src": "https://i.postimg.cc/SxDzdXD5/79162.jpg", "sizes": "512x512", "type": "image/jpeg" }
+                ]
+            };
+            var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+            var link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = URL.createObjectURL(blob);
+            document.head.appendChild(link);
+        })();
+    </script>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif;
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
             background-color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
+            background-image: radial-gradient(at 0% 0%, hsla(152,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(210,100%,97%,1) 0, transparent 50%);
+            background-attachment: fixed;
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        .ios-blur {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        input, button, select {
-            outline: none !important;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        @keyframes scaleIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .animate-scale-in {
-            animation: scaleIn 0.2s ease-out forwards;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased hide-scrollbar">
-
+<body class="bg-slate-50">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
 
-        // ดึงจุดลงทะเบียนหรือค่าเริ่มต้นของเว็บแอป
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzQpM_zJpBscbW83XzE7vU88wV_6iK3Gqg2gX-tVp1r/exec"; 
+        // ==========================================
+        // 🛠️ ค่าคงที่และฟังก์ชันช่วยเหลือส่วนกลาง
+        // ==========================================
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRclDdXGntRfw_W6ygYGrSw0tLOrUmBLDRd12l-KNVahVWzX3rr-wkfzMcZt8o7fky3Q/exec';
 
-        // ส่วนประกอบ: แถบสแกนและการเพิ่มข้อมูลด้วยมือ
-        function ScanTab({ userName, targetDate, setTargetDate, refreshHistory }) {
+        const formatThaiDate = (dateString) => {
+            const d = new Date(dateString);
+            if (isNaN(d.getTime())) return dateString;
+            return new Intl.DateTimeFormat('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }).format(d);
+        };
+
+        const checkIsUrgent = (dateStr) => {
+            if (!dateStr) return false;
+            const targetDate = new Date(dateStr); targetDate.setHours(0, 0, 0, 0);
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+            return targetDate.getTime() <= tomorrow.getTime();
+        };
+
+        const playBeep = () => {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                osc.connect(gainNode); gainNode.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.1);
+                if (navigator.vibrate) navigator.vibrate(200);
+            } catch (e) {}
+        };
+
+        const playDuplicateVoice = () => {
+            try {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance('บิลซ้ำค่ะ');
+                    utterance.lang = 'th-TH'; 
+                    const voices = window.speechSynthesis.getVoices();
+                    const thaiVoice = voices.find(voice => voice.lang.includes('th'));
+                    if (thaiVoice) utterance.voice = thaiVoice;
+                    utterance.pitch = 1.3; utterance.rate = 1.0;
+                    window.speechSynthesis.speak(utterance);
+                }
+            } catch (e) {}
+        };
+
+        const playSuccessBeep = () => {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                osc.connect(gainNode); gainNode.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.3);
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            } catch (e) {}
+        };
+
+        const handleCopyTextGlobal = (text) => {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try { document.execCommand('copy'); alert("คัดลอกข้อความสำเร็จ!"); } catch (err) { alert("ไม่สามารถคัดลอกได้"); }
+            document.body.removeChild(textArea);
+        };
+
+        // ==========================================
+        // 🧩 Component: แท็บสแกน (Scanner Tab)
+        // ==========================================
+        const ScannerTab = ({ isActive, userProfile, onSaveSuccess }) => {
+            const [currentItems, setCurrentItems] = useState(() => {
+                const savedBasket = localStorage.getItem('delivery_basket');
+                return savedBasket ? JSON.parse(savedBasket) : [];
+            });
             const [inputValue, setInputValue] = useState('');
+            const [dueDate, setDueDate] = useState(() => {
+                const now = new Date();
+                now.setDate(now.getDate() + 2);
+                return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            });
             const [deliveryType, setDeliveryType] = useState('DC');
-            const [dueDate, setDueDate] = useState('');
-            const [currentItems, setCurrentItems] = useState([]);
-            const [isLoading, setIsLoading] = useState(false);
-            const [errorMsg, setErrorMsg] = useState('');
-            const [successMsg, setSuccessMsg] = useState('');
+            const [allSentCodesCache, setAllSentCodesCache] = useState(new Set());
+            const [duplicateWarning, setDuplicateWarning] = useState(null);
             
-            const inputRef = useRef(null);
+            const [isScanning, setIsScanning] = useState(false);
+            const [isSaving, setIsSaving] = useState(false);
+            const [saveSuccess, setSaveSuccess] = useState(false);
+            const [isFlashlightOn, setIsFlashlightOn] = useState(false);
 
-            // ตั้งค่าดิวดีฟอลต์เป็นพรุ่งนี้
+            const [showConfirmModal, setShowConfirmModal] = useState(false);
+            const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
+            const [showCopyModal, setShowCopyModal] = useState(false);
+            const [lineMessageToCopy, setLineMessageToCopy] = useState('');
+            const [lastSavedMessage, setLastSavedMessage] = useState(() => localStorage.getItem('last_saved_message') || '');
+            
+            const [editingIndex, setEditingIndex] = useState(null);
+            const [editDueDate, setEditDueDate] = useState('');
+            const [editIsFactory, setEditIsFactory] = useState(false);
+
+            const html5QrCodeRef = useRef(null);
+            const lastScannedRef = useRef(null);
+            const dueDateRef = useRef(dueDate);
+            const deliveryTypeRef = useRef(deliveryType);
+            const currentItemsRef = useRef(currentItems);
+            const allSentCodesCacheRef = useRef(allSentCodesCache);
+
+            useEffect(() => { dueDateRef.current = dueDate; }, [dueDate]);
+            useEffect(() => { deliveryTypeRef.current = deliveryType; }, [deliveryType]);
+            useEffect(() => { currentItemsRef.current = currentItems; }, [currentItems]);
+            useEffect(() => { allSentCodesCacheRef.current = allSentCodesCache; }, [allSentCodesCache]);
+            useEffect(() => { localStorage.setItem('delivery_basket', JSON.stringify(currentItems)); }, [currentItems]);
+
             useEffect(() => {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                setDueDate(tomorrow.toISOString().split('T')[0]);
+                const fetchAllCodes = async () => {
+                    const cachedCodes = localStorage.getItem('all_sent_codes_backup');
+                    if (cachedCodes) { try { setAllSentCodesCache(new Set(JSON.parse(cachedCodes))); } catch(e) {} }
+                    try {
+                        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCodes`);
+                        const text = await res.text();
+                        if (text.trim().startsWith('<')) return;
+                        const json = JSON.parse(text);
+                        if (json.status === 'success' && json.data) {
+                            const uppercaseCodes = json.data.map(code => String(code).trim().toUpperCase());
+                            setAllSentCodesCache(new Set(uppercaseCodes));
+                            localStorage.setItem('all_sent_codes_backup', JSON.stringify(uppercaseCodes));
+                        }
+                    } catch (e) { console.error("Failed to fetch all codes", e); }
+                };
+                fetchAllCodes();
+                
+                return () => {
+                    if (html5QrCodeRef.current && isScanning) {
+                        html5QrCodeRef.current.stop().catch(() => {});
+                    }
+                }
             }, []);
 
-            // โฟกัสไปที่ช่องรับค่าตลอดเวลาเพื่อรองรับการสแกนเนอร์
-            useEffect(() => {
-                if (inputRef.current) inputRef.current.focus();
-            });
-
-            const checkDuplicate = (code) => {
-                const cleanCode = code.trim().toUpperCase();
-                return currentItems.some(item => item.code.trim().toUpperCase() === cleanCode);
-            };
-
-            // ดักจับข้อมูลจากการสแกน (คีย์บอร์ดเสมือนจากหัวสแกน)
-            const handleInputChange = (e) => {
-                const val = e.target.value;
-                setInputValue(val);
-
-                // ตรวจจับเมื่อเจอเครื่องหมายเว้นวรรคหรือขึ้นบรรทัดใหม่จากเครื่องสแกน
-                if (val.endsWith(' ') || val.endsWith('\n') || val.endsWith('\r')) {
-                    processScannedValue(val);
+            const checkDuplicate = useCallback((code) => {
+                const cleanCode = String(code).trim().toUpperCase(); 
+                if (currentItemsRef.current.some(item => String(item.code).trim().toUpperCase() === cleanCode)) {
+                    playDuplicateVoice();
+                    setDuplicateWarning(`บิล ${cleanCode} สแกนไปแล้วในตะกร้า!`);
+                    setTimeout(() => setDuplicateWarning(null), 5000); 
+                    return true;
                 }
-            };
-
-            const processScannedValue = (rawVal) => {
-                const cleaned = rawVal.trim();
-                if (!cleaned) return;
-
-                const finalCode = deliveryType === 'FACTORY' ? `${cleaned}(รับโรงตัด)` : cleaned;
-                
-                if (!checkDuplicate(finalCode)) {
-                    setCurrentItems(prev => [{ code: finalCode, dueDate: dueDate, type: deliveryType }, ...prev]);
-                    setSuccessMsg(`เพิ่มรายการ ${finalCode} สำเร็จ`);
-                    setTimeout(() => setSuccessMsg(''), 1500);
-                } else {
-                    setErrorMsg(`รายการ ${finalCode} ซ้ำในรายการปัจจุบัน`);
-                    setTimeout(() => setErrorMsg(''), 2000);
+                if (allSentCodesCacheRef.current.has(cleanCode)) {
+                    playDuplicateVoice();
+                    setDuplicateWarning(`บิล ${cleanCode} เคยถูกส่งไปแล้วในระบบ!`);
+                    setTimeout(() => setDuplicateWarning(null), 5000); 
+                    return true;
                 }
-                setInputValue('');
-            };
+                return false;
+            }, []);
 
-            // 🌟 [จุดที่ปรับปรุง] ฟังก์ชันสำหรับจัดการเพิ่มข้อมูลกรณีที่ "พิมพ์คีย์เอง" และกดปุ่ม + หรือ Enter
-            const handleManualAdd = (e) => {
-                e.preventDefault();
-                let val = inputValue.trim();
-                if (!val) return;
+            const startScanner = async () => {
+                if (!window.Html5Qrcode) { alert('ระบบสแกนยังโหลดไม่เสร็จ...'); return; }
+                const isLineApp = navigator.userAgent.indexOf("Line") > -1;
+                if (isLineApp) alert("⚠️ ตรวจพบการใช้งานผ่านแอป LINE\n👉 กรุณากดไอคอน '3 จุด' แล้วเลือก 'เปิดใน Safari' ครับ");
 
-                // ตรวจสอบเงื่อนไข: ถ้าพนักงานพิมพ์ตัวเลขมา 4 หลักถ้วน ให้เติม ปี ค.ศ. (2 หลัก) + เดือน (2 หลัก) + 00 ทันที
-                if (val.length === 4 && /^\d{4}$/.test(val)) {
-                    const d = new Date();
-                    const yy = String(d.getFullYear()).slice(-2); // ได้ปี ค.ศ. ปัจจุบันแบบ 2 หลัก (เช่น 26)
-                    const mm = String(d.getMonth() + 1).padStart(2, '0'); // ได้เดือนปัจจุบันแบบ 2 หลัก (เช่น 05)
-                    val = yy + mm + "00" + val; // ประกอบเข้าด้วยกันเป็นรูปแบบเต็ม 10 หลัก
-                }
-
-                const finalCode = deliveryType === 'FACTORY' ? `${val}(รับโรงตัด)` : val;
-                
-                if (!checkDuplicate(finalCode)) {
-                    setCurrentItems(prev => [{ code: finalCode, dueDate: dueDate, type: deliveryType }, ...prev]);
-                    setSuccessMsg(`เพิ่มรายการ ${finalCode} สำเร็จ`);
-                    setTimeout(() => setSuccessMsg(''), 1500);
-                } else {
-                    setErrorMsg(`รายการ ${finalCode} ซ้ำในรายการปัจจุบัน`);
-                    setTimeout(() => setErrorMsg(''), 2000);
-                }
-                setInputValue('');
-            };
-
-            const removeItem = (index) => {
-                setCurrentItems(prev => prev.filter((_, i) => i !== index));
-            };
-
-            const handleSaveAll = async () => {
-                if (currentItems.length === 0) return;
-                setIsLoading(true);
-                setErrorMsg('');
-                
-                try {
-                    const payload = {
-                        date: targetDate,
-                        userName: userName,
-                        items: currentItems.map(item => ({
-                            code: item.code,
-                            type: item.type,
-                            note: `ดิว ${item.dueDate.split('-')[2]}/${item.dueDate.split('-')[1]}`
-                        }))
+                setIsScanning(true);
+                setTimeout(() => {
+                    const html5QrCode = new window.Html5Qrcode("reader");
+                    html5QrCodeRef.current = html5QrCode;
+                    const config = {
+                        fps: 10,
+                        qrbox: (vw, vh) => ({ width: Math.min(250, vw * 0.8), height: 150 }),
+                        aspectRatio: 1.0, 
+                        experimentalFeatures: { useBarCodeDetectorIfSupported: true }
                     };
 
-                    const response = await fetch(WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                    html5QrCode.start(
+                        { facingMode: "environment" }, config,
+                        (decodedText) => {
+                            if (lastScannedRef.current !== decodedText) {
+                                lastScannedRef.current = decodedText;
+                                const finalCode = deliveryTypeRef.current === 'FACTORY' ? `${decodedText.trim()}(รับโรงตัด)` : decodedText.trim();
+                                if (!checkDuplicate(finalCode)) {
+                                    playBeep();
+                                    setCurrentItems(prev => [{ code: finalCode, dueDate: dueDateRef.current }, ...prev]);
+                                }
+                                setTimeout(() => { lastScannedRef.current = null }, 1500);
+                            }
+                        }, 
+                        (err) => {}
+                    ).catch((err) => { setIsScanning(false); alert("❌ ไม่สามารถเปิดกล้องได้"); });
+                }, 300);
+            };
+
+            const stopScanner = () => {
+                if (html5QrCodeRef.current) {
+                    html5QrCodeRef.current.stop().then(() => {
+                        html5QrCodeRef.current.clear(); 
+                        setIsScanning(false); setIsFlashlightOn(false);
+                    }).catch(() => setIsScanning(false));
+                } else setIsScanning(false);
+            };
+
+            const toggleFlashlight = async () => {
+                if (html5QrCodeRef.current && isScanning) {
+                    try {
+                        const newState = !isFlashlightOn;
+                        await html5QrCodeRef.current.applyVideoConstraints({ advanced: [{ torch: newState }] });
+                        setIsFlashlightOn(newState);
+                    } catch (error) { alert("อุปกรณ์ไม่รองรับไฟฉายผ่านเว็บครับ"); }
+                }
+            };
+
+            const handleManualAdd = (e) => {
+                e.preventDefault();
+                const val = inputValue.trim();
+                if (!val) return;
+                const finalCode = deliveryType === 'FACTORY' ? `${val}(รับโรงตัด)` : val;
+                if (!checkDuplicate(finalCode)) {
+                    setCurrentItems(prev => [{ code: finalCode, dueDate: dueDate }, ...prev]);
+                }
+                setInputValue('');
+            };
+
+            const saveEditItem = () => {
+                if (editingIndex === null) return;
+                const newItems = [...currentItems];
+                let baseCode = newItems[editingIndex].code.replace('(รับโรงตัด)', '').trim();
+                const finalCode = editIsFactory ? `${baseCode}(รับโรงตัด)` : baseCode;
+                const isDuplicate = newItems.some((item, idx) => idx !== editingIndex && String(item.code).trim().toUpperCase() === finalCode.toUpperCase());
+                
+                if (isDuplicate) { 
+                    playDuplicateVoice();
+                    setDuplicateWarning(`แก้ประเภทไม่ได้! บิลนี้มีอยู่ในตะกร้าแล้ว`);
+                    setTimeout(() => setDuplicateWarning(null), 5000); 
+                    return; 
+                }
+
+                newItems[editingIndex] = { ...newItems[editingIndex], code: finalCode, dueDate: editDueDate };
+                setCurrentItems(newItems);
+                setEditingIndex(null);
+            };
+
+            const executeSaveBatch = async () => {
+                if (currentItems.length === 0) return;
+                setIsSaving(true); setSaveSuccess(false);
+
+                const now = new Date();
+                const currentDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                const newBatch = {
+                    id: "BATCH-" + Date.now().toString().slice(-6),
+                    items: [...currentItems], date: currentDateStr, time: currentTimeStr, 
+                    dueDate: dueDate, timestamp: now.getTime(),
+                    userId: userProfile ? userProfile.userId : null
+                };
+
+                try {
+                    const response = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(newBatch)
                     });
 
-                    // เนื่องจากเป็นโหมด no-cors จะไม่สามารถอ่านผลตอบรับได้โดยตรง ให้ถือว่าสำเร็จหากไม่ throw error
-                    setCurrentItems([]);
-                    setSuccessMsg('บันทึกข้อมูลเรียบร้อยแล้ว');
-                    if (refreshHistory) refreshHistory();
-                    setTimeout(() => setSuccessMsg(''), 3000);
-                } catch (err) {
-                    setErrorMsg('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.toString());
-                } finally {
-                    setIsLoading(false);
-                }
+                    const text = await response.text();
+                    if (text.trim().startsWith('<')) { alert("❌ เซิร์ฟเวอร์ตอบกลับผิดพลาด"); setIsSaving(false); return; }
+
+                    const result = JSON.parse(text);
+                    if (result.status === 'error') {
+                        if (result.message === 'DUPLICATE_FOUND') { alert(`❌ ตรวจพบการซ้ำซ้อนในฐานข้อมูล!\nบิลเลขที่: ${result.duplicateCode}`); } 
+                        else { alert("❌ เกิดข้อผิดพลาด: " + result.message); }
+                        setIsSaving(false); return; 
+                    }
+
+                    setCurrentItems([]); localStorage.removeItem('delivery_basket');
+                    setSaveSuccess(true); playSuccessBeep();
+                    
+                    if (result.lineMessage) {
+                        setLineMessageToCopy(result.lineMessage);
+                        setLastSavedMessage(result.lineMessage); 
+                        localStorage.setItem('last_saved_message', result.lineMessage);
+                        setTimeout(() => { setShowCopyModal(true); }, 1200); 
+                    }
+                    
+                    onSaveSuccess();
+                    
+                    const newCodesSet = new Set(allSentCodesCache);
+                    newBatch.items.forEach(item => newCodesSet.add(item.code.trim().toUpperCase()));
+                    setAllSentCodesCache(newCodesSet);
+
+                    setTimeout(() => setSaveSuccess(false), 3000);
+                } catch (error) { alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ"); } finally { setIsSaving(false); }
             };
 
             return (
-                <div className="space-y-5 animate-scale-in pb-32">
-                    {/* ส่วนหัวการตั้งค่าของฟอร์ม */}
-                    <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1.5">วันที่เอกสารหลัก</label>
-                                <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 h-12 text-sm font-medium focus:border-emerald-500 transition-all text-slate-700" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1.5">วันที่ดิว (สินค้าถึง)</label>
-                                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 h-12 text-sm font-medium focus:border-emerald-500 transition-all text-slate-700" />
-                            </div>
+                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
+                    {saveSuccess && (
+                        <div className="fixed inset-0 bg-emerald-500/90 backdrop-blur-md z-[150] flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
+                            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-bounce"><i className="fa-solid fa-check text-7xl text-emerald-500"></i></div>
+                            <h2 className="text-4xl font-black text-white drop-shadow-lg mb-2">ส่งสำเร็จ!</h2>
+                            <p className="text-emerald-50 text-lg font-medium">ข้อมูลเข้าระบบเรียบร้อยแล้ว</p>
                         </div>
+                    )}
 
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-500 mb-1.5">ประเภทงานจัดส่ง</label>
-                            <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1 rounded-2xl border border-slate-100">
-                                <button type="button" onClick={() => setDeliveryType('DC')} className={`h-10 rounded-xl text-xs font-bold transition-all ${deliveryType === 'DC' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}>🏢 รับสินค้าที่ DC</button>
-                                <button type="button" onClick={() => setDeliveryType('FACTORY')} className={`h-10 rounded-xl text-xs font-bold transition-all ${deliveryType === 'FACTORY' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}>🏭 รับโรงตัด</button>
-                            </div>
+                    {duplicateWarning && (
+                        <div className="fixed top-5 left-4 right-4 z-[110] bg-red-600/95 backdrop-blur-sm text-white p-4 rounded-2xl shadow flex items-center gap-3 animate-in slide-in-from-top-5">
+                            <i className="fa-solid fa-triangle-exclamation text-xl"></i><div className="flex-1 font-bold text-sm">{duplicateWarning}</div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* ช่องรับค่าข้อมูลบาร์โค้ด */}
-                    <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-3 relative">
-                        <label className="block text-xs font-semibold text-slate-500">ยิงสแกนเนอร์ หรือ พิมพ์เลขเที่ยว</label>
-                        <form onSubmit={handleManualAdd} className="flex gap-2">
-                            <div className="relative flex-1">
-                                <input 
-                                    ref={inputRef}
-                                    type="text" 
-                                    value={inputValue}
-                                    onChange={handleInputChange}
-                                    placeholder="พิมพ์ 4 หลักท้าย หรือ เลขเต็ม..."
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-4 pr-10 h-12 text-sm font-bold tracking-wider focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
-                                />
-                                <div className="absolute right-3.5 top-3.5 text-slate-400 text-sm">
-                                    <i className="fa-solid fa-keyboard animate-pulse text-emerald-500"></i>
+                    {showCopyModal && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[160] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="text-center mb-4">
+                                    <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-3 border-[4px] border-white"><i className="fa-regular fa-copy text-2xl"></i></div>
+                                    <h3 className="text-lg font-black text-slate-800">คัดลอกข้อความแจ้งเตือน</h3>
+                                </div>
+                                <div className="bg-slate-50 p-3 rounded-2xl mb-5 max-h-[40vh] overflow-y-auto border border-slate-200 text-left">
+                                    <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans">{lineMessageToCopy}</pre>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setShowCopyModal(false)} className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-bold text-sm">ปิด</button>
+                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="flex-1 py-3.5 bg-blue-600 text-white rounded-2xl font-bold text-sm flex justify-center items-center gap-2"><i className="fa-solid fa-copy"></i> คัดลอก</button>
                                 </div>
                             </div>
-                            <button type="submit" className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex justify-center items-center active:scale-95 transition-all shadow-md shadow-slate-900/10">
-                                <i className="fa-solid fa-plus text-sm"></i>
-                            </button>
-                        </form>
+                        </div>
+                    )}
 
-                        {/* แจ้งเตือนย่อย */}
-                        {errorMsg && <div className="bg-rose-50 text-rose-600 text-xs px-4 py-2.5 rounded-xl font-medium flex items-center gap-2"><i className="fa-solid fa-circle-exclamation"></i> {errorMsg}</div>}
-                        {successMsg && <div className="bg-emerald-50 text-emerald-600 text-xs px-4 py-2.5 rounded-xl font-medium flex items-center gap-2"><i className="fa-solid fa-circle-check"></i> {successMsg}</div>}
-                    </div>
+                    {showClearConfirmModal && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="text-center mb-6">
+                                    <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 border-[6px] border-white"><i className="fa-solid fa-trash-can text-3xl"></i></div>
+                                    <h3 className="text-xl font-black text-slate-800">ยืนยันการล้างตะกร้า?</h3>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setShowClearConfirmModal(false)} className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-bold">ยกเลิก</button>
+                                    <button onClick={() => { setCurrentItems([]); setShowClearConfirmModal(false); }} className="flex-1 py-3.5 bg-red-600 text-white rounded-2xl font-bold">ล้างทั้งหมด</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
-                    {/* ตะกร้าแสดงรายการปัจจุบัน */}
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                        <div className="px-5 py-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                            <span className="text-xs font-bold text-slate-500 flex items-center gap-2">📋 รายการที่พร้อมบันทึก</span>
-                            <span className="bg-slate-200/70 text-slate-700 text-xs px-2.5 py-1 rounded-full font-bold">{currentItems.length} รายการ</span>
+                    {editingIndex !== null && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="flex justify-between items-center mb-5">
+                                    <h3 className="text-lg font-bold text-slate-800"><i className="fa-solid fa-pen-to-square text-blue-500 mr-2"></i>แก้ไขข้อมูลบิล</h3>
+                                    <button onClick={() => setEditingIndex(null)} className="bg-slate-100 w-8 h-8 rounded-full"><i className="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <div className="space-y-5 mb-7">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 mb-1.5 block ml-1">ประเภทการรับ</label>
+                                        <div className="flex bg-slate-100/80 p-1.5 rounded-2xl gap-1">
+                                            <button type="button" onClick={() => setEditIsFactory(false)} className={`flex-1 py-3 text-sm font-bold rounded-xl ${!editIsFactory ? 'bg-emerald-200 text-emerald-800' : 'text-slate-500'}`}>DC</button>
+                                            <button type="button" onClick={() => setEditIsFactory(true)} className={`flex-1 py-3 text-sm font-bold rounded-xl ${editIsFactory ? 'bg-orange-200 text-orange-800' : 'text-slate-500'}`}>โรงตัด</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 mb-1.5 block ml-1">วันที่กำหนดส่ง</label>
+                                        <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none font-bold" />
+                                    </div>
+                                </div>
+                                <button onClick={saveEditItem} className="w-full py-3.5 bg-blue-600 text-white rounded-2xl font-bold">บันทึกการแก้ไข</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {showConfirmModal && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="text-center mb-6">
+                                    <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-5 border-[6px] border-white"><i className="fa-solid fa-paper-plane text-3xl"></i></div>
+                                    <h3 className="text-xl font-black text-slate-800">ยืนยันการส่งข้อมูล?</h3>
+                                    <p className="text-sm text-slate-500 mt-2">จำนวน <span className="font-bold text-emerald-600 text-lg mx-1">{currentItems.length}</span> เที่ยว</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-bold">ยกเลิก</button>
+                                    <button onClick={() => { setShowConfirmModal(false); executeSaveBatch(); }} className="flex-1 py-3.5 bg-emerald-600 text-white rounded-2xl font-bold">ยืนยันส่ง</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div className="lg:col-span-7 space-y-6">
+                            <div className="bg-white/95 backdrop-blur-sm p-6 rounded-[32px] shadow-sm border border-white/60">
+                                <div className="mb-6">
+                                    <div className="flex bg-slate-100/80 p-1.5 rounded-[20px] gap-1">
+                                        <button onClick={() => setDeliveryType('DC')} className={`flex-1 py-3.5 font-bold rounded-2xl flex justify-center gap-2 ${deliveryType === 'DC' ? 'bg-emerald-200 text-emerald-800' : 'text-slate-500'}`}><i className="fa-solid fa-box-open"></i> DC</button>
+                                        <button onClick={() => setDeliveryType('FACTORY')} className={`flex-1 py-3.5 font-bold rounded-2xl flex justify-center gap-2 ${deliveryType === 'FACTORY' ? 'bg-orange-200 text-orange-800' : 'text-slate-500'}`}><i className="fa-solid fa-scissors"></i> โรงตัด</button>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    {isScanning ? (
+                                        <div className="relative rounded-3xl border-4 border-emerald-400 bg-black overflow-hidden">
+                                            <div id="reader" className="w-full h-[280px]"></div>
+                                            <button onClick={stopScanner} className="absolute top-3 right-3 bg-white/20 text-white w-10 h-10 rounded-full z-10"><i className="fa-solid fa-xmark"></i></button>
+                                            <button onClick={toggleFlashlight} className={`absolute top-3 left-3 w-10 h-10 rounded-full z-10 ${isFlashlightOn ? 'bg-yellow-400 text-slate-900' : 'bg-white/20 text-white'}`}><i className="fa-solid fa-bolt"></i></button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col gap-3">
+                                            <button onClick={startScanner} className="w-full h-16 bg-slate-800 text-white rounded-[20px] text-3xl"><i className="fa-solid fa-camera"></i></button>
+                                            <form onSubmit={handleManualAdd} className="flex gap-2">
+                                                <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="พิมพ์เลขที่..." className="flex-1 px-4 border border-slate-200 rounded-[18px] outline-none text-sm h-[46px]" />
+                                                <button type="submit" className="w-[46px] h-[46px] bg-emerald-100 text-emerald-700 rounded-[18px] text-lg"><i className="fa-solid fa-plus font-bold"></i></button>
+                                            </form>
+                                        </div>
+                                    )}
+                                </div>
+                                {lastSavedMessage && (
+                                    <div className="mt-5 pt-4 bg-blue-50/60 border border-blue-200 rounded-3xl p-4 flex items-center justify-between">
+                                        <div className="flex-1 pr-3"><h4 className="text-sm font-black text-blue-800"><i className="fa-solid fa-clock-rotate-left"></i> ข้อความที่ส่งล่าสุด</h4></div>
+                                        <button onClick={() => { setLineMessageToCopy(lastSavedMessage); setShowCopyModal(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs"><i className="fa-solid fa-copy"></i> คัดลอก</button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className={`p-6 rounded-[32px] border-2 ${checkIsUrgent(dueDate) ? 'bg-red-50/80 border-red-200' : 'bg-white/95 border-emerald-100'}`}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className={`text-sm font-bold flex gap-2 ${checkIsUrgent(dueDate) ? 'text-red-800' : 'text-emerald-800'}`}><i className="fa-regular fa-calendar-check"></i> กำหนดส่ง</label>
+                                    {checkIsUrgent(dueDate) && <span className="bg-red-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold animate-pulse">งานด่วน</span>}
+                                </div>
+                                <input type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-5 py-3.5 bg-white border border-slate-200 rounded-[20px] outline-none font-bold shadow-sm" />
+                            </div>
                         </div>
 
-                        {currentItems.length === 0 ? (
-                            <div className="p-10 text-center text-slate-400 space-y-2">
-                                <i className="fa-solid fa-barcode text-3xl opacity-30"></i>
-                                <p className="text-xs font-medium">ยังไม่มีข้อมูล ยิงสแกนเนอร์เพื่อเริ่มงาน</p>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-slate-50 max-h-[300px] overflow-y-auto">
-                                {currentItems.map((item, idx) => (
-                                    <div key={idx} className="p-4 flex justify-between items-center hover:bg-slate-50/30 transition-all">
-                                        <div className="space-y-1">
-                                            <p className="text-sm font-bold tracking-wide text-slate-800">{item.code}</p>
-                                            <div className="flex gap-1.5 items-center">
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${item.type === 'DC' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>
-                                                    {item.type === 'DC' ? '🏢 DC' : '🏭 โรงตัด'}
-                                                </span>
-                                                <span className="text-[10px] text-slate-400 font-medium">ดิว: {item.dueDate.split('-')[2]}/{item.dueDate.split('-')[1]}</span>
-                                            </div>
-                                        </div>
-                                        <button onClick={() => removeItem(idx)} className="w-8 h-8 text-slate-400 hover:text-rose-500 active:bg-rose-50 rounded-full flex justify-center items-center transition-all">
-                                            <i className="fa-solid fa-trash-can text-xs"></i>
-                                        </button>
+                        <div className="lg:col-span-5 flex flex-col h-full">
+                            <div className="flex flex-col bg-slate-800 rounded-[36px] p-2 shadow-2xl relative flex-1">
+                                {isSaving && <div className="absolute inset-0 bg-white/90 z-50 flex items-center justify-center rounded-[36px]"><div className="w-14 h-14 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin"></div></div>}
+                                <div className="flex justify-between items-center px-6 py-5">
+                                    <h3 className="text-white font-semibold"><i className="fa-solid fa-layer-group text-emerald-400"></i> ตะกร้ารอส่ง</h3>
+                                    <div className="flex items-center gap-2.5">
+                                        {currentItems.length > 0 && <button onClick={() => setShowClearConfirmModal(true)} className="text-red-400 text-[11px] font-bold px-3 py-1.5 bg-slate-700/80 rounded-xl"><i className="fa-solid fa-trash-can"></i> ล้าง</button>}
+                                        <span className="bg-emerald-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-full">{currentItems.length} เที่ยว</span>
                                     </div>
-                                ))}
+                                </div>
+                                <div className="flex-1 min-h-[250px] max-h-[400px] overflow-y-auto bg-slate-50/95 rounded-[28px] p-3 space-y-2.5 custom-scrollbar">
+                                    {currentItems.map((item, index) => {
+                                        const isUrgent = checkIsUrgent(item.dueDate);
+                                        const isFactory = item.code.includes('(รับโรงตัด)');
+                                        return (
+                                            <div key={index} className="flex justify-between bg-white border border-slate-100 p-3.5 rounded-2xl shadow-sm">
+                                                <div className="flex flex-col">
+                                                    <span className={`font-bold text-base ${isFactory ? 'text-orange-700' : 'text-slate-800'}`}>{item.code}</span>
+                                                    <span className={`text-[11px] font-bold mt-1 ${isUrgent ? 'text-red-500' : 'text-emerald-600'}`}>ดิวส่ง: {formatThaiDate(item.dueDate)}</span>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); }} className="text-slate-400 w-10 h-10 bg-slate-50 rounded-xl"><i className="fa-solid fa-pen-to-square"></i></button>
+                                                    <button onClick={() => setCurrentItems(prev => prev.filter((_, i) => i !== index))} className="text-slate-400 w-10 h-10 bg-slate-50 rounded-xl"><i className="fa-solid fa-trash-can"></i></button>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                                <div className="p-2.5 mt-2">
+                                    <button onClick={() => setShowConfirmModal(true)} disabled={currentItems.length === 0 || isSaving} className="w-full text-white font-bold text-base py-4 rounded-[24px] bg-emerald-600 disabled:bg-slate-700"><i className="fa-regular fa-paper-plane"></i> บันทึก</button>
+                                </div>
                             </div>
-                        )}
-                    </div>
-
-                    {/* ปุ่มใหญ่เพื่อกดบันทึกทั้งหมดลงฐานข้อมูล */}
-                    {currentItems.length > 0 && (
-                        <button 
-                            onClick={handleSaveAll} 
-                            disabled={isLoading}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-14 rounded-2xl flex justify-center items-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-[0.99] transition-all disabled:opacity-50"
-                        >
-                            {isLoading ? (
-                                <><i className="fa-solid fa-circle-notch animate-spin"></i> กำลังบันทึกข้อมูล...</>
-                            ) : (
-                                <><i className="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลเข้าคลัง ({currentItems.length})</>
-                            )}
-                        </button>
-                    )}
-                </div>
-            );
-        }
-
-        // ส่วนประกอบ: รายการประวัติการส่งงานประจำวันนั้นๆ
-        function HistoryTab({ isActive, refreshTrigger }) {
-            return (
-                <div className="space-y-4 animate-scale-in pb-32">
-                    <div className="bg-amber-50 border border-amber-200/60 p-4 rounded-2xl text-amber-800 text-xs font-medium leading-relaxed flex gap-2.5">
-                        <i className="fa-solid fa-circle-info text-sm mt-0.5"></i>
-                        <span>ส่วนแสดงสรุปรายงาน สามารถตรวจยอดรวมรายวันและประวัติบิลย้อนหลังได้โดยตรงที่ห้องแชทไลน์กลุ่มหลักของระบบ</span>
-                    </div>
-                    <div className="bg-white p-8 rounded-3xl border border-slate-100 text-center text-slate-400 space-y-2 shadow-sm">
-                        <i className="fa-solid fa-folder-open text-3xl opacity-30"></i>
-                        <p className="text-xs font-medium">ดูประวัติแบบเรียลไทม์ผ่านบอทสรุปยอดรายวันในไลน์</p>
+                        </div>
                     </div>
                 </div>
             );
-        }
+        };
 
-        // ส่วนควบคุมหลัก (App Container)
-        function App() {
-            const [userName, setUserName] = useState('');
-            const [isRegister, setIsRegister] = useState(false);
-            const [activeTab, setActiveTab] = useState('scan');
-            const [targetDate, setTargetDate] = useState('');
-            const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0);
+        // ==========================================
+        // 🧩 Component: แท็บสรุปประวัติ (History Tab)
+        // ==========================================
+        const HistoryTab = ({ isActive, refreshTrigger }) => {
+            const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleDateString('en-CA').substring(0, 7));
+            const [monthHistoryData, setMonthHistoryData] = useState([]);
+            const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+            const [isExporting, setIsExporting] = useState(false);
+            const [isFetchingSummary, setIsFetchingSummary] = useState(false); 
+            
+            const [showCopyModal, setShowCopyModal] = useState(false);
+            const [lineMessageToCopy, setLineMessageToCopy] = useState('');
+            const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
+
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
 
             useEffect(() => {
-                // โหลดประวัติชื่อจากหน่วยความจำภายในเครื่องเพื่อความสะดวกสบายของผู้ใช้
-                const savedName = localStorage.getItem('pj_courier_name');
-                if (savedName) {
-                    setUserName(savedName);
-                    setIsRegister(true);
+                if (!isActive) return;
+
+                const fetchHistory = async () => {
+                    setIsLoadingHistory(true);
+                    const cacheKey = `history_data_${selectedMonth}`;
+                    try {
+                        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getHistory&month=${selectedMonth}`);
+                        const text = await res.text();
+                        if (text.trim().startsWith('<')) throw new Error("เซิร์ฟเวอร์ส่งกลับเป็นหน้า HTML");
+                        const json = JSON.parse(text);
+                        if (json.status === 'success' && json.data) {
+                            setMonthHistoryData(json.data);
+                            localStorage.setItem(cacheKey, JSON.stringify(json.data));
+                        }
+                    } catch (error) { 
+                        const cachedData = localStorage.getItem(cacheKey);
+                        if (cachedData) { try { setMonthHistoryData(JSON.parse(cachedData)); } catch(e) {} }
+                    } finally { 
+                        setIsLoadingHistory(false); 
+                        setLastFetchedMonth(selectedMonth);
+                    }
+                };
+
+                if (selectedMonth !== lastFetchedMonth || refreshTrigger > 0) {
+                    const cacheKey = `history_data_${selectedMonth}`;
+                    const cachedData = localStorage.getItem(cacheKey);
+                    if (cachedData && selectedMonth !== lastFetchedMonth) { 
+                        try { setMonthHistoryData(JSON.parse(cachedData)); } catch(e) {} 
+                    }
+                    fetchHistory();
                 }
-                setTargetDate(new Date().toISOString().split('T')[0]);
+            }, [isActive, selectedMonth, refreshTrigger]);
+
+            // 🟢 ฟังก์ชันประมวลผลสถิติที่อัปเดตใหม่ แยกก้อนคำนวณอย่างเด็ดขาด
+            const getMonthlyStats = () => {
+                const year = parseInt(selectedMonth.split('-')[0]);
+                const month = parseInt(selectedMonth.split('-')[1]);
+                const daysInMonth = new Date(year, month, 0).getDate();
+                
+                const stats = Array.from({length: daysInMonth}, () => ({ 
+                    morning:0, afternoon:0, evening:0, 
+                    urgent:0, total:0, 
+                    before1Day: 0, before2DaysPlus: 0, sameDay: 0, afterDue: 0,
+                    evening_before1Day: 0, evening_before2Days: 0, evening_before3DaysPlus: 0, evening_afterDue: 0
+                }));
+                
+                let totalMonthCount = 0;
+                let todayTotal = 0, todayMorning = 0, todayAfternoon = 0, todayEvening = 0;
+                const todayStr = new Date().toLocaleDateString('en-CA');
+
+                const parseDateLocal = (dStr) => {
+                    const parts = dStr.split('-');
+                    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                };
+
+                monthHistoryData.forEach(item => {
+                    const day = parseInt(item.date.split('-')[2]) - 1;
+                    const count = Number(item.count) || 0;
+                    
+                    if (day >= 0 && day < daysInMonth) {
+                        totalMonthCount += count;
+                        stats[day].total += count;
+
+                        const hour = parseInt(item.time.split(':')[0], 10);
+                        if (hour < 12) stats[day].morning += count;
+                        else if (hour < 18) stats[day].afternoon += count;
+                        else stats[day].evening += count; // ก้อนหลักรอบเย็น
+
+                        const scanDateObj = parseDateLocal(item.date);
+                        const dueDateObj = parseDateLocal(item.dueDate);
+                        
+                        const diffTime = dueDateObj.getTime() - scanDateObj.getTime();
+                        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                        // 🟢 แยกลอจิกนับยอดเด็ดขาด ไม่ให้ปนกันระหว่างก่อนกับหลัง 18.00 น.
+                        if (hour < 18) {
+                            if (diffDays === 1) {
+                                stats[day].before1Day += count; 
+                            } else if (diffDays >= 2) {
+                                stats[day].before2DaysPlus += count; 
+                            } else if (diffDays === 0) {
+                                stats[day].sameDay += count;    
+                            } else if (diffDays < 0) {
+                                stats[day].afterDue += count;   
+                            }
+                        } else {
+                            if (diffDays === 1) stats[day].evening_before1Day += count;
+                            else if (diffDays === 2) stats[day].evening_before2Days += count;
+                            else if (diffDays >= 3) stats[day].evening_before3DaysPlus += count;
+                            else if (diffDays < 0) stats[day].evening_afterDue += count;
+                        }
+
+                        // แสดงสถานะงานด่วนในหน้า History ของแอป (ยังคงไว้ตามเดิม)
+                        const sendDate = new Date(item.date); sendDate.setHours(0,0,0,0);
+                        const nextDay = new Date(sendDate); nextDay.setDate(sendDate.getDate() + 1);
+                        const dDate = new Date(item.dueDate); dDate.setHours(0,0,0,0);
+                        if (dDate.getTime() <= nextDay.getTime()) stats[day].urgent += count;
+                    }
+
+                    if (item.date === todayStr) {
+                        todayTotal += count;
+                        const hour = parseInt(item.time.split(':')[0], 10);
+                        if (hour < 12) todayMorning += count;
+                        else if (hour < 18) todayAfternoon += count;
+                        else todayEvening += count;
+                    }
+                });
+                return { stats, daysInMonth, totalMonthCount, todayTotal, todayMorning, todayAfternoon, todayEvening };
+            };
+
+            const { stats, daysInMonth, totalMonthCount, todayTotal, todayMorning, todayAfternoon, todayEvening } = getMonthlyStats();
+
+            useEffect(() => {
+                if (!isActive || !chartRef.current || !window.Chart) return;
+                if (chartInstance.current) chartInstance.current.destroy();
+                
+                const ctx = chartRef.current.getContext('2d');
+                const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
+                const dataTotals = stats.map(d => d.total);
+
+                chartInstance.current = new window.Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: 'รวมเที่ยวส่ง', data: dataTotals, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: 'rgb(4, 120, 87)', borderWidth: 1, borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
+                });
+            }, [stats, isActive, daysInMonth]);
+
+            // ✅ ฟังก์ชัน Export Excel ตารางเดียว ตามเงื่อนไข
+            const handleExportExcel = async () => {
+                if (!window.ExcelJS) { alert('ระบบสร้างไฟล์กำลังโหลด...'); return; }
+                setIsExporting(true);
+                try {
+                    const workbook = new window.ExcelJS.Workbook();
+                    const sheet = workbook.addWorksheet('สรุปยอดส่งบิล');
+                    const year = parseInt(selectedMonth.split('-')[0]);
+                    const month = parseInt(selectedMonth.split('-')[1]);
+                    const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
+                    const thaiYear = year + 543;
+
+                    const compHeader = ['วันที่'];
+                    const compTotal = ['จำนวนเที่ยวทั้งหมด'];
+                    const compBefore1Day = ['ส่งบิลก่อนวันนัดส่ง 1 วัน (งานด่วน)'];
+                    const compBefore2DaysPlus = ['ส่งบิลก่อนดิวส่ง 2 วันขึ้นไป'];
+                    const compSameDay = ['ส่งบิลในวันนัดส่ง'];
+                    const compAfterDue = ['ส่งบิลหลังคิวส่ง (ล่าช้า)'];
+                    const compEvening = ['ส่งบิลหลัง 18.00 น. (รวม)'];
+                    const compEvening_b1 = ['    - ดิวส่งล่วงหน้า 1 วัน'];
+                    const compEvening_b2 = ['    - ดิวส่งล่วงหน้า 2 วัน'];
+                    const compEvening_b3p = ['    - ดิวส่งล่วงหน้า 3 วันขึ้นไป'];
+                    const compEvening_after = ['    - ดิวส่งล่าช้า (หลังคิวส่ง)'];
+
+                    let sumTotal=0, sumCompBefore1Day=0, sumCompBefore2DaysPlus=0, sumCompSameDay=0, sumCompAfterDue=0;
+                    let sumEvening=0, sumCompEvening_b1=0, sumCompEvening_b2=0, sumCompEvening_b3p=0, sumCompEvening_after=0;
+
+                    for(let i=0; i<daysInMonth; i++) {
+                        compHeader.push(i+1);
+                        compTotal.push(stats[i].total); sumTotal += stats[i].total;
+                        compBefore1Day.push(stats[i].before1Day); sumCompBefore1Day += stats[i].before1Day;
+                        compBefore2DaysPlus.push(stats[i].before2DaysPlus); sumCompBefore2DaysPlus += stats[i].before2DaysPlus;
+                        compSameDay.push(stats[i].sameDay); sumCompSameDay += stats[i].sameDay;
+                        compAfterDue.push(stats[i].afterDue); sumCompAfterDue += stats[i].afterDue;
+                        compEvening.push(stats[i].evening); sumEvening += stats[i].evening;
+                        compEvening_b1.push(stats[i].evening_before1Day); sumCompEvening_b1 += stats[i].evening_before1Day;
+                        compEvening_b2.push(stats[i].evening_before2Days); sumCompEvening_b2 += stats[i].evening_before2Days;
+                        compEvening_b3p.push(stats[i].evening_before3DaysPlus); sumCompEvening_b3p += stats[i].evening_before3DaysPlus;
+                        compEvening_after.push(stats[i].evening_afterDue); sumCompEvening_after += stats[i].evening_afterDue;
+                    }
+
+                    compHeader.push('Total');
+                    compTotal.push(sumTotal);
+                    compBefore1Day.push(sumCompBefore1Day);
+                    compBefore2DaysPlus.push(sumCompBefore2DaysPlus);
+                    compSameDay.push(sumCompSameDay);
+                    compAfterDue.push(sumCompAfterDue);
+                    compEvening.push(sumEvening);
+                    compEvening_b1.push(sumCompEvening_b1);
+                    compEvening_b2.push(sumCompEvening_b2);
+                    compEvening_b3p.push(sumCompEvening_b3p);
+                    compEvening_after.push(sumCompEvening_after);
+
+                    sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
+                    const titleCell = sheet.getCell('A1');
+                    titleCell.font = { name: 'Angsana New', bold: true, size: 16 };
+                    sheet.mergeCells('A1:C1');
+
+                    const rComp1 = sheet.addRow(compHeader);
+                    const rComp2 = sheet.addRow(compTotal);
+                    const rComp3 = sheet.addRow(compBefore1Day); 
+                    const rComp4 = sheet.addRow(compBefore2DaysPlus); 
+                    const rComp5 = sheet.addRow(compSameDay);
+                    const rComp6 = sheet.addRow(compAfterDue);
+                    const rComp7 = sheet.addRow(compEvening);
+                    const rComp7_1 = sheet.addRow(compEvening_b1);
+                    const rComp7_2 = sheet.addRow(compEvening_b2);
+                    const rComp7_3 = sheet.addRow(compEvening_b3p);
+                    const rComp7_4 = sheet.addRow(compEvening_after);
+
+                    const styleCompRow = (row, bgArgb, fontColorArgb, isBold = false) => {
+                        row.eachCell((cell, colNumber) => {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
+                            cell.font = { name: 'Angsana New', size: 12, color: { argb: fontColorArgb }, bold: isBold };
+                            cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                            cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
+                        });
+                        const lastColNumber = daysInMonth + 2;
+                        const lastCell = row.getCell(lastColNumber);
+                        lastCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                        lastCell.font = { name: 'Angsana New', size: 12, color: { argb: fontColorArgb }, bold: true };
+                    };
+
+                    rComp1.eachCell((cell, colNumber) => {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
+                        cell.font = { name: 'Angsana New', size: 12, color: { argb: 'FF000000' }, bold: true };
+                        cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    });
+
+                    styleCompRow(rComp2, 'FFFFFFFF', 'FFFF0000', true); 
+                    rComp2.getCell(1).font = { name: 'Angsana New', size: 12, color: { argb: 'FF000000' }, bold: true }; 
+
+                    styleCompRow(rComp3, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp4, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp5, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp6, 'FFFFFFFF', 'FF000000');
+
+                    styleCompRow(rComp7, 'FFEFF6FF', 'FF1E40AF', true); 
+                    styleCompRow(rComp7_1, 'FFFFFFFF', 'FF475569'); 
+                    styleCompRow(rComp7_2, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp7_3, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp7_4, 'FFFFFFFF', 'FF475569');
+                    
+                    rComp7_1.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_2.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_3.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_4.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+
+                    sheet.getColumn(1).width = 40; 
+                    for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 5; 
+                    sheet.getColumn(daysInMonth+2).width = 8;
+
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    window.saveAs(blob, `สรุปยอดส่งบิล_${thaiMonth}_${thaiYear}.xlsx`);
+                } catch (err) { alert('เกิดข้อผิดพลาดในการสร้างไฟล์ Excel'); } finally { setIsExporting(false); }
+            };
+
+            const handleGetDailySummary = async () => {
+                setIsFetchingSummary(true);
+                try {
+                    const todayStr = new Date().toLocaleDateString('en-CA');
+                    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailySummaryText&date=${todayStr}`);
+                    const text = await response.text();
+                    if (text.trim().startsWith('<')) { alert("❌ เซิร์ฟเวอร์ตอบกลับผิดพลาด"); return; }
+                    
+                    const result = JSON.parse(text);
+                    if (result.status === 'success') {
+                        setLineMessageToCopy(result.data);
+                        setShowCopyModal(true);
+                    } else { alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์"); }
+                } catch (error) { alert("❌ ไม่สามารถดึงข้อมูลสรุปได้"); } finally { setIsFetchingSummary(false); }
+            };
+
+            const forceRefresh = () => {
+                setLastFetchedMonth(null); 
+            };
+
+            return (
+                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
+                    {showCopyModal && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[160] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="text-center mb-4">
+                                    <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-3 border-[4px] border-white"><i className="fa-regular fa-copy text-2xl"></i></div>
+                                    <h3 className="text-lg font-black text-slate-800">คัดลอกข้อความแจ้งเตือน</h3>
+                                </div>
+                                <div className="bg-slate-50 p-3 rounded-2xl mb-5 max-h-[40vh] overflow-y-auto border border-slate-200 text-left">
+                                    <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans">{lineMessageToCopy}</pre>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setShowCopyModal(false)} className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-bold text-sm">ปิด</button>
+                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="flex-1 py-3.5 bg-blue-600 text-white rounded-2xl font-bold text-sm flex justify-center items-center gap-2"><i className="fa-solid fa-copy"></i> คัดลอก</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-between bg-blue-50 border border-blue-100 p-2.5 pl-5 rounded-[24px] shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <i className="fa-solid fa-comment-dots text-blue-500 text-lg"></i>
+                            <span className="text-blue-900 font-bold text-sm">คัดลอกสรุปยอดวันนี้</span>
+                        </div>
+                        <button onClick={handleGetDailySummary} disabled={isFetchingSummary} className="px-5 py-3 bg-blue-600 text-white rounded-[18px] font-bold text-xs flex items-center justify-center gap-2">
+                            {isFetchingSummary ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-copy"></i>} ดึงข้อความ
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row justify-between items-center bg-white/95 px-6 py-5 rounded-[32px] shadow-sm border border-slate-100 gap-4">
+                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                            <div className="bg-slate-50 p-3 rounded-2xl text-slate-500 border border-slate-100"><i className="fa-regular fa-calendar-days text-xl"></i></div>
+                            <div className="flex-1">
+                                <label className="text-[10px] font-bold text-slate-400">เลือกเดือน</label>
+                                <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-sm font-bold text-slate-800 outline-none w-full" />
+                            </div>
+                        </div>
+                        <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 px-6 py-3.5 rounded-2xl font-bold border border-emerald-200">
+                            {isExporting ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-file-excel"></i>} ดาวน์โหลด Excel
+                        </button>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[32px] p-8 text-white flex justify-between items-center">
+                        <div>
+                            <h3 className="text-slate-300 text-xs font-bold uppercase mb-2">ยอดส่งบิลเดือนนี้</h3>
+                            <div className="flex items-baseline gap-3"><span className="text-6xl font-black text-emerald-400">{totalMonthCount}</span><span className="text-slate-300 font-bold text-lg">เที่ยว</span></div>
+                        </div>
+                        <button onClick={forceRefresh} className="bg-slate-700/50 p-4 rounded-full"><i className={`fa-solid fa-rotate-right text-lg ${isLoadingHistory ? 'animate-spin' : ''}`}></i></button>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 gap-3 sm:gap-4">
+                        <div className="bg-white rounded-[24px] p-4 border border-emerald-100 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[10px] sm:text-xs font-bold text-slate-400 mb-1.5">รวมวันนี้</span><span className="text-2xl sm:text-3xl font-black text-emerald-600">{todayTotal}</span>
+                        </div>
+                        <div className="bg-orange-50 rounded-[24px] p-4 border border-orange-100 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[10px] sm:text-xs font-bold text-orange-600 mb-1.5">ก่อนเที่ยง</span><span className="text-2xl sm:text-3xl font-black text-orange-700">{todayMorning}</span>
+                        </div>
+                        <div className="bg-amber-50 rounded-[24px] p-4 border border-amber-100 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[10px] sm:text-xs font-bold text-amber-600 mb-1.5">บ่าย</span><span className="text-2xl sm:text-3xl font-black text-amber-700">{todayAfternoon}</span>
+                        </div>
+                        <div className="bg-indigo-50 rounded-[24px] p-4 border border-indigo-100 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[10px] sm:text-xs font-bold text-indigo-600 mb-1.5">หลัง 18.00</span><span className="text-2xl sm:text-3xl font-black text-indigo-700">{todayEvening}</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white/95 rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="px-6 py-5 border-b border-slate-100"><h3 className="text-sm font-bold text-slate-800"><i className="fa-solid fa-chart-simple text-emerald-500"></i> กราฟจำนวนเที่ยวรายวัน</h3></div>
+                        <div className="p-6 bg-slate-50/30">
+                            <div className="w-full h-64 bg-white p-4 rounded-[24px] border border-slate-100 relative">
+                                <canvas ref={chartRef}></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 🧩 Component หลัก: โครงสร้างและส่วนเชื่อมโยงทั้งหมด (App Wrapper)
+        // ==========================================
+        function App() {
+            const [userProfile, setUserProfile] = useState(() => {
+                const saved = localStorage.getItem('liff_profile_cache');
+                return saved ? JSON.parse(saved) : null;
+            });
+            const [isLiffReady, setIsLiffReady] = useState(false);
+            const [activeTab, setActiveTab] = useState('scan');
+            
+            // ตัวสั่งให้หน้า History รีเฟรชข้อมูลเมื่อหน้าสแกนทำการบันทึกสำเร็จ
+            const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0); 
+
+            const wakeLockRef = useRef(null);
+
+            const requestWakeLock = async () => {
+                if ('wakeLock' in navigator) {
+                    try { wakeLockRef.current = await navigator.wakeLock.request('screen'); } 
+                    catch (err) {}
+                }
+            };
+
+            // ระบบล็อคอิน LIFF
+            useEffect(() => {
+                const initLiff = async () => {
+                    try {
+                        await liff.init({ liffId: '2009934240-M2LO3My9' });
+                        if (liff.isLoggedIn()) {
+                            const profile = await liff.getProfile();
+                            setUserProfile(profile);
+                            localStorage.setItem('liff_profile_cache', JSON.stringify(profile));
+                        } else {
+                            setUserProfile(null);
+                            localStorage.removeItem('liff_profile_cache');
+                        }
+                        setIsLiffReady(true);
+                    } catch (err) {
+                        console.error('LIFF init failed', err);
+                        setIsLiffReady(true); 
+                    }
+                };
+                initLiff();
+
+                requestWakeLock();
+                const handleVisibilityChange = () => { if (document.visibilityState === 'visible') requestWakeLock(); };
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+
+                return () => {
+                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                    if (wakeLockRef.current !== null) wakeLockRef.current.release().catch(()=>{});
+                };
             }, []);
 
-            const handleRegisterSubmit = (e) => {
-                e.preventDefault();
-                if (!userName.trim()) return;
-                localStorage.setItem('pj_courier_name', userName.trim());
-                setIsRegister(true);
-            };
-
-            const handleLogout = () => {
-                if (confirm('ต้องการเปลี่ยนชื่อผู้ใช้งานหรือไม่?')) {
-                    localStorage.removeItem('pj_courier_name');
-                    setUserName('');
-                    setIsRegister(false);
-                }
-            };
-
-            const triggerRefreshHistory = () => {
-                setRefreshHistoryTrigger(prev => prev + 1);
-            };
-
-            // แสดงหน้าต่างลงทะเบียนชื่อผู้ใช้งานก่อนใช้งานระบบ
-            if (!isRegister) {
+            if (!isLiffReady) {
                 return (
-                    <div className="min-h-screen flex justify-center items-center p-4 bg-slate-50">
-                        <div className="w-full max-w-sm bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 p-6 space-y-6 animate-scale-in">
-                            <div className="text-center space-y-2">
-                                <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex justify-center items-center text-2xl mx-auto shadow-inner">
-                                    <i className="fa-solid fa-truck-ramp-box"></i>
-                                </div>
-                                <h1 className="text-xl font-bold text-slate-800">ระบบจัดส่งเอกสาร (PJ.)</h1>
-                                <p className="text-xs font-medium text-slate-400">กรอกชื่อผู้บันทึกข้อมูลเพื่อเริ่มต้นใช้งานระบบ</p>
-                            </div>
+                    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
+                        <p className="text-slate-500 font-bold text-sm animate-pulse">กำลังตรวจสอบข้อมูลผู้ใช้งาน...</p>
+                    </div>
+                );
+            }
 
-                            <form onSubmit={handleRegisterSubmit} className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-500 pl-1">ชื่อผู้คีย์ข้อมูล / ชื่อเล่น</label>
-                                    <input 
-                                        type="text" 
-                                        required
-                                        value={userName}
-                                        onChange={(e) => setUserName(e.target.value)}
-                                        placeholder="ตัวอย่างเช่น: สมชาย, อาร์ท" 
-                                        className="w-full bg-slate-50 border border-slate-100 focus:border-emerald-500 focus:bg-white rounded-2xl px-4 h-12 text-sm font-semibold transition-all text-slate-800"
-                                    />
-                                </div>
-                                <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 active:scale-[0.98] transition-all text-white font-bold h-12 rounded-2xl text-sm shadow-md shadow-slate-900/10">
-                                    เข้าสู่ระบบงาน <i className="fa-solid fa-arrow-right text-xs ml-1"></i>
-                                </button>
-                            </form>
+            if (!userProfile) {
+                return (
+                    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                        <div className="bg-white p-8 rounded-[32px] shadow-lg border border-slate-100 max-w-sm w-full text-center">
+                            <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <i className="fa-solid fa-barcode text-5xl text-emerald-500"></i>
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-800 mb-2">เข้าสู่ระบบสแกนส่งบิล</h2>
+                            <p className="text-sm text-slate-500 mb-8">กรุณาเข้าสู่ระบบผ่านบัญชี LINE ของคุณเพื่อยืนยันตัวตนก่อนจัดส่งข้อมูล</p>
+                            
+                            <button onClick={() => liff.login()} className="w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-4 rounded-[20px] shadow-lg shadow-[#06C755]/30 transition-all active:scale-95 flex items-center justify-center gap-3">
+                                <i className="fa-brands fa-line text-2xl"></i> เข้าสู่ระบบด้วย LINE
+                            </button>
                         </div>
                     </div>
                 );
             }
 
             return (
-                <div className="min-h-screen bg-slate-50 max-w-md mx-auto relative px-4 pt-4">
-                    {/* แถบด้านบน: แสดงข้อมูลผู้ใช้งาน */}
-                    <div className="bg-white px-5 py-4 rounded-3xl border border-slate-100 shadow-sm flex justify-between items-center mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-slate-100 rounded-xl flex justify-center items-center text-slate-600 font-bold text-sm shadow-inner">
-                                {userName.substring(0, 2).toUpperCase()}
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-400 font-medium">ยินดีต้อนรับ</p>
-                                <p className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                                    {userName} 
-                                    <button onClick={handleLogout} className="text-slate-400 hover:text-rose-500 text-xs p-1"><i className="fa-solid fa-pen-to-square"></i></button>
-                                </p>
+                <div className="min-h-screen pb-32 relative bg-slate-50/50">
+                    {/* Header โชว์ข้อมูลผู้ใช้งาน */}
+                    <div className="bg-white/80 backdrop-blur-md px-5 py-3.5 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-slate-100">
+                        <div className="flex items-center gap-3.5">
+                            <img src={userProfile.pictureUrl} alt="profile" className="w-11 h-11 rounded-full border-[3px] border-emerald-100 shadow-sm" />
+                            <div className="flex flex-col">
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">เข้าสู่ระบบแล้ว</span>
+                                <span className="text-sm font-black text-slate-800">{userProfile.displayName}</span>
                             </div>
                         </div>
-                        <div className="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <i className="fa-solid fa-circle text-[6px] animate-pulse"></i> ออนไลน์
-                        </div>
+                        <button onClick={() => {liff.logout(); setUserProfile(null); localStorage.removeItem('liff_profile_cache');}} className="text-[10px] text-red-500 bg-red-50 px-3 py-1.5 rounded-full font-bold">ออกจากระบบ</button>
                     </div>
 
-                    {/* แสดงแท็บคอนเทนต์ตามการเลือกแถบนำทาง */}
-                    {activeTab === 'scan' ? (
-                        <ScanTab 
-                            userName={userName} 
-                            targetDate={targetDate} 
-                            setTargetDate={setTargetDate}
-                            refreshHistory={triggerRefreshHistory}
-                        />
-                    ) : (
-                        <HistoryTab 
-                            isActive={activeTab === 'history'} 
-                            refreshTrigger={refreshHistoryTrigger} 
-                        />
-                    )}
+                    {/* ตัวรับจัดการเนื้อหาหลักที่แยกส่วนแล้ว (Component Split) */}
+                    <ScannerTab 
+                        isActive={activeTab === 'scan'} 
+                        userProfile={userProfile} 
+                        onSaveSuccess={() => setRefreshHistoryTrigger(prev => prev + 1)} 
+                    />
+                    
+                    <HistoryTab 
+                        isActive={activeTab === 'history'} 
+                        refreshTrigger={refreshHistoryTrigger} 
+                    />
 
-                    {/* แถบนำทางด้านล่างสไตล์ iOS */}
+                    {/* แถบนำทางด้านล่าง */}
                     <div className="fixed bottom-6 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)] flex justify-center px-4 pointer-events-none">
                         <div className="bg-white/40 backdrop-blur-md border border-white/60 p-1.5 rounded-[30px] flex w-full max-w-[320px] pointer-events-auto shadow-lg">
                             <button onClick={() => setActiveTab('scan')} className={`flex-1 flex justify-center items-center h-14 rounded-[24px] transition-all ${activeTab === 'scan' ? 'bg-white/90 text-emerald-600 shadow-sm' : 'text-slate-600'}`}><i className="fa-solid fa-barcode text-xl"></i><span className="ml-2.5 font-bold text-sm">สแกนบิล</span></button>
