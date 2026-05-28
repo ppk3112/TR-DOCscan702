@@ -351,8 +351,9 @@
                 };
 
                 try {
-                    // ✅ คืนค่า headers ตัวเดิมกลับมา เพื่อป้องกันปัญหาถูกบล็อกการเชื่อมต่อ (CORS)
+                    // ✅ เพิ่ม redirect: 'follow' เพื่อแก้ปัญหาแอป LINE บล็อกการเชื่อมต่อของ Google
                     const response = await fetch(GOOGLE_SCRIPT_URL, {
+                        redirect: 'follow',
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify(newBatch)
