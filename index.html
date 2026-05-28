@@ -351,8 +351,10 @@
                 };
 
                 try {
+                    // ✅ คืนค่า headers ตัวเดิมกลับมา เพื่อป้องกันปัญหาถูกบล็อกการเชื่อมต่อ (CORS)
                     const response = await fetch(GOOGLE_SCRIPT_URL, {
                         method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify(newBatch)
                     });
 
@@ -383,7 +385,12 @@
                     setAllSentCodesCache(newCodesSet);
 
                     setTimeout(() => setSaveSuccess(false), 3000);
-                } catch (error) { alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ"); } finally { setIsSaving(false); }
+                } catch (error) { 
+                    console.error("Save Error:", error);
+                    alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message); 
+                } finally { 
+                    setIsSaving(false); 
+                }
             };
 
             return (
