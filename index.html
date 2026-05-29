@@ -200,8 +200,8 @@
             });
             
             const [deliveryType, setDeliveryType] = useState('DC');
-            const [deliveryZone, setDeliveryZone] = useState('NORMAL'); // 'NORMAL' หรือ 'UPCOUNTRY'
-            const [showZoneDropdown, setShowZoneDropdown] = useState(false); // สำหรับ Toggle Dropdown
+            const [deliveryZone, setDeliveryZone] = useState('NORMAL'); 
+            const [showZoneDropdown, setShowZoneDropdown] = useState(false); 
             
             const [allSentCodesCache, setAllSentCodesCache] = useState(new Set());
             const [duplicateWarning, setDuplicateWarning] = useState(null);
@@ -220,7 +220,7 @@
             const [editingIndex, setEditingIndex] = useState(null);
             const [editDueDate, setEditDueDate] = useState('');
             const [editIsFactory, setEditIsFactory] = useState(false);
-            const [editIsUpcountry, setEditIsUpcountry] = useState(false); // แก้ไขพื้นที่ได้ด้วย
+            const [editIsUpcountry, setEditIsUpcountry] = useState(false); 
 
             const html5QrCodeRef = useRef(null);
             const lastScannedRef = useRef(null);
@@ -369,7 +369,6 @@
                 if (editingIndex === null) return;
                 const newItems = [...currentItems];
                 
-                // ล้าง tag เดิมออกก่อนเพื่อสร้างใหม่
                 let baseCode = newItems[editingIndex].code.replace('(รับโรงตัด)', '').replace('(ตจว.)', '').trim();
                 let finalCode = editIsFactory ? `${baseCode}(รับโรงตัด)` : baseCode;
                 if (editIsUpcountry) {
@@ -585,7 +584,6 @@
                                         </button>
                                     </div>
                                     
-                                    {/* 🟢 เมนูย่อยซ่อนอยู่ จะโชว์เมื่อกดซ้ำ */}
                                     {showZoneDropdown && (
                                         <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white/90 backdrop-blur-xl rounded-[1.5rem] shadow-xl border border-white/80 z-10 flex gap-2 animate-in slide-in-from-top-2">
                                             <button onClick={() => { setDeliveryZone('NORMAL'); setShowZoneDropdown(false); }} className={`flex-1 py-3 text-sm font-bold rounded-[1rem] transition-all ${deliveryZone === 'NORMAL' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>พื้นที่ปกติ</button>
@@ -633,11 +631,12 @@
                             </div>
                         </div>
 
-                        <div className="lg:col-span-5 flex flex-col h-[500px] lg:h-auto">
-                            <div className="flex flex-col glass-card bg-white/40 rounded-[3rem] p-3 shadow-[0_20px_50px_rgba(31,38,135,0.1)] relative flex-1 border border-white/80">
+                        {/* 🟢 จุดที่แก้ไข: กำหนดความสูงแบบคงที่ h-[550px] lg:h-[650px] */}
+                        <div className="lg:col-span-5 flex flex-col h-[550px] lg:h-[650px]">
+                            <div className="flex flex-col glass-card bg-white/40 rounded-[3rem] p-3 shadow-[0_20px_50px_rgba(31,38,135,0.1)] relative flex-1 border border-white/80 overflow-hidden">
                                 {isSaving && <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin mb-4"></div><span className="font-bold text-emerald-600 animate-pulse text-lg">กำลังส่งข้อมูล...</span></div>}
                                 
-                                <div className="flex justify-between items-center px-6 py-5">
+                                <div className="flex justify-between items-center px-6 py-5 shrink-0">
                                     <h3 className="text-slate-800 font-black text-xl flex items-center gap-2"><i className="fa-solid fa-box-open text-emerald-500 text-2xl"></i> ตะกร้าของฉัน</h3>
                                     <div className="flex items-center gap-2">
                                         {currentItems.length > 0 && <button onClick={() => setShowClearConfirmModal(true)} className="btn-bouncy text-rose-500 text-xs font-bold px-3 py-2 bg-white/80 rounded-[1rem] shadow-sm"><i className="fa-solid fa-trash-can mr-1"></i> ล้าง</button>}
@@ -655,7 +654,7 @@
                                         currentItems.map((item, index) => {
                                             const isUrgent = checkIsUrgent(item.dueDate);
                                             const isFactory = item.code.includes('(รับโรงตัด)');
-                                            const isUpcountry = item.code.includes('(ตจว.)'); // เช็คว่าเป็นตจว.หรือไม่
+                                            const isUpcountry = item.code.includes('(ตจว.)'); 
                                             
                                             return (
                                                 <div key={index} className="flex justify-between bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow animate-in slide-in-from-bottom-2 duration-300">
@@ -678,7 +677,7 @@
                                         })
                                     )}
                                 </div>
-                                <div className="p-3 mt-2">
+                                <div className="p-3 mt-2 shrink-0">
                                     <button onClick={() => setShowConfirmModal(true)} disabled={currentItems.length === 0 || isSaving} className="btn-bouncy w-full text-white font-black text-xl py-5 rounded-[2.5rem] bg-gradient-to-r from-emerald-400 to-teal-500 disabled:from-slate-300 disabled:to-slate-400 disabled:text-slate-500 shadow-[0_10px_30px_rgba(16,185,129,0.3)] disabled:shadow-none flex justify-center items-center gap-3">
                                         <i className="fa-solid fa-paper-plane"></i> ส่งข้อมูลเข้าระบบ
                                     </button>
