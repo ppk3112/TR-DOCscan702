@@ -61,7 +61,6 @@
             -webkit-tap-highlight-color: transparent; 
             margin: 0;
             padding-bottom: env(safe-area-inset-bottom);
-            /* พื้นหลังสีมิ้นต์-ฟ้า สบายตา */
             background: linear-gradient(-45deg, #e0f2fe, #ccfbf1, #dcfce7, #f0fdfa);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -199,7 +198,11 @@
                 now.setDate(now.getDate() + 2);
                 return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             });
+            
             const [deliveryType, setDeliveryType] = useState('DC');
+            const [deliveryZone, setDeliveryZone] = useState('NORMAL'); // 'NORMAL' หรือ 'UPCOUNTRY'
+            const [showZoneDropdown, setShowZoneDropdown] = useState(false); // สำหรับ Toggle Dropdown
+            
             const [allSentCodesCache, setAllSentCodesCache] = useState(new Set());
             const [duplicateWarning, setDuplicateWarning] = useState(null);
             
@@ -217,16 +220,19 @@
             const [editingIndex, setEditingIndex] = useState(null);
             const [editDueDate, setEditDueDate] = useState('');
             const [editIsFactory, setEditIsFactory] = useState(false);
+            const [editIsUpcountry, setEditIsUpcountry] = useState(false); // แก้ไขพื้นที่ได้ด้วย
 
             const html5QrCodeRef = useRef(null);
             const lastScannedRef = useRef(null);
             const dueDateRef = useRef(dueDate);
             const deliveryTypeRef = useRef(deliveryType);
+            const deliveryZoneRef = useRef(deliveryZone);
             const currentItemsRef = useRef(currentItems);
             const allSentCodesCacheRef = useRef(allSentCodesCache);
 
             useEffect(() => { dueDateRef.current = dueDate; }, [dueDate]);
             useEffect(() => { deliveryTypeRef.current = deliveryType; }, [deliveryType]);
+            useEffect(() => { deliveryZoneRef.current = deliveryZone; }, [deliveryZone]);
             useEffect(() => { currentItemsRef.current = currentItems; }, [currentItems]);
             useEffect(() => { allSentCodesCacheRef.current = allSentCodesCache; }, [allSentCodesCache]);
             useEffect(() => { localStorage.setItem('delivery_basket', JSON.stringify(currentItems)); }, [currentItems]);
@@ -294,7 +300,12 @@
                         (decodedText) => {
                             if (lastScannedRef.current !== decodedText) {
                                 lastScannedRef.current = decodedText;
-                                const finalCode = deliveryTypeRef.current === 'FACTORY' ? `${decodedText.trim()}(รับโรงตัด)` : decodedText.trim();
+                                
+                                let finalCode = deliveryTypeRef.current === 'FACTORY' ? `${decodedText.trim()}(รับโรงตัด)` : decodedText.trim();
+                                if (deliveryZoneRef.current === 'UPCOUNTRY') {
+                                    finalCode += '(ตจว.)';
+                                }
+
                                 if (!checkDuplicate(finalCode)) {
                                     playBeep();
                                     setCurrentItems(prev => [{ code: finalCode, dueDate: dueDateRef.current }, ...prev]);
@@ -343,7 +354,11 @@
                     val = `${yy}${mm}00${val}`; 
                 }
 
-                const finalCode = deliveryType === 'FACTORY' ? `${val}(รับโรงตัด)` : val;
+                let finalCode = deliveryType === 'FACTORY' ? `${val}(รับโรงตัด)` : val;
+                if (deliveryZone === 'UPCOUNTRY') {
+                    finalCode += '(ตจว.)';
+                }
+
                 if (!checkDuplicate(finalCode)) {
                     setCurrentItems(prev => [{ code: finalCode, dueDate: dueDate }, ...prev]);
                 }
@@ -353,8 +368,14 @@
             const saveEditItem = () => {
                 if (editingIndex === null) return;
                 const newItems = [...currentItems];
-                let baseCode = newItems[editingIndex].code.replace('(รับโรงตัด)', '').trim();
-                const finalCode = editIsFactory ? `${baseCode}(รับโรงตัด)` : baseCode;
+                
+                // ล้าง tag เดิมออกก่อนเพื่อสร้างใหม่
+                let baseCode = newItems[editingIndex].code.replace('(รับโรงตัด)', '').replace('(ตจว.)', '').trim();
+                let finalCode = editIsFactory ? `${baseCode}(รับโรงตัด)` : baseCode;
+                if (editIsUpcountry) {
+                    finalCode += '(ตจว.)';
+                }
+
                 const isDuplicate = newItems.some((item, idx) => idx !== editingIndex && String(item.code).trim().toUpperCase() === finalCode.toUpperCase());
                 
                 if (isDuplicate) { 
@@ -367,6 +388,16 @@
                 newItems[editingIndex] = { ...newItems[editingIndex], code: finalCode, dueDate: editDueDate };
                 setCurrentItems(newItems);
                 setEditingIndex(null);
+            };
+
+            const handleTypeToggle = (type) => {
+                if (deliveryType === type) {
+                    setShowZoneDropdown(!showZoneDropdown);
+                } else {
+                    setDeliveryType(type);
+                    setDeliveryZone('NORMAL');
+                    setShowZoneDropdown(false);
+                }
             };
 
             const executeSaveBatch = async () => {
@@ -506,6 +537,13 @@
                                         </div>
                                     </div>
                                     <div>
+                                        <label className="text-sm font-bold text-slate-600 mb-2 block ml-2">โซนพื้นที่</label>
+                                        <div className="flex bg-white/60 p-2 rounded-[2rem] gap-2 shadow-inner border border-white/50">
+                                            <button type="button" onClick={() => setEditIsUpcountry(false)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${!editIsUpcountry ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-white/50'}`}>พื้นที่ปกติ</button>
+                                            <button type="button" onClick={() => setEditIsUpcountry(true)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${editIsUpcountry ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30' : 'text-slate-500 hover:bg-white/50'}`}><i className="fa-solid fa-truck-fast mr-2"></i> ตจว.</button>
+                                        </div>
+                                    </div>
+                                    <div>
                                         <label className="text-sm font-bold text-slate-600 mb-2 block ml-2">วันที่กำหนดส่ง</label>
                                         <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-5 py-4 glass-input rounded-[2rem] outline-none font-bold text-slate-700" />
                                     </div>
@@ -535,11 +573,25 @@
                         <div className="lg:col-span-7 space-y-6">
                             
                             <div className="glass-card p-6 rounded-[2.5rem]">
-                                <div className="mb-6">
-                                    <div className="flex glass-input p-2 rounded-[2rem] gap-2">
-                                        <button onClick={() => setDeliveryType('DC')} className={`btn-bouncy flex-1 py-4 font-bold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'DC' ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-md' : 'text-slate-500'}`}><i className="fa-solid fa-warehouse mr-2"></i> รับ DC</button>
-                                        <button onClick={() => setDeliveryType('FACTORY')} className={`btn-bouncy flex-1 py-4 font-bold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'FACTORY' ? 'bg-gradient-to-r from-orange-400 to-rose-400 text-white shadow-md' : 'text-slate-500'}`}><i className="fa-solid fa-scissors mr-2"></i> รับโรงตัด</button>
+                                <div className="mb-6 relative">
+                                    <div className="flex glass-input p-2 rounded-[2rem] gap-2 relative z-20 bg-white/40">
+                                        <button onClick={() => handleTypeToggle('DC')} className={`btn-bouncy flex-1 py-4 font-bold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'DC' ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-md' : 'text-slate-500 hover:bg-white/50'}`}>
+                                            <i className="fa-solid fa-warehouse mr-2"></i> รับ DC {deliveryType === 'DC' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
+                                            {deliveryType === 'DC' && <i className={`fa-solid fa-chevron-down ml-2 text-xs transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
+                                        </button>
+                                        <button onClick={() => handleTypeToggle('FACTORY')} className={`btn-bouncy flex-1 py-4 font-bold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'FACTORY' ? 'bg-gradient-to-r from-orange-400 to-rose-400 text-white shadow-md' : 'text-slate-500 hover:bg-white/50'}`}>
+                                            <i className="fa-solid fa-scissors mr-2"></i> รับโรงตัด {deliveryType === 'FACTORY' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
+                                            {deliveryType === 'FACTORY' && <i className={`fa-solid fa-chevron-down ml-2 text-xs transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
+                                        </button>
                                     </div>
+                                    
+                                    {/* 🟢 เมนูย่อยซ่อนอยู่ จะโชว์เมื่อกดซ้ำ */}
+                                    {showZoneDropdown && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white/90 backdrop-blur-xl rounded-[1.5rem] shadow-xl border border-white/80 z-10 flex gap-2 animate-in slide-in-from-top-2">
+                                            <button onClick={() => { setDeliveryZone('NORMAL'); setShowZoneDropdown(false); }} className={`flex-1 py-3 text-sm font-bold rounded-[1rem] transition-all ${deliveryZone === 'NORMAL' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>พื้นที่ปกติ</button>
+                                            <button onClick={() => { setDeliveryZone('UPCOUNTRY'); setShowZoneDropdown(false); }} className={`flex-1 py-3 text-sm font-bold rounded-[1rem] transition-all ${deliveryZone === 'UPCOUNTRY' ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}><i className="fa-solid fa-truck-fast mr-1"></i> งาน ตจว.</button>
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 <div className="space-y-5">
@@ -603,14 +655,22 @@
                                         currentItems.map((item, index) => {
                                             const isUrgent = checkIsUrgent(item.dueDate);
                                             const isFactory = item.code.includes('(รับโรงตัด)');
+                                            const isUpcountry = item.code.includes('(ตจว.)'); // เช็คว่าเป็นตจว.หรือไม่
+                                            
                                             return (
                                                 <div key={index} className="flex justify-between bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow animate-in slide-in-from-bottom-2 duration-300">
                                                     <div className="flex flex-col justify-center">
-                                                        <span className={`font-black text-lg tracking-wide ${isFactory ? 'text-orange-600' : 'text-slate-700'}`}>{item.code}</span>
-                                                        <span className={`text-xs font-bold mt-1.5 flex items-center gap-1 ${isUrgent ? 'text-rose-500' : 'text-teal-600'}`}>ดิว: {formatThaiDate(item.dueDate)} {isUrgent && <i className="fa-solid fa-fire text-rose-500 ml-1"></i>}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`font-black text-lg tracking-wide ${isFactory ? 'text-orange-600' : 'text-slate-700'}`}>{item.code}</span>
+                                                        </div>
+                                                        <span className={`text-xs font-bold mt-1.5 flex items-center gap-1 ${isUrgent ? 'text-rose-500' : 'text-teal-600'}`}>
+                                                            ดิว: {formatThaiDate(item.dueDate)} 
+                                                            {isUrgent && <i className="fa-solid fa-fire text-rose-500 ml-1"></i>}
+                                                            {isUpcountry && <span className="ml-1 bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full text-[10px]"><i className="fa-solid fa-truck-fast mr-1"></i>ตจว.</span>}
+                                                        </span>
                                                     </div>
                                                     <div className="flex gap-2 items-center">
-                                                        <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); }} className="btn-bouncy text-slate-500 w-11 h-11 bg-white border border-slate-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-pen-to-square"></i></button>
+                                                        <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); setEditIsUpcountry(isUpcountry); }} className="btn-bouncy text-slate-500 w-11 h-11 bg-white border border-slate-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-pen-to-square"></i></button>
                                                         <button onClick={() => setCurrentItems(prev => prev.filter((_, i) => i !== index))} className="btn-bouncy text-rose-400 w-11 h-11 bg-rose-50 border border-rose-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-trash-can"></i></button>
                                                     </div>
                                                 </div>
