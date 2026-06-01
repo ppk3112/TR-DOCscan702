@@ -17,7 +17,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0b1120">
+    <meta name="theme-color" content="#ccfbf1">
     
     <script>
         (function() {
@@ -26,8 +26,8 @@
                 "short_name": "สแกนส่งบิล",
                 "start_url": window.location.href,
                 "display": "standalone",
-                "background_color": "#0b1120",
-                "theme_color": "#2dd4bf",
+                "background_color": "#ccfbf1",
+                "theme_color": "#5eead4",
                 "icons": [
                     { "src": "https://i.postimg.cc/SxDzdXD5/79162.jpg", "sizes": "192x192", "type": "image/jpeg" },
                     { "src": "https://i.postimg.cc/SxDzdXD5/79162.jpg", "sizes": "512x512", "type": "image/jpeg" }
@@ -55,262 +55,63 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
     <style>
-        :root {
-            --bg-deep:    #0b1120;
-            --bg-mid:     #111827;
-            --bg-card:    rgba(255,255,255,0.04);
-            --bg-card-hover: rgba(255,255,255,0.07);
-            --border:     rgba(255,255,255,0.08);
-            --border-lit: rgba(255,255,255,0.16);
-
-            --teal-glow:  #2dd4bf;
-            --teal-dim:   #0d9488;
-            --purple-glow:#a78bfa;
-            --purple-dim: #7c3aed;
-            --rose-glow:  #fb7185;
-            --amber-glow: #fbbf24;
-            --green-glow: #34d399;
-            --blue-glow:  #60a5fa;
-
-            --text-primary:   #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted:     #475569;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            font-family: 'Prompt', 'Sarabun', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+        body { 
+            font-family: 'Prompt', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
             margin: 0;
             padding-bottom: env(safe-area-inset-bottom);
-            background-color: var(--bg-deep);
-            background-image:
-                radial-gradient(ellipse 80% 50% at 20% -10%, rgba(45,212,191,0.12) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 40% at 85% 90%, rgba(167,139,250,0.10) 0%, transparent 55%),
-                radial-gradient(ellipse 50% 60% at 50% 50%, rgba(96,165,250,0.04) 0%, transparent 70%);
+            background: linear-gradient(-45deg, #e0f2fe, #ccfbf1, #dcfce7, #f0fdfa);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             min-height: 100vh;
-            color: var(--text-primary);
         }
 
-        /* ── Glass cards ── */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .glass-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            box-shadow: 0 1px 0 0 rgba(255,255,255,0.05) inset,
-                        0 16px 48px rgba(0,0,0,0.4);
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         }
-        .glass-card:hover {
-            border-color: var(--border-lit);
-        }
-
+        
         .glass-panel {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
-        /* ── Inputs ── */
         .glass-input {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(8px);
-            border: 1.5px solid var(--border-lit);
-            color: var(--text-primary);
-            transition: border-color 0.2s, background 0.2s;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
         .glass-input:focus {
-            background: rgba(255,255,255,0.08);
-            border-color: var(--teal-glow);
-            outline: none;
-        }
-        .glass-input::placeholder { color: var(--text-muted); }
-        input[type="date"], input[type="month"] {
-            color-scheme: dark;
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #a18cd1;
         }
 
-        /* ── Scrollbar ── */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(45,212,191,0.3); border-radius: 20px; }
-
-        /* ── Button bounce ── */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(161, 140, 209, 0.5); border-radius: 20px; }
+        
         .btn-bouncy {
-            transition: all 0.18s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-        .btn-bouncy:active { transform: scale(0.91); }
-
-        /* ── Glow badges & accents ── */
-        .glow-teal   { box-shadow: 0 0 20px rgba(45,212,191,0.35); }
-        .glow-purple { box-shadow: 0 0 20px rgba(167,139,250,0.35); }
-        .glow-rose   { box-shadow: 0 0 20px rgba(251,113,133,0.35); }
-        .glow-green  { box-shadow: 0 0 20px rgba(52,211,153,0.35); }
-
-        /* ── Teal-to-purple gradient text ── */
-        .grad-text {
-            background: linear-gradient(135deg, var(--teal-glow), var(--purple-glow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* ── Neon underline heading ── */
-        .section-heading {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-        .section-heading i { color: var(--teal-glow); }
-
-        /* ── Stat number ── */
-        .stat-num {
-            font-size: 2.4rem;
-            font-weight: 900;
-            line-height: 1;
-            letter-spacing: -0.03em;
-        }
-
-        /* ── Item card in basket ── */
-        .item-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
-            transition: background 0.15s, border-color 0.15s;
-        }
-        .item-card:hover {
-            background: rgba(255,255,255,0.07);
-            border-color: rgba(45,212,191,0.25);
-        }
-
-        /* ── Tab bar ── */
-        .tab-bar {
-            background: rgba(15,23,42,0.85);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--border-lit);
-            box-shadow: 0 -1px 0 rgba(255,255,255,0.04) inset,
-                        0 8px 40px rgba(0,0,0,0.5);
-        }
-        .tab-btn-active {
-            background: linear-gradient(135deg, rgba(45,212,191,0.18), rgba(167,139,250,0.18));
-            color: var(--teal-glow) !important;
-            border: 1px solid rgba(45,212,191,0.25);
-            box-shadow: 0 0 16px rgba(45,212,191,0.15);
-        }
-
-        /* ── Top nav ── */
-        .top-nav {
-            background: rgba(11,17,32,0.82);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-bottom: 1px solid var(--border);
-        }
-
-        /* ── Gradient buttons ── */
-        .btn-teal   { background: linear-gradient(135deg, #2dd4bf, #06b6d4); color: #0f172a !important; }
-        .btn-purple { background: linear-gradient(135deg, #a78bfa, #8b5cf6); color: #fff; }
-        .btn-rose   { background: linear-gradient(135deg, #fb7185, #f43f5e); color: #fff; }
-        .btn-orange { background: linear-gradient(135deg, #fb923c, #f97316); color: #fff; }
-        .btn-green  { background: linear-gradient(135deg, #34d399, #10b981); color: #0f172a !important; }
-        .btn-blue   { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
-        .btn-ghost  { background: rgba(255,255,255,0.06); color: var(--text-secondary); border: 1px solid var(--border-lit); }
-        .btn-ghost:hover { background: rgba(255,255,255,0.1); }
-
-        /* ── Urgent card ── */
-        .urgent-card {
-            background: rgba(251,113,133,0.08);
-            border-color: rgba(251,113,133,0.35) !important;
-        }
-
-        /* ── Hero stat card ── */
-        .hero-stat {
-            background: linear-gradient(135deg, rgba(45,212,191,0.12), rgba(167,139,250,0.12));
-            border: 1px solid rgba(45,212,191,0.2);
-        }
-
-        /* ── Animations ── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(14px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .anim-up { animation: fadeUp 0.35s ease forwards; }
-
-        @keyframes pulseRing {
-            0%,100% { opacity: 0.6; transform: scale(1); }
-            50%      { opacity: 1; transform: scale(1.06); }
-        }
-        .pulse-ring { animation: pulseRing 2s ease-in-out infinite; }
-
-        /* ── Scan button glow ── */
-        .scan-btn {
-            background: linear-gradient(135deg, #0d9488 0%, #0891b2 50%, #6d28d9 100%);
-            box-shadow: 0 0 0 1px rgba(45,212,191,0.3),
-                        0 20px 60px rgba(13,148,136,0.4);
-            transition: box-shadow 0.3s, transform 0.18s cubic-bezier(0.68,-0.55,0.265,1.55);
-        }
-        .scan-btn:hover {
-            box-shadow: 0 0 0 1px rgba(45,212,191,0.5),
-                        0 28px 80px rgba(13,148,136,0.55);
-        }
-        .scan-btn:active { transform: scale(0.93); }
-        .scan-btn i { filter: drop-shadow(0 0 8px rgba(255,255,255,0.5)); }
-
-        /* ── Line button ── */
-        .btn-line {
-            background: linear-gradient(135deg, #06C755, #00a844);
-            box-shadow: 0 12px 40px rgba(6,199,85,0.4);
-        }
-
-        /* ── Modal backdrop ── */
-        .modal-backdrop {
-            background: rgba(5,10,20,0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        /* ── Duplicate warning ── */
-        .dup-warning {
-            background: linear-gradient(135deg, rgba(239,68,68,0.9), rgba(220,38,38,0.9));
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(252,165,165,0.3);
-        }
-
-        /* ── Stat mini-card ── */
-        .mini-stat {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
-            transition: border-color 0.2s;
-        }
-        .mini-stat:hover { border-color: var(--border-lit); }
-
-        /* ── Zone dropdown ── */
-        .zone-dropdown {
-            background: rgba(15,23,42,0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-lit);
-            box-shadow: 0 16px 48px rgba(0,0,0,0.6);
-        }
-
-        /* ── Loading spinner border ── */
-        .spin-teal { border-color: rgba(45,212,191,0.2); border-top-color: var(--teal-glow); }
-        .spin-purple { border-color: rgba(167,139,250,0.2); border-top-color: var(--purple-glow); }
-
-        /* ── type=date placeholder text ── */
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="month"]::-webkit-calendar-picker-indicator {
-            filter: invert(0.7);
-            cursor: pointer;
+        .btn-bouncy:active {
+            transform: scale(0.92);
         }
     </style>
 </head>
-<body class="text-slate-100">
+<body class="text-slate-800">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -667,186 +468,187 @@
                 <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
                     
                     {saveSuccess && (
-                        <div className="fixed inset-0 modal-backdrop z-[150] flex flex-col items-center justify-center animate-in fade-in duration-300">
-                            <div className="glass-card p-8 rounded-[3rem] shadow-2xl flex flex-col items-center animate-in zoom-in-50 spin-in-6 duration-500 border border-teal-500/20">
-                                <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6 animate-bounce glow-teal" style={{background:'linear-gradient(135deg,#2dd4bf,#10b981)'}}>
-                                    <i className="fa-solid fa-check text-5xl text-white drop-shadow-lg"></i>
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[150] flex flex-col items-center justify-center animate-in fade-in duration-300">
+                            <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[3rem] shadow-2xl flex flex-col items-center animate-in zoom-in-50 spin-in-6 duration-500">
+                                <div className="w-24 h-24 bg-gradient-to-tr from-emerald-400 to-teal-400 rounded-[2rem] flex items-center justify-center mb-6 shadow-[0_10px_30px_rgba(16,185,129,0.3)] animate-bounce">
+                                    <i className="fa-solid fa-check text-6xl text-white"></i>
                                 </div>
-                                <h2 className="text-4xl font-black text-slate-100 mb-2">สำเร็จ!</h2>
-                                <p className="text-slate-400 text-base font-medium">ข้อมูลถูกส่งเข้าระบบเรียบร้อย</p>
+                                <h2 className="text-4xl font-black text-slate-800 mb-2">สำเร็จ!</h2>
+                                <p className="text-slate-500 text-lg font-medium">ข้อมูลถูกส่งเข้าระบบเรียบร้อย</p>
                             </div>
                         </div>
                     )}
 
                     {duplicateWarning && (
-                        <div className="fixed top-5 left-4 right-4 z-[110] dup-warning text-white p-4 rounded-[2rem] shadow-xl flex items-center gap-4 animate-in slide-in-from-top-10 fade-in duration-300">
-                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"><i className="fa-solid fa-triangle-exclamation text-xl"></i></div>
+                        <div className="fixed top-5 left-4 right-4 z-[110] bg-rose-500/90 backdrop-blur-xl text-white p-4 rounded-[2rem] shadow-xl flex items-center gap-4 animate-in slide-in-from-top-10 fade-in duration-300 border border-rose-400">
+                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md"><i className="fa-solid fa-triangle-exclamation text-xl"></i></div>
                             <div className="flex-1 font-bold text-sm">{duplicateWarning}</div>
                         </div>
                     )}
 
                     {showCopyModal && (
-                        <div className="fixed inset-0 modal-backdrop z-[160] flex items-center justify-center p-4">
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[160] flex items-center justify-center p-4">
                             <div className="glass-card rounded-[3rem] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300">
                                 <div className="text-center mb-5">
-                                    <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-purple" style={{background:'linear-gradient(135deg,#a78bfa,#8b5cf6)'}}><i className="fa-regular fa-copy text-3xl text-white"></i></div>
-                                    <h3 className="text-2xl font-black text-slate-100">คัดลอกข้อความ</h3>
+                                    <div className="w-20 h-20 bg-gradient-to-tr from-indigo-400 to-purple-400 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/30"><i className="fa-regular fa-copy text-3xl"></i></div>
+                                    <h3 className="text-2xl font-black text-slate-800">คัดลอกข้อความ</h3>
                                 </div>
                                 <div className="glass-input p-4 rounded-[2rem] mb-6 max-h-[40vh] overflow-y-auto text-left">
-                                    <pre className="text-xs text-slate-300 whitespace-pre-wrap font-sans leading-relaxed">{lineMessageToCopy}</pre>
+                                    <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{lineMessageToCopy}</pre>
                                 </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => setShowCopyModal(false)} className="btn-bouncy btn-ghost flex-1 py-4 rounded-[2rem] font-bold">ปิดหน้าต่าง</button>
-                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="btn-bouncy btn-blue flex-1 py-4 rounded-[2rem] font-bold flex justify-center items-center gap-2"><i className="fa-solid fa-copy"></i> คัดลอกเลย</button>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setShowCopyModal(false)} className="btn-bouncy flex-1 py-4 bg-white/80 rounded-[2rem] font-bold text-slate-600 shadow-sm">ปิดหน้าต่าง</button>
+                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-bold shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2"><i className="fa-solid fa-copy"></i> คัดลอกเลย</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {showClearConfirmModal && (
-                        <div className="fixed inset-0 modal-backdrop z-[100] flex items-center justify-center p-4">
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                             <div className="glass-card rounded-[3rem] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300">
                                 <div className="text-center mb-6">
-                                    <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-5 rotate-12 glow-rose" style={{background:'linear-gradient(135deg,#fb7185,#f43f5e)'}}><i className="fa-solid fa-trash-can text-3xl text-white"></i></div>
-                                    <h3 className="text-2xl font-black text-slate-100">ล้างตะกร้า?</h3>
-                                    <p className="text-sm text-slate-400 mt-2">ข้อมูลที่สแกนมาจะหายหมดเลยนะ</p>
+                                    <div className="w-20 h-20 bg-gradient-to-tr from-rose-400 to-red-500 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-5 shadow-lg shadow-rose-500/30 rotate-12"><i className="fa-solid fa-trash-can text-3xl"></i></div>
+                                    <h3 className="text-2xl font-black text-slate-800">ล้างตะกร้า?</h3>
+                                    <p className="text-sm text-slate-500 mt-2">ข้อมูลที่สแกนมาจะหายหมดเลยนะ</p>
                                 </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => setShowClearConfirmModal(false)} className="btn-bouncy btn-ghost flex-1 py-4 rounded-[2rem] font-bold">เปลี่ยนใจ</button>
-                                    <button onClick={() => { setCurrentItems([]); setShowClearConfirmModal(false); }} className="btn-bouncy btn-rose flex-1 py-4 rounded-[2rem] font-bold text-white" style={{background:'linear-gradient(135deg,#fb7185,#f43f5e)'}}>ล้างทั้งหมด</button>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setShowClearConfirmModal(false)} className="btn-bouncy flex-1 py-4 bg-white/80 rounded-[2rem] font-bold shadow-sm">เปลี่ยนใจ</button>
+                                    <button onClick={() => { setCurrentItems([]); setShowClearConfirmModal(false); }} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-[2rem] font-bold shadow-lg shadow-rose-500/30">ล้างทั้งหมด</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {editingIndex !== null && (
-                        <div className="fixed inset-0 modal-backdrop z-[100] flex items-center justify-center p-4">
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                             <div className="glass-card rounded-[3rem] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-xl font-black text-slate-100 flex items-center gap-2"><div className="w-10 h-10 rounded-full flex justify-center items-center" style={{background:'rgba(96,165,250,0.15)',color:'#60a5fa'}}><i className="fa-solid fa-pen-to-square"></i></div> แก้ไขบิล</h3>
-                                    <button onClick={() => setEditingIndex(null)} className="btn-bouncy btn-ghost w-10 h-10 rounded-full flex items-center justify-center"><i className="fa-solid fa-xmark"></i></button>
+                                    <h3 className="text-xl font-black text-slate-800 flex items-center gap-2"><div className="w-10 h-10 bg-blue-100 text-blue-500 rounded-full flex justify-center items-center"><i className="fa-solid fa-pen-to-square"></i></div> แก้ไขบิล</h3>
+                                    <button onClick={() => setEditingIndex(null)} className="btn-bouncy bg-slate-100/80 w-10 h-10 rounded-full text-slate-500"><i className="fa-solid fa-xmark"></i></button>
                                 </div>
                                 <div className="space-y-6 mb-8">
                                     <div>
-                                        <label className="text-sm font-bold text-slate-400 mb-2 block ml-2">ประเภทการรับ</label>
-                                        <div className="flex glass-input p-2 rounded-[2rem] gap-2">
-                                            <button type="button" onClick={() => setEditIsFactory(false)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${!editIsFactory ? 'btn-teal' : 'btn-ghost'}`}><i className="fa-solid fa-warehouse mr-2"></i> DC</button>
-                                            <button type="button" onClick={() => setEditIsFactory(true)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${editIsFactory ? 'btn-orange' : 'btn-ghost'}`}><i className="fa-solid fa-scissors mr-2"></i> โรงตัด</button>
+                                        <label className="text-sm font-bold text-slate-600 mb-2 block ml-2">ประเภทการรับ</label>
+                                        <div className="flex bg-white/60 p-2 rounded-[2rem] gap-2 shadow-inner border border-white/50">
+                                            <button type="button" onClick={() => setEditIsFactory(false)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${!editIsFactory ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-md' : 'text-slate-500 hover:bg-white/50'}`}><i className="fa-solid fa-warehouse mr-2"></i> DC</button>
+                                            <button type="button" onClick={() => setEditIsFactory(true)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${editIsFactory ? 'bg-gradient-to-r from-orange-400 to-rose-400 text-white shadow-md' : 'text-slate-500 hover:bg-white/50'}`}><i className="fa-solid fa-scissors mr-2"></i> โรงตัด</button>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-bold text-slate-400 mb-2 block ml-2">โซนพื้นที่</label>
-                                        <div className="flex glass-input p-2 rounded-[2rem] gap-2">
-                                            <button type="button" onClick={() => setEditIsUpcountry(false)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${!editIsUpcountry ? 'text-white' : 'btn-ghost'}`} style={!editIsUpcountry ? {background:'rgba(51,65,85,0.8)'} : {}}>พื้นที่ปกติ</button>
-                                            <button type="button" onClick={() => setEditIsUpcountry(true)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${editIsUpcountry ? 'btn-purple' : 'btn-ghost'}`}><i className="fa-solid fa-truck-fast mr-2"></i> ตจว.</button>
+                                        <label className="text-sm font-bold text-slate-600 mb-2 block ml-2">โซนพื้นที่</label>
+                                        <div className="flex bg-white/60 p-2 rounded-[2rem] gap-2 shadow-inner border border-white/50">
+                                            <button type="button" onClick={() => setEditIsUpcountry(false)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${!editIsUpcountry ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-white/50'}`}>พื้นที่ปกติ</button>
+                                            <button type="button" onClick={() => setEditIsUpcountry(true)} className={`btn-bouncy flex-1 py-3.5 text-sm font-bold rounded-[1.5rem] flex items-center justify-center ${editIsUpcountry ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30' : 'text-slate-500 hover:bg-white/50'}`}><i className="fa-solid fa-truck-fast mr-2"></i> ตจว.</button>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-bold text-slate-400 mb-2 block ml-2">วันที่กำหนดส่ง</label>
-                                        <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-5 py-4 glass-input rounded-[2rem] outline-none font-bold" />
+                                        <label className="text-sm font-bold text-slate-600 mb-2 block ml-2">วันที่กำหนดส่ง</label>
+                                        <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-5 py-4 glass-input rounded-[2rem] outline-none font-bold text-slate-700" />
                                     </div>
                                 </div>
-                                <button onClick={saveEditItem} className="btn-bouncy btn-blue w-full py-4 rounded-[2rem] font-bold text-lg">บันทึกการแก้ไข</button>
+                                <button onClick={saveEditItem} className="btn-bouncy w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-bold text-lg shadow-lg shadow-blue-500/30">บันทึกการแก้ไข</button>
                             </div>
                         </div>
                     )}
 
                     {showConfirmModal && (
-                        <div className="fixed inset-0 modal-backdrop z-[100] flex items-center justify-center p-4">
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                             <div className="glass-card rounded-[3rem] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300">
                                 <div className="text-center mb-6">
-                                    <div className="w-24 h-24 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 rotate-6 glow-teal" style={{background:'linear-gradient(135deg,#2dd4bf,#10b981)'}}><i className="fa-solid fa-paper-plane text-4xl text-white drop-shadow"></i></div>
-                                    <h3 className="text-3xl font-black text-slate-100">ส่งข้อมูล?</h3>
-                                    <p className="text-base text-slate-400 mt-2">จำนวนทั้งหมด <span className="font-black text-teal-400 text-xl mx-1">{currentItems.length}</span> เที่ยว</p>
+                                    <div className="w-24 h-24 bg-gradient-to-tr from-emerald-400 to-teal-400 text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/40 rotate-6"><i className="fa-solid fa-paper-plane text-4xl"></i></div>
+                                    <h3 className="text-3xl font-black text-slate-800">ส่งข้อมูล?</h3>
+                                    <p className="text-base text-slate-500 mt-2">จำนวนทั้งหมด <span className="font-black text-emerald-500 text-xl mx-1">{currentItems.length}</span> เที่ยว</p>
                                 </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => setShowConfirmModal(false)} className="btn-bouncy btn-ghost flex-1 py-4 rounded-[2rem] font-bold">ไว้ก่อน</button>
-                                    <button onClick={() => { setShowConfirmModal(false); executeSaveBatch(); }} className="btn-bouncy btn-teal flex-1 py-4 rounded-[2rem] font-bold text-lg">ยืนยันการส่ง</button>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setShowConfirmModal(false)} className="btn-bouncy flex-1 py-4 bg-white/80 rounded-[2rem] font-bold text-slate-600 shadow-sm">ไว้ก่อน</button>
+                                    <button onClick={() => { setShowConfirmModal(false); executeSaveBatch(); }} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-[2rem] font-bold text-lg shadow-lg shadow-emerald-500/40">ยืนยันการส่ง</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        <div className="lg:col-span-7 space-y-5">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="lg:col-span-7 space-y-6">
                             
-                            <div className="glass-card p-5 rounded-[2.5rem]">
-                                <div className="mb-5 relative">
-                                    <div className="flex glass-input p-1.5 rounded-[2rem] gap-1.5 relative z-20">
-                                        <button onClick={() => handleTypeToggle('DC')} className={`btn-bouncy flex-1 py-3.5 font-bold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'DC' ? 'btn-teal' : 'btn-ghost'}`}>
+                            <div className="glass-card p-6 rounded-[2.5rem]">
+                                <div className="mb-6 relative">
+                                    <div className="flex glass-input p-2 rounded-[2rem] gap-2 relative z-20 bg-white/40">
+                                        <button onClick={() => handleTypeToggle('DC')} className={`btn-bouncy flex-1 py-4 font-bold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'DC' ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-md' : 'text-slate-500 hover:bg-white/50'}`}>
                                             <i className="fa-solid fa-warehouse mr-2"></i> รับ DC {deliveryType === 'DC' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
                                             {deliveryType === 'DC' && <i className={`fa-solid fa-chevron-down ml-2 text-xs transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
                                         </button>
-                                        <button onClick={() => handleTypeToggle('FACTORY')} className={`btn-bouncy flex-1 py-3.5 font-bold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'FACTORY' ? 'btn-orange' : 'btn-ghost'}`}>
+                                        <button onClick={() => handleTypeToggle('FACTORY')} className={`btn-bouncy flex-1 py-4 font-bold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'FACTORY' ? 'bg-gradient-to-r from-orange-400 to-rose-400 text-white shadow-md' : 'text-slate-500 hover:bg-white/50'}`}>
                                             <i className="fa-solid fa-scissors mr-2"></i> รับโรงตัด {deliveryType === 'FACTORY' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
                                             {deliveryType === 'FACTORY' && <i className={`fa-solid fa-chevron-down ml-2 text-xs transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
                                         </button>
                                     </div>
                                     
                                     {showZoneDropdown && (
-                                        <div className="zone-dropdown absolute top-full left-0 right-0 mt-2 p-2 rounded-[1.5rem] z-10 flex gap-2 animate-in slide-in-from-top-2">
-                                            <button onClick={() => { setDeliveryZone('NORMAL'); setShowZoneDropdown(false); }} className={`btn-bouncy flex-1 py-3 text-sm font-bold rounded-[1rem] transition-all ${deliveryZone === 'NORMAL' ? 'text-white' : 'btn-ghost'}`} style={deliveryZone === 'NORMAL' ? {background:'rgba(51,65,85,0.9)'} : {}}>พื้นที่ปกติ</button>
-                                            <button onClick={() => { setDeliveryZone('UPCOUNTRY'); setShowZoneDropdown(false); }} className={`btn-bouncy flex-1 py-3 text-sm font-bold rounded-[1rem] transition-all ${deliveryZone === 'UPCOUNTRY' ? 'btn-purple' : 'btn-ghost'}`}><i className="fa-solid fa-truck-fast mr-1"></i> งาน ตจว.</button>
+                                        <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white/90 backdrop-blur-xl rounded-[1.5rem] shadow-xl border border-white/80 z-10 flex gap-2 animate-in slide-in-from-top-2">
+                                            <button onClick={() => { setDeliveryZone('NORMAL'); setShowZoneDropdown(false); }} className={`flex-1 py-3 text-sm font-bold rounded-[1rem] transition-all ${deliveryZone === 'NORMAL' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>พื้นที่ปกติ</button>
+                                            <button onClick={() => { setDeliveryZone('UPCOUNTRY'); setShowZoneDropdown(false); }} className={`flex-1 py-3 text-sm font-bold rounded-[1rem] transition-all ${deliveryZone === 'UPCOUNTRY' ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}><i className="fa-solid fa-truck-fast mr-1"></i> งาน ตจว.</button>
                                         </div>
                                     )}
                                 </div>
                                 
-                                <div className="space-y-4">
+                                <div className="space-y-5">
                                     {isScanning ? (
-                                        <div className="relative rounded-[2rem] border-2 bg-slate-950 shadow-xl overflow-hidden" style={{borderColor:'rgba(45,212,191,0.3)'}}>
+                                        <div className="relative rounded-[2.5rem] border-[6px] border-white/80 bg-slate-900 shadow-xl overflow-hidden shadow-indigo-500/20">
                                             <div id="reader" className="w-full h-[300px]"></div>
-                                            <button onClick={stopScanner} className="btn-bouncy absolute top-4 right-4 bg-black/40 backdrop-blur-md text-white w-12 h-12 rounded-full z-10 border border-white/20 flex items-center justify-center"><i className="fa-solid fa-xmark text-xl"></i></button>
-                                            <button onClick={toggleFlashlight} className={`btn-bouncy absolute top-4 left-4 w-12 h-12 rounded-full z-10 flex items-center justify-center shadow-lg border border-white/20 backdrop-blur-md ${isFlashlightOn ? 'bg-yellow-400 text-slate-900' : 'bg-black/40 text-white'}`}><i className="fa-solid fa-bolt text-xl"></i></button>
+                                            <button onClick={stopScanner} className="btn-bouncy absolute top-4 right-4 bg-white/20 backdrop-blur-md text-white w-12 h-12 rounded-full z-10 border border-white/30 flex items-center justify-center"><i className="fa-solid fa-xmark text-xl"></i></button>
+                                            <button onClick={toggleFlashlight} className={`btn-bouncy absolute top-4 left-4 w-12 h-12 rounded-full z-10 flex items-center justify-center shadow-lg border border-white/30 backdrop-blur-md ${isFlashlightOn ? 'bg-yellow-400 text-slate-900' : 'bg-white/20 text-white'}`}><i className="fa-solid fa-bolt text-xl"></i></button>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col gap-3">
-                                            <button onClick={startScanner} className="scan-btn btn-bouncy w-full h-[110px] text-white rounded-[2rem] flex flex-col items-center justify-center group relative overflow-hidden">
-                                                <i className="fa-solid fa-camera text-5xl group-hover:scale-110 transition-transform duration-300 drop-shadow-lg"></i>
+                                        <div className="flex flex-col gap-4">
+                                            <button onClick={startScanner} className="btn-bouncy w-full h-[120px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-[2.5rem] shadow-xl shadow-purple-500/30 flex flex-col items-center justify-center group relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                <i className="fa-solid fa-camera text-6xl group-hover:scale-110 transition-transform duration-300"></i>
                                             </button>
                                             
                                             <form onSubmit={handleManualAdd} className="flex gap-2">
-                                                <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="พิมพ์เลขบิล 4 หรือ 10 หลัก..." className="flex-1 px-5 glass-input rounded-[2rem] outline-none text-base font-medium h-[52px]" />
-                                                <button type="submit" className="btn-bouncy btn-teal w-[52px] h-[52px] rounded-[1.5rem] text-xl flex items-center justify-center"><i className="fa-solid fa-plus font-bold"></i></button>
+                                                <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="พิมพ์เลขบิล 4 หรือ 10 หลัก..." className="flex-1 px-6 glass-input rounded-[2rem] outline-none text-base font-medium h-[56px] placeholder-slate-400" />
+                                                <button type="submit" className="btn-bouncy w-[56px] h-[56px] bg-gradient-to-tr from-emerald-400 to-teal-400 text-white rounded-[2rem] text-xl shadow-lg shadow-teal-500/30 flex items-center justify-center"><i className="fa-solid fa-plus font-bold"></i></button>
                                             </form>
                                         </div>
                                     )}
                                 </div>
                                 
                                 {lastSavedMessage && (
-                                    <div className="mt-5 glass-input rounded-[2rem] p-4 flex items-center justify-between">
-                                        <div className="flex-1 pr-4"><h4 className="text-sm font-black text-teal-400 flex items-center gap-2"><i className="fa-solid fa-clock-rotate-left"></i> ข้อความแจ้งเตือนล่าสุด</h4></div>
-                                        <button onClick={() => { setLineMessageToCopy(lastSavedMessage); setShowCopyModal(true); }} className="btn-bouncy btn-blue px-4 py-2 rounded-[1.5rem] font-bold text-xs flex items-center gap-1"><i className="fa-solid fa-copy"></i> ดู/คัดลอก</button>
+                                    <div className="mt-6 pt-5 bg-white/40 backdrop-blur-md border border-white/50 rounded-[2rem] p-5 flex items-center justify-between shadow-inner">
+                                        <div className="flex-1 pr-4"><h4 className="text-sm font-black text-indigo-800 flex items-center gap-2"><i className="fa-solid fa-clock-rotate-left"></i> ข้อความแจ้งเตือนล่าสุด</h4></div>
+                                        <button onClick={() => { setLineMessageToCopy(lastSavedMessage); setShowCopyModal(true); }} className="btn-bouncy px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[1.5rem] font-bold text-xs shadow-md"><i className="fa-solid fa-copy mr-1"></i> ดู/คัดลอก</button>
                                     </div>
                                 )}
                             </div>
 
-                            <div className={`p-5 rounded-[2.5rem] border-2 transition-colors duration-300 ${checkIsUrgent(dueDate) ? 'urgent-card' : 'glass-card'}`}>
+                            <div className={`p-6 rounded-[2.5rem] border-[3px] transition-colors duration-300 ${checkIsUrgent(dueDate) ? 'bg-rose-50/80 border-rose-300 shadow-rose-500/20 shadow-lg' : 'glass-card border-white/80'}`}>
                                 <div className="flex items-center justify-between mb-4">
-                                    <label className={`text-base font-black flex items-center gap-2 ${checkIsUrgent(dueDate) ? 'text-rose-400' : 'text-slate-200'}`}><i className="fa-regular fa-calendar-check text-xl"></i> กำหนดวันดิวส่ง</label>
-                                    {checkIsUrgent(dueDate) && <span className="text-white text-xs px-3 py-1.5 rounded-full font-bold" style={{background:'linear-gradient(135deg,#fb7185,#f43f5e)'}}><i className="fa-solid fa-bolt mr-1"></i> ด่วนพิเศษ</span>}
+                                    <label className={`text-base font-black flex items-center gap-2 ${checkIsUrgent(dueDate) ? 'text-rose-700' : 'text-slate-700'}`}><i className="fa-regular fa-calendar-check text-xl"></i> กำหนดวันดิวส่ง</label>
+                                    {checkIsUrgent(dueDate) && <span className="bg-rose-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-md"><i className="fa-solid fa-bolt mr-1"></i> ด่วนพิเศษ</span>}
                                 </div>
-                                <input type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-6 py-4 glass-input rounded-[2rem] outline-none font-bold text-lg" />
+                                <input type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-6 py-4 glass-input rounded-[2rem] outline-none font-bold text-slate-800 text-lg" />
                             </div>
                         </div>
 
                         {/* 🟢 จุดที่แก้ไข: กำหนดความสูงแบบคงที่ h-[550px] lg:h-[650px] */}
                         <div className="lg:col-span-5 flex flex-col h-[550px] lg:h-[650px]">
-                            <div className="flex flex-col glass-card rounded-[3rem] p-3 relative flex-1 overflow-hidden" style={{boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}}>
-                                {isSaving && <div className="absolute inset-0 modal-backdrop z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-16 h-16 border-4 spin-teal rounded-full animate-spin mb-4"></div><span className="font-bold text-teal-400 animate-pulse text-lg">กำลังส่งข้อมูล...</span></div>}
+                            <div className="flex flex-col glass-card bg-white/40 rounded-[3rem] p-3 shadow-[0_20px_50px_rgba(31,38,135,0.1)] relative flex-1 border border-white/80 overflow-hidden">
+                                {isSaving && <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin mb-4"></div><span className="font-bold text-emerald-600 animate-pulse text-lg">กำลังส่งข้อมูล...</span></div>}
                                 
-                                <div className="flex justify-between items-center px-5 py-4 shrink-0">
-                                    <h3 className="font-black text-lg flex items-center gap-2 text-slate-100"><i className="fa-solid fa-box-open text-teal-400 text-xl"></i> ตะกร้าของฉัน</h3>
+                                <div className="flex justify-between items-center px-6 py-5 shrink-0">
+                                    <h3 className="text-slate-800 font-black text-xl flex items-center gap-2"><i className="fa-solid fa-box-open text-emerald-500 text-2xl"></i> ตะกร้าของฉัน</h3>
                                     <div className="flex items-center gap-2">
-                                        {currentItems.length > 0 && <button onClick={() => setShowClearConfirmModal(true)} className="btn-bouncy text-rose-400 text-xs font-bold px-3 py-2 rounded-[1rem]" style={{background:'rgba(251,113,133,0.1)',border:'1px solid rgba(251,113,133,0.2)'}}><i className="fa-solid fa-trash-can mr-1"></i> ล้าง</button>}
-                                        <span className="btn-teal text-sm font-black px-4 py-2 rounded-full">{currentItems.length} เที่ยว</span>
+                                        {currentItems.length > 0 && <button onClick={() => setShowClearConfirmModal(true)} className="btn-bouncy text-rose-500 text-xs font-bold px-3 py-2 bg-white/80 rounded-[1rem] shadow-sm"><i className="fa-solid fa-trash-can mr-1"></i> ล้าง</button>}
+                                        <span className="bg-gradient-to-r from-emerald-400 to-teal-500 text-white text-sm font-black px-4 py-2 rounded-full shadow-md">{currentItems.length} เที่ยว</span>
                                     </div>
                                 </div>
                                 
-                                <div className="flex-1 overflow-y-auto rounded-[2.5rem] p-3 space-y-2.5 custom-scrollbar">
+                                <div className="flex-1 overflow-y-auto rounded-[2.5rem] p-3 space-y-3 custom-scrollbar">
                                     {currentItems.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-80">
-                                            <i className="fa-solid fa-inbox text-5xl mb-3"></i>
-                                            <p className="font-bold">ตะกร้ายังว่างเปล่า</p>
+                                        <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
+                                            <i className="fa-solid fa-inbox text-6xl mb-4"></i>
+                                            <p className="font-bold text-lg">ตะกร้ายังว่างเปล่า</p>
                                         </div>
                                     ) : (
                                         currentItems.map((item, index) => {
@@ -855,20 +657,20 @@
                                             const isUpcountry = item.code.includes('(ตจว.)'); 
                                             
                                             return (
-                                                <div key={index} className="item-card flex justify-between p-4 rounded-[1.5rem] animate-in slide-in-from-bottom-2 duration-300">
+                                                <div key={index} className="flex justify-between bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow animate-in slide-in-from-bottom-2 duration-300">
                                                     <div className="flex flex-col justify-center">
                                                         <div className="flex items-center gap-2">
-                                                            <span className={`font-black text-base tracking-wide ${isFactory ? 'text-orange-400' : 'text-slate-100'}`}>{item.code}</span>
+                                                            <span className={`font-black text-lg tracking-wide ${isFactory ? 'text-orange-600' : 'text-slate-700'}`}>{item.code}</span>
                                                         </div>
-                                                        <span className={`text-xs font-bold mt-1.5 flex items-center gap-1 ${isUrgent ? 'text-rose-400' : 'text-teal-400'}`}>
+                                                        <span className={`text-xs font-bold mt-1.5 flex items-center gap-1 ${isUrgent ? 'text-rose-500' : 'text-teal-600'}`}>
                                                             ดิว: {formatThaiDate(item.dueDate)} 
-                                                            {isUrgent && <i className="fa-solid fa-fire text-rose-400 ml-1"></i>}
-                                                            {isUpcountry && <span className="ml-1 px-2 py-0.5 rounded-full text-[10px]" style={{background:'rgba(167,139,250,0.15)',color:'#a78bfa'}}><i className="fa-solid fa-truck-fast mr-1"></i>ตจว.</span>}
+                                                            {isUrgent && <i className="fa-solid fa-fire text-rose-500 ml-1"></i>}
+                                                            {isUpcountry && <span className="ml-1 bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full text-[10px]"><i className="fa-solid fa-truck-fast mr-1"></i>ตจว.</span>}
                                                         </span>
                                                     </div>
                                                     <div className="flex gap-2 items-center">
-                                                        <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); setEditIsUpcountry(isUpcountry); }} className="btn-bouncy w-10 h-10 rounded-full flex items-center justify-center text-slate-400" style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)'}}><i className="fa-solid fa-pen-to-square text-sm"></i></button>
-                                                        <button onClick={() => setCurrentItems(prev => prev.filter((_, i) => i !== index))} className="btn-bouncy w-10 h-10 rounded-full flex items-center justify-center text-rose-400" style={{background:'rgba(251,113,133,0.1)',border:'1px solid rgba(251,113,133,0.2)'}}><i className="fa-solid fa-trash-can text-sm"></i></button>
+                                                        <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); setEditIsUpcountry(isUpcountry); }} className="btn-bouncy text-slate-500 w-11 h-11 bg-white border border-slate-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-pen-to-square"></i></button>
+                                                        <button onClick={() => setCurrentItems(prev => prev.filter((_, i) => i !== index))} className="btn-bouncy text-rose-400 w-11 h-11 bg-rose-50 border border-rose-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-trash-can"></i></button>
                                                     </div>
                                                 </div>
                                             )
@@ -876,7 +678,7 @@
                                     )}
                                 </div>
                                 <div className="p-3 mt-2 shrink-0">
-                                    <button onClick={() => setShowConfirmModal(true)} disabled={currentItems.length === 0 || isSaving} className="btn-bouncy w-full font-black text-lg py-5 rounded-[2.5rem] flex justify-center items-center gap-3 transition-all" style={currentItems.length === 0 || isSaving ? {background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.25)',cursor:'not-allowed'} : {background:'linear-gradient(135deg,#2dd4bf,#0d9488)',color:'#0f172a',boxShadow:'0 12px 36px rgba(45,212,191,0.35)'}}>
+                                    <button onClick={() => setShowConfirmModal(true)} disabled={currentItems.length === 0 || isSaving} className="btn-bouncy w-full text-white font-black text-xl py-5 rounded-[2.5rem] bg-gradient-to-r from-emerald-400 to-teal-500 disabled:from-slate-300 disabled:to-slate-400 disabled:text-slate-500 shadow-[0_10px_30px_rgba(16,185,129,0.3)] disabled:shadow-none flex justify-center items-center gap-3">
                                         <i className="fa-solid fa-paper-plane"></i> ส่งข้อมูลเข้าระบบ
                                     </button>
                                 </div>
@@ -1015,13 +817,13 @@
                 const dataTotals = stats.map(d => d.total);
 
                 const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                gradient.addColorStop(0, 'rgba(45, 212, 191, 0.9)');   
-                gradient.addColorStop(1, 'rgba(167, 139, 250, 0.7)');   
+                gradient.addColorStop(0, 'rgba(161, 140, 209, 1)');   
+                gradient.addColorStop(1, 'rgba(251, 194, 235, 1)');   
 
                 chartInstance.current = new window.Chart(ctx, {
                     type: 'bar',
-                    data: { labels: labels, datasets: [{ label: 'รวมเที่ยวส่ง', data: dataTotals, backgroundColor: gradient, borderRadius: 10, borderSkipped: false }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: {family: "'Prompt', sans-serif"}, color: 'rgba(148,163,184,0.8)' }, grid: { borderDash: [5, 5], color: 'rgba(255,255,255,0.04)' } }, x: { grid: { display: false }, ticks: { font: {family: "'Prompt', sans-serif", weight: 'bold'}, color: 'rgba(148,163,184,0.7)' } } }, animation: { duration: 1500, easing: 'easeOutQuart' } }
+                    data: { labels: labels, datasets: [{ label: 'รวมเที่ยวส่ง', data: dataTotals, backgroundColor: gradient, borderRadius: 12, borderSkipped: false }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: {family: "'Prompt', sans-serif"} }, grid: { borderDash: [5, 5], color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false }, ticks: { font: {family: "'Prompt', sans-serif", weight: 'bold'} } } }, animation: { duration: 1500, easing: 'easeOutQuart' } }
                 });
             }, [stats, isActive, daysInMonth]);
 
@@ -1164,80 +966,80 @@
             };
 
             return (
-                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-5 ${isActive ? 'block' : 'hidden'}`}>
+                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
                     
                     {showCopyModal && (
-                        <div className="fixed inset-0 modal-backdrop z-[160] flex items-center justify-center p-4">
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[160] flex items-center justify-center p-4">
                             <div className="glass-card rounded-[3rem] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300">
                                 <div className="text-center mb-5">
-                                    <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 glow-purple" style={{background:'linear-gradient(135deg,#a78bfa,#8b5cf6)'}}><i className="fa-regular fa-copy text-3xl text-white"></i></div>
-                                    <h3 className="text-2xl font-black text-slate-100">คัดลอกสรุปยอด</h3>
+                                    <div className="w-20 h-20 bg-gradient-to-tr from-indigo-400 to-purple-400 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/30"><i className="fa-regular fa-copy text-3xl"></i></div>
+                                    <h3 className="text-2xl font-black text-slate-800">คัดลอกสรุปยอด</h3>
                                 </div>
                                 <div className="glass-input p-4 rounded-[2rem] mb-6 max-h-[40vh] overflow-y-auto text-left">
-                                    <pre className="text-xs text-slate-300 whitespace-pre-wrap font-sans leading-relaxed">{lineMessageToCopy}</pre>
+                                    <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{lineMessageToCopy}</pre>
                                 </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => setShowCopyModal(false)} className="btn-bouncy btn-ghost flex-1 py-4 rounded-[2rem] font-bold">ปิด</button>
-                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="btn-bouncy btn-blue flex-1 py-4 rounded-[2rem] font-bold flex justify-center items-center gap-2"><i className="fa-solid fa-copy"></i> คัดลอก</button>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setShowCopyModal(false)} className="btn-bouncy flex-1 py-4 bg-white/80 rounded-[2rem] font-bold text-slate-600 shadow-sm">ปิด</button>
+                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-bold shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2"><i className="fa-solid fa-copy"></i> คัดลอก</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    <div className="glass-card flex items-center justify-between p-3 pl-6 rounded-[2.5rem]">
+                    <div className="flex items-center justify-between glass-card p-3 pl-6 rounded-[2.5rem] shadow-sm">
                         <div className="flex items-center gap-3">
-                            <i className="fa-regular fa-comment-dots text-teal-400 text-2xl"></i>
-                            <span className="text-slate-100 font-black text-base">สรุปยอดวันนี้</span>
+                            <i className="fa-regular fa-comment-dots text-indigo-500 text-2xl"></i>
+                            <span className="text-indigo-900 font-black text-base">สรุปยอดวันนี้</span>
                         </div>
-                        <button onClick={handleGetDailySummary} disabled={isFetchingSummary} className="btn-bouncy btn-blue px-6 py-3.5 rounded-[2rem] font-bold text-sm flex items-center justify-center gap-2">
+                        <button onClick={handleGetDailySummary} disabled={isFetchingSummary} className="btn-bouncy px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
                             {isFetchingSummary ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-magic"></i>} ดึงข้อความ
                         </button>
                     </div>
 
-                    <div className="glass-card flex flex-col sm:flex-row justify-between items-center px-6 py-5 rounded-[2.5rem] gap-5">
+                    <div className="flex flex-col sm:flex-row justify-between items-center glass-card px-8 py-6 rounded-[3rem] shadow-sm gap-6">
                         <div className="flex items-center gap-4 w-full sm:w-auto">
-                            <div className="p-3.5 rounded-[1.5rem]" style={{background:'rgba(167,139,250,0.12)',color:'#a78bfa'}}><i className="fa-regular fa-calendar-days text-2xl"></i></div>
+                            <div className="bg-white/80 p-4 rounded-[1.5rem] text-purple-500 shadow-inner"><i className="fa-regular fa-calendar-days text-2xl"></i></div>
                             <div className="flex-1">
-                                <label className="text-xs font-bold text-slate-500 tracking-wider uppercase">เลือกเดือนที่ต้องการ</label>
-                                <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-xl font-black text-slate-100 outline-none w-full mt-1" />
+                                <label className="text-xs font-bold text-slate-500 tracking-wider">เลือกเดือนที่ต้องการ</label>
+                                <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-xl font-black text-slate-800 outline-none w-full mt-1" />
                             </div>
                         </div>
-                        <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} className="btn-bouncy btn-green w-full sm:w-auto flex items-center justify-center gap-3 px-7 py-4 rounded-[2rem] font-black text-base">
+                        <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} className="btn-bouncy w-full sm:w-auto flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-400 to-teal-400 text-white px-8 py-4 rounded-[2rem] font-black text-lg shadow-lg shadow-emerald-500/30">
                             {isExporting ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-file-excel"></i>} โหลดไฟล์ Excel
                         </button>
                     </div>
 
-                    <div className="hero-stat relative overflow-hidden rounded-[2.5rem] p-8 flex justify-between items-center">
-                        <div className="absolute inset-0 pointer-events-none" style={{background:'radial-gradient(ellipse at 0% 100%, rgba(45,212,191,0.12) 0%, transparent 60%)'}}></div>
+                    <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[3rem] p-10 text-white flex justify-between items-center shadow-[0_20px_40px_rgba(168,85,247,0.4)]">
+                        <div className="absolute top-[-50%] left-[-20%] w-[150%] h-[200%] bg-white/10 rotate-12 pointer-events-none"></div>
                         <div className="relative z-10">
-                            <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.15em] mb-2">รวมยอดส่งบิลเดือนนี้</p>
-                            <div className="flex items-baseline gap-3">
-                                <span className="text-6xl font-black grad-text drop-shadow-lg">{totalMonthCount}</span>
-                                <span className="text-slate-300 font-bold text-xl">เที่ยว</span>
+                            <h3 className="text-white/80 text-sm font-bold uppercase tracking-widest mb-3">รวมยอดส่งบิลเดือนนี้</h3>
+                            <div className="flex items-baseline gap-4">
+                                <span className="text-7xl font-black drop-shadow-lg">{totalMonthCount}</span>
+                                <span className="text-white/90 font-bold text-2xl">เที่ยว</span>
                             </div>
                         </div>
-                        <button onClick={forceRefresh} className="btn-bouncy relative z-10 w-14 h-14 rounded-full flex items-center justify-center text-teal-400" style={{background:'rgba(45,212,191,0.1)',border:'1px solid rgba(45,212,191,0.25)'}}><i className={`fa-solid fa-rotate-right text-xl ${isLoadingHistory ? 'animate-spin' : ''}`}></i></button>
+                        <button onClick={forceRefresh} className="btn-bouncy relative z-10 bg-white/20 backdrop-blur-md p-5 rounded-full border border-white/40 shadow-lg hover:bg-white/30"><i className={`fa-solid fa-rotate-right text-2xl ${isLoadingHistory ? 'animate-spin' : ''}`}></i></button>
                     </div>
                     
-                    <div className="grid grid-cols-4 gap-2.5 sm:gap-4">
-                        <div className="mini-stat rounded-[1.5rem] p-4 flex flex-col items-center justify-center">
-                            <span className="text-[10px] sm:text-xs font-bold text-slate-500 mb-1.5">รวมวันนี้</span><span className="stat-num text-slate-100">{todayTotal}</span>
+                    <div className="grid grid-cols-4 gap-3 sm:gap-4">
+                        <div className="glass-card rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-bold text-slate-500 mb-2">รวมวันนี้</span><span className="text-3xl sm:text-4xl font-black text-slate-800">{todayTotal}</span>
                         </div>
-                        <div className="mini-stat rounded-[1.5rem] p-4 flex flex-col items-center justify-center" style={{borderColor:'rgba(251,146,60,0.2)'}}>
-                            <span className="text-[10px] sm:text-xs font-bold text-orange-400 mb-1.5">ก่อนเที่ยง</span><span className="stat-num text-orange-400">{todayMorning}</span>
+                        <div className="bg-gradient-to-b from-orange-100/80 to-white/60 backdrop-blur-md border border-white rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-bold text-orange-600 mb-2">ก่อนเที่ยง</span><span className="text-3xl sm:text-4xl font-black text-orange-700">{todayMorning}</span>
                         </div>
-                        <div className="mini-stat rounded-[1.5rem] p-4 flex flex-col items-center justify-center" style={{borderColor:'rgba(251,191,36,0.2)'}}>
-                            <span className="text-[10px] sm:text-xs font-bold text-amber-400 mb-1.5">รอบบ่าย</span><span className="stat-num text-amber-400">{todayAfternoon}</span>
+                        <div className="bg-gradient-to-b from-amber-100/80 to-white/60 backdrop-blur-md border border-white rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-bold text-amber-600 mb-2">รอบบ่าย</span><span className="text-3xl sm:text-4xl font-black text-amber-700">{todayAfternoon}</span>
                         </div>
-                        <div className="mini-stat rounded-[1.5rem] p-4 flex flex-col items-center justify-center" style={{borderColor:'rgba(167,139,250,0.2)'}}>
-                            <span className="text-[10px] sm:text-xs font-bold text-purple-400 mb-1.5">หลัง 18.00</span><span className="stat-num text-purple-400">{todayEvening}</span>
+                        <div className="bg-gradient-to-b from-indigo-100/80 to-white/60 backdrop-blur-md border border-white rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-bold text-indigo-600 mb-2">หลัง 18.00</span><span className="text-3xl sm:text-4xl font-black text-indigo-700">{todayEvening}</span>
                         </div>
                     </div>
 
-                    <div className="glass-card rounded-[2.5rem] overflow-hidden">
-                        <div className="px-7 py-5" style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}><h3 className="section-heading"><i className="fa-solid fa-chart-line"></i> กราฟจำนวนเที่ยวรายวัน</h3></div>
-                        <div className="p-7">
-                            <div className="w-full h-64 relative">
+                    <div className="glass-card rounded-[3rem] overflow-hidden shadow-md">
+                        <div className="px-8 py-6 border-b border-white/50 bg-white/30"><h3 className="text-lg font-black text-slate-800 flex items-center gap-3"><i className="fa-solid fa-chart-line text-purple-500 text-xl"></i> กราฟจำนวนเที่ยวรายวัน</h3></div>
+                        <div className="p-8 bg-transparent">
+                            <div className="w-full h-72 relative">
                                 <canvas ref={chartRef}></canvas>
                             </div>
                         </div>
@@ -1297,8 +1099,8 @@
             if (!isLiffReady) {
                 return (
                     <div className="min-h-screen flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 border-4 spin-teal rounded-full animate-spin mb-6"></div>
-                        <p className="text-slate-400 font-bold text-lg animate-pulse tracking-wide">กำลังเตรียมความพร้อม...</p>
+                        <div className="w-16 h-16 border-4 border-white/50 border-t-purple-500 rounded-full animate-spin mb-6"></div>
+                        <p className="text-slate-600 font-bold text-lg animate-pulse">กำลังเตรียมความพร้อม...</p>
                     </div>
                 );
             }
@@ -1306,17 +1108,15 @@
             if (!userProfile) {
                 return (
                     <div className="min-h-screen flex items-center justify-center p-6">
-                        <div className="glass-card p-10 rounded-[3.5rem] max-w-sm w-full text-center relative overflow-hidden anim-up">
-                            <div className="absolute inset-0 pointer-events-none" style={{background:'radial-gradient(ellipse at 50% -20%, rgba(45,212,191,0.15) 0%, transparent 60%)'}}></div>
-                            <div className="w-28 h-28 rounded-[2rem] flex items-center justify-center mx-auto mb-8 relative z-10 scan-btn">
-                                <i className="fa-solid fa-qrcode text-5xl text-white"></i>
+                        <div className="glass-card p-10 rounded-[3.5rem] max-w-sm w-full text-center relative overflow-hidden">
+                            <i className="fa-solid fa-fingerprint opacity-5 text-[10rem] absolute top-[-20px] right-[-20px]"></i>
+                            <div className="w-32 h-32 bg-gradient-to-tr from-emerald-300 to-teal-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_10px_30px_rgba(16,185,129,0.3)] relative z-10">
+                                <i className="fa-solid fa-qrcode text-6xl text-white"></i>
                             </div>
-                            <h2 className="text-3xl font-black mb-2 relative z-10">
-                                <span className="grad-text">สแกนส่งบิล</span>
-                            </h2>
-                            <p className="text-sm text-slate-400 mb-10 font-medium relative z-10">เชื่อมต่อผ่าน LINE เพื่อยืนยันตัวตนก่อนเข้าใช้งาน</p>
+                            <h2 className="text-3xl font-black text-slate-800 mb-3 relative z-10">สแกนส่งบิล</h2>
+                            <p className="text-sm text-slate-600 mb-10 font-medium relative z-10">เชื่อมต่อผ่าน LINE เพื่อยืนยันตัวตนก่อนเข้าใช้งาน</p>
                             
-                            <button onClick={() => liff.login()} className="btn-bouncy btn-line w-full text-white font-black py-5 rounded-[2rem] flex items-center justify-center gap-3 text-lg relative z-10">
+                            <button onClick={() => liff.login()} className="btn-bouncy w-full bg-[#06C755] text-white font-black py-5 rounded-[2rem] shadow-[0_10px_30px_rgba(6,199,85,0.4)] flex items-center justify-center gap-3 text-lg relative z-10">
                                 <i className="fa-brands fa-line text-3xl"></i> ล็อกอินด้วย LINE
                             </button>
                         </div>
@@ -1326,20 +1126,15 @@
 
             return (
                 <div className="min-h-screen pb-36 relative">
-                    <div className="top-nav px-5 py-3.5 flex items-center justify-between sticky top-0 z-50">
-                        <div className="flex items-center gap-3.5">
-                            <div className="relative">
-                                <img src={userProfile.pictureUrl} alt="profile" className="w-11 h-11 rounded-full border-2 shadow-md" style={{borderColor:'rgba(45,212,191,0.4)'}} />
-                                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-teal-400 rounded-full border-2 border-[#0b1120]"></div>
-                            </div>
+                    <div className="bg-white/40 backdrop-blur-xl px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-white/50">
+                        <div className="flex items-center gap-4">
+                            <img src={userProfile.pictureUrl} alt="profile" className="w-12 h-12 rounded-full border-2 border-white shadow-md" />
                             <div className="flex flex-col">
-                                <span className="text-[9px] text-teal-400 font-bold uppercase tracking-[0.15em]">ยินดีต้อนรับ</span>
-                                <span className="text-sm font-black text-slate-100 leading-tight">{userProfile.displayName}</span>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">ยินดีต้อนรับ</span>
+                                <span className="text-base font-black text-slate-800">{userProfile.displayName}</span>
                             </div>
                         </div>
-                        <button onClick={() => {liff.logout(); setUserProfile(null); localStorage.removeItem('liff_profile_cache');}} className="btn-bouncy btn-ghost text-[11px] px-4 py-2 rounded-[1rem] font-bold text-rose-400" style={{border:'1px solid rgba(251,113,133,0.25)'}}>
-                            <i className="fa-solid fa-right-from-bracket mr-1.5"></i>ออก
-                        </button>
+                        <button onClick={() => {liff.logout(); setUserProfile(null); localStorage.removeItem('liff_profile_cache');}} className="btn-bouncy text-[11px] text-rose-500 bg-white/60 backdrop-blur-md px-4 py-2 rounded-[1rem] font-bold shadow-sm border border-white">ออกจากระบบ</button>
                     </div>
 
                     <ScannerTab 
@@ -1354,12 +1149,12 @@
                     />
 
                     <div className="fixed bottom-6 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)] flex justify-center px-6 pointer-events-none">
-                        <div className="tab-bar p-1.5 rounded-[3rem] flex w-full max-w-[340px] pointer-events-auto gap-1">
-                            <button onClick={() => setActiveTab('scan')} className={`btn-bouncy flex-1 flex justify-center items-center h-14 rounded-[2.5rem] transition-all duration-300 z-10 font-black text-sm gap-2.5 ${activeTab === 'scan' ? 'tab-btn-active' : 'text-slate-500 hover:text-slate-300'}`}>
-                                <i className="fa-solid fa-barcode text-xl"></i><span>สแกนบิล</span>
+                        <div className="glass-card p-2 rounded-[3rem] flex w-full max-w-[360px] pointer-events-auto shadow-[0_10px_40px_rgba(0,0,0,0.1)] border-2 border-white/80 relative">
+                            <button onClick={() => setActiveTab('scan')} className={`btn-bouncy flex-1 flex justify-center items-center h-16 rounded-[2.5rem] transition-all duration-300 z-10 ${activeTab === 'scan' ? 'bg-white shadow-md text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>
+                                <i className="fa-solid fa-barcode text-2xl"></i><span className="ml-3 font-black text-sm">สแกนบิล</span>
                             </button>
-                            <button onClick={() => setActiveTab('history')} className={`btn-bouncy flex-1 flex justify-center items-center h-14 rounded-[2.5rem] transition-all duration-300 z-10 font-black text-sm gap-2.5 ${activeTab === 'history' ? 'tab-btn-active' : 'text-slate-500 hover:text-slate-300'}`}>
-                                <i className="fa-solid fa-chart-pie text-xl"></i><span>สรุปยอด</span>
+                            <button onClick={() => setActiveTab('history')} className={`btn-bouncy flex-1 flex justify-center items-center h-16 rounded-[2.5rem] transition-all duration-300 z-10 ${activeTab === 'history' ? 'bg-white shadow-md text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>
+                                <i className="fa-solid fa-chart-pie text-2xl"></i><span className="ml-3 font-black text-sm">สรุปยอด</span>
                             </button>
                         </div>
                     </div>
