@@ -17,7 +17,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#ccfbf1">
+    <meta name="theme-color" content="#e0f2fe">
     
     <script>
         (function() {
@@ -26,7 +26,7 @@
                 "short_name": "สแกนส่งบิล",
                 "start_url": window.location.href,
                 "display": "standalone",
-                "background_color": "#ccfbf1",
+                "background_color": "#e0f2fe",
                 "theme_color": "#5eead4",
                 "icons": [
                     { "src": "https://i.postimg.cc/SxDzdXD5/79162.jpg", "sizes": "192x192", "type": "image/jpeg" },
@@ -61,16 +61,8 @@
             -webkit-tap-highlight-color: transparent; 
             margin: 0;
             padding-bottom: env(safe-area-inset-bottom);
-            background: linear-gradient(-45deg, #e0f2fe, #ccfbf1, #dcfce7, #f0fdfa);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            background-color: #e0f2fe; /* แก้ไขเป็นสีพื้นเรียบๆ (ฟ้าอ่อน) ตามที่ขอ */
             min-height: 100vh;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         .glass-card {
@@ -631,7 +623,6 @@
                             </div>
                         </div>
 
-                        {/* 🟢 จุดที่แก้ไข: กำหนดความสูงแบบคงที่ h-[550px] lg:h-[650px] */}
                         <div className="lg:col-span-5 flex flex-col h-[550px] lg:h-[650px]">
                             <div className="flex flex-col glass-card bg-white/40 rounded-[3rem] p-3 shadow-[0_20px_50px_rgba(31,38,135,0.1)] relative flex-1 border border-white/80 overflow-hidden">
                                 {isSaving && <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin mb-4"></div><span className="font-bold text-emerald-600 animate-pulse text-lg">กำลังส่งข้อมูล...</span></div>}
