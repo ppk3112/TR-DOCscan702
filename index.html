@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ระบบจัดส่งเอกสาร</title>
     
     <meta name="apple-mobile-web-app-title" content="สแกนส่งบิล">
@@ -16,8 +16,8 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#f1f5f9">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f8fafc">
     
     <script>
         (function() {
@@ -26,8 +26,8 @@
                 "short_name": "สแกนส่งบิล",
                 "start_url": window.location.href,
                 "display": "standalone",
-                "background_color": "#f1f5f9",
-                "theme_color": "#1e293b",
+                "background_color": "#f8fafc",
+                "theme_color": "#f8fafc",
                 "icons": [
                     { "src": "https://i.postimg.cc/SxDzdXD5/79162.jpg", "sizes": "192x192", "type": "image/jpeg" },
                     { "src": "https://i.postimg.cc/SxDzdXD5/79162.jpg", "sizes": "512x512", "type": "image/jpeg" }
@@ -53,54 +53,28 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
-            font-family: 'Prompt', sans-serif; 
+            font-family: 'Sarabun', sans-serif; 
             -webkit-tap-highlight-color: transparent; 
-            margin: 0;
-            background-color: #f1f5f9; /* Slate-100: เทาอ่อนสว่างสบายตา */
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, hsla(152,100%,94%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(210,100%,97%,1) 0, transparent 50%);
+            background-attachment: fixed;
             padding-bottom: env(safe-area-inset-bottom);
-            min-height: 100vh;
         }
-
-        /* เงาแบบฟุ้งกระจายนุ่มนวล (Soft Depth) */
-        .soft-shadow {
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
-        }
-
-        /* แถบ Scrollbar โมเดิร์น */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
-        
-        /* แอนิเมชันปุ่มยุบตัวเวลาสัมผัส */
-        .btn-bouncy {
-            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
-        }
-        .btn-bouncy:active {
-            transform: scale(0.96);
-        }
-
-        /* สไตล์กรอกข้อมูล (Input) */
-        .input-focus {
-            transition: all 0.2s;
-        }
-        .input-focus:focus {
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-            border-color: #60a5fa;
-            background-color: #ffffff;
-        }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
     </style>
 </head>
-<body class="text-slate-800 antialiased">
+<body class="bg-slate-50">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
+        // URL ดั้งเดิมของคุณ (ระบบเก่าทำงานได้สมบูรณ์)
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYAYulOU-9KV7t4y08pz_GhicwWL2S9laTWsRkTqHvo5Fk_UIbGPF_EI0-kHzyY1P57A/exec';
 
         const formatThaiDate = (dateString) => {
@@ -183,6 +157,7 @@
                 return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             });
             
+            // ฟังก์ชันเดิมที่มีการเลือกระบบ โซน ตจว. 
             const [deliveryType, setDeliveryType] = useState('DC');
             const [deliveryZone, setDeliveryZone] = useState('NORMAL'); 
             const [showZoneDropdown, setShowZoneDropdown] = useState(false); 
@@ -264,9 +239,9 @@
             }, []);
 
             const startScanner = async () => {
-                if (!window.Html5Qrcode) { alert('ระบบสแกนกำลังโหลด...'); return; }
+                if (!window.Html5Qrcode) { alert('ระบบสแกนยังโหลดไม่เสร็จ...'); return; }
                 const isLineApp = navigator.userAgent.indexOf("Line") > -1;
-                if (isLineApp) alert("แจ้งเตือน: หากพบปัญหาเปิดกล้อง กรุณากดไอคอน '3 จุด' มุมขวาบน แล้วเลือก 'เปิดใน Safari / Browser'");
+                if (isLineApp) alert("⚠️ ตรวจพบการใช้งานผ่านแอป LINE\n👉 กรุณากดไอคอน '3 จุด' แล้วเลือก 'เปิดใน Safari' ครับ");
 
                 setIsScanning(true);
                 setTimeout(() => {
@@ -284,12 +259,10 @@
                         (decodedText) => {
                             if (lastScannedRef.current !== decodedText) {
                                 lastScannedRef.current = decodedText;
-                                
                                 let finalCode = deliveryTypeRef.current === 'FACTORY' ? `${decodedText.trim()}(รับโรงตัด)` : decodedText.trim();
                                 if (deliveryZoneRef.current === 'UPCOUNTRY') {
                                     finalCode += '(ตจว.)';
                                 }
-
                                 if (!checkDuplicate(finalCode)) {
                                     playBeep();
                                     setCurrentItems(prev => [{ code: finalCode, dueDate: dueDateRef.current }, ...prev]);
@@ -298,7 +271,7 @@
                             }
                         }, 
                         (err) => {}
-                    ).catch((err) => { setIsScanning(false); alert("ไม่สามารถเปิดใช้งานกล้องได้ โปรดอนุญาตสิทธิ์การใช้กล้อง"); });
+                    ).catch((err) => { setIsScanning(false); alert("❌ ไม่สามารถเปิดกล้องได้"); });
                 }, 300);
             };
 
@@ -317,7 +290,7 @@
                         const newState = !isFlashlightOn;
                         await html5QrCodeRef.current.applyVideoConstraints({ advanced: [{ torch: newState }] });
                         setIsFlashlightOn(newState);
-                    } catch (error) { alert("อุปกรณ์ไม่รองรับการเปิดไฟฉายผ่านเบราว์เซอร์"); }
+                    } catch (error) { alert("อุปกรณ์ไม่รองรับไฟฉายผ่านเว็บครับ"); }
                 }
             };
 
@@ -327,7 +300,7 @@
                 if (!val) return;
 
                 if (val.length !== 4 && val.length !== 10) {
-                    alert("กรุณาระบุเลขบิล 4 หรือ 10 หลัก");
+                    alert("กรุณาพิมพ์เลขเที่ยว 4 หลัก หรือ 10 หลัก เท่านั้นครับ");
                     return;
                 }
 
@@ -400,17 +373,17 @@
 
                 try {
                     const response = await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
+                        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify(newBatch)
                     });
 
                     const text = await response.text();
-                    if (text.trim().startsWith('<')) { alert("เซิร์ฟเวอร์ตอบกลับผิดพลาด (URL อาจหมดอายุ)"); setIsSaving(false); return; }
+                    if (text.trim().startsWith('<')) { alert("❌ เซิร์ฟเวอร์ตอบกลับผิดพลาด"); setIsSaving(false); return; }
 
                     const result = JSON.parse(text);
                     if (result.status === 'error') {
-                        if (result.message === 'DUPLICATE_FOUND') { alert(`ตรวจพบการซ้ำซ้อนในฐานข้อมูล!\nบิลเลขที่: ${result.duplicateCode}`); } 
-                        else { alert("เกิดข้อผิดพลาด: " + result.message); }
+                        if (result.message === 'DUPLICATE_FOUND') { alert(`❌ ตรวจพบการซ้ำซ้อนในฐานข้อมูล!\nบิลเลขที่: ${result.duplicateCode}`); } 
+                        else { alert("❌ เกิดข้อผิดพลาด: " + result.message); }
                         setIsSaving(false); return; 
                     }
 
@@ -419,8 +392,10 @@
                     
                     if (window.confetti) {
                         confetti({
-                            particleCount: 100, spread: 70, origin: { y: 0.6 },
-                            colors: ['#3b82f6', '#10b981', '#f59e0b']
+                            particleCount: 150,
+                            spread: 80,
+                            origin: { y: 0.6 },
+                            colors: ['#34d399', '#10b981', '#059669', '#ffffff']
                         });
                     }
                     
@@ -428,7 +403,7 @@
                         setLineMessageToCopy(result.lineMessage);
                         setLastSavedMessage(result.lineMessage); 
                         localStorage.setItem('last_saved_message', result.lineMessage);
-                        setTimeout(() => { setShowCopyModal(true); }, 1500); 
+                        setTimeout(() => { setShowCopyModal(true); }, 1200); 
                     }
                     
                     onSaveSuccess();
@@ -438,187 +413,178 @@
                     setAllSentCodesCache(newCodesSet);
 
                     setTimeout(() => setSaveSuccess(false), 3000);
-                } catch (error) { alert(`การเชื่อมต่อล้มเหลว`); } finally { setIsSaving(false); }
+                } catch (error) { alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ"); } finally { setIsSaving(false); }
             };
 
             return (
-                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
-                    
-                    {/* Modals & Overlays */}
+                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
                     {saveSuccess && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[150] flex flex-col items-center justify-center animate-in fade-in duration-300">
-                            <div className="bg-white p-8 rounded-[2rem] shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-300 w-full max-w-xs mx-4">
-                                <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-5 animate-bounce">
-                                    <i className="fa-solid fa-check text-4xl text-emerald-600"></i>
-                                </div>
-                                <h2 className="text-2xl font-black text-slate-800 mb-1">สำเร็จ!</h2>
-                                <p className="text-slate-500 text-sm font-medium">บันทึกข้อมูลเข้าระบบเรียบร้อย</p>
-                            </div>
+                        <div className="fixed inset-0 bg-emerald-500/90 backdrop-blur-md z-[150] flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
+                            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-bounce"><i className="fa-solid fa-check text-7xl text-emerald-500"></i></div>
+                            <h2 className="text-4xl font-black text-white drop-shadow-lg mb-2">ส่งสำเร็จ!</h2>
+                            <p className="text-emerald-50 text-lg font-medium">ข้อมูลเข้าระบบเรียบร้อยแล้ว</p>
                         </div>
                     )}
 
                     {duplicateWarning && (
-                        <div className="fixed top-5 left-4 right-4 z-[110] bg-white border border-red-200 p-4 rounded-[1.5rem] shadow-lg flex items-center gap-3 animate-in slide-in-from-top-10 fade-in duration-300">
-                            <div className="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center shrink-0"><i className="fa-solid fa-triangle-exclamation text-lg"></i></div>
-                            <div className="flex-1 font-bold text-red-600 text-sm">{duplicateWarning}</div>
+                        <div className="fixed top-5 left-4 right-4 z-[110] bg-red-600/95 backdrop-blur-sm text-white p-4 rounded-2xl shadow flex items-center gap-3 animate-in slide-in-from-top-5">
+                            <i className="fa-solid fa-triangle-exclamation text-xl"></i><div className="flex-1 font-bold text-sm">{duplicateWarning}</div>
                         </div>
                     )}
 
                     {showCopyModal && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[160] flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[2rem] p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100">
-                                <div className="text-center mb-4 border-b border-slate-100 pb-4">
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[160] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="text-center mb-4">
+                                    <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-3 border-[4px] border-white"><i className="fa-regular fa-copy text-2xl"></i></div>
                                     <h3 className="text-lg font-black text-slate-800">คัดลอกข้อความแจ้งเตือน</h3>
                                 </div>
-                                <div className="bg-slate-50 p-4 rounded-[1.5rem] mb-5 max-h-[40vh] overflow-y-auto text-left border border-slate-200">
-                                    <pre className="text-[13px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{lineMessageToCopy}</pre>
+                                <div className="bg-slate-50 p-3 rounded-2xl mb-5 max-h-[40vh] overflow-y-auto border border-slate-200 text-left">
+                                    <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans">{lineMessageToCopy}</pre>
                                 </div>
                                 <div className="flex gap-3">
-                                    <button onClick={() => setShowCopyModal(false)} className="btn-bouncy flex-1 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-[1rem] font-bold text-sm">ปิด</button>
-                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="btn-bouncy flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-[1rem] font-bold shadow-md flex justify-center items-center gap-2 text-sm"><i className="fa-solid fa-copy"></i> คัดลอก</button>
+                                    <button onClick={() => setShowCopyModal(false)} className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-colors">ปิด</button>
+                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="flex-1 py-3.5 bg-blue-600 text-white rounded-2xl font-bold text-sm flex justify-center items-center gap-2 shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-colors"><i className="fa-solid fa-copy"></i> คัดลอก</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {showClearConfirmModal && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 text-center border border-slate-100">
-                                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><i className="fa-solid fa-trash-can text-2xl"></i></div>
-                                <h3 className="text-xl font-black text-slate-800">ยืนยันล้างตะกร้า?</h3>
-                                <p className="text-sm text-slate-500 mt-2 mb-6">ข้อมูลบิลทั้งหมดจะถูกลบทิ้งชั่วคราว</p>
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="text-center mb-6">
+                                    <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 border-[6px] border-white"><i className="fa-solid fa-trash-can text-3xl"></i></div>
+                                    <h3 className="text-xl font-black text-slate-800">ยืนยันการล้างตะกร้า?</h3>
+                                </div>
                                 <div className="flex gap-3">
-                                    <button onClick={() => setShowClearConfirmModal(false)} className="btn-bouncy flex-1 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-[1rem] font-bold text-sm">ยกเลิก</button>
-                                    <button onClick={() => { setCurrentItems([]); setShowClearConfirmModal(false); }} className="btn-bouncy flex-1 py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-[1rem] font-bold shadow-md text-sm">ล้างทั้งหมด</button>
+                                    <button onClick={() => setShowClearConfirmModal(false)} className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-bold hover:bg-slate-200 transition-colors">ยกเลิก</button>
+                                    <button onClick={() => { setCurrentItems([]); setShowClearConfirmModal(false); }} className="flex-1 py-3.5 bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-500/30 hover:bg-red-700 transition-colors">ล้างทั้งหมด</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {editingIndex !== null && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[2rem] p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100">
-                                <div className="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
-                                    <h3 className="text-lg font-black text-slate-800 flex items-center gap-2"><div className="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg flex justify-center items-center"><i className="fa-solid fa-pen-to-square text-[13px]"></i></div> แก้ไขข้อมูลบิล</h3>
-                                    <button onClick={() => setEditingIndex(null)} className="btn-bouncy bg-slate-50 w-8 h-8 rounded-full text-slate-400 hover:bg-slate-100"><i className="fa-solid fa-xmark"></i></button>
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="flex justify-between items-center mb-5">
+                                    <h3 className="text-lg font-bold text-slate-800"><i className="fa-solid fa-pen-to-square text-blue-500 mr-2"></i>แก้ไขข้อมูลบิล</h3>
+                                    <button onClick={() => setEditingIndex(null)} className="bg-slate-100 w-8 h-8 rounded-full hover:bg-slate-200 transition-colors"><i className="fa-solid fa-xmark"></i></button>
                                 </div>
-                                <div className="space-y-5 mb-6">
+                                <div className="space-y-5 mb-7">
                                     <div>
-                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 block ml-1">ประเภทการรับ</label>
-                                        <div className="flex bg-slate-50 p-1.5 rounded-xl gap-1 border border-slate-100">
-                                            <button type="button" onClick={() => setEditIsFactory(false)} className={`btn-bouncy flex-1 py-2.5 text-sm font-bold rounded-lg transition-colors ${!editIsFactory ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100'}`}>DC</button>
-                                            <button type="button" onClick={() => setEditIsFactory(true)} className={`btn-bouncy flex-1 py-2.5 text-sm font-bold rounded-lg transition-colors ${editIsFactory ? 'bg-white text-orange-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100'}`}>โรงตัด</button>
+                                        <label className="text-xs font-bold text-slate-500 mb-1.5 block ml-1">ประเภทการรับ</label>
+                                        <div className="flex bg-slate-100/80 p-1.5 rounded-2xl gap-1 border border-slate-200">
+                                            <button type="button" onClick={() => setEditIsFactory(false)} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${!editIsFactory ? 'bg-emerald-200 text-emerald-800 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50'}`}>DC</button>
+                                            <button type="button" onClick={() => setEditIsFactory(true)} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${editIsFactory ? 'bg-orange-200 text-orange-800 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50'}`}>โรงตัด</button>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 block ml-1">โซนพื้นที่</label>
-                                        <div className="flex bg-slate-50 p-1.5 rounded-xl gap-1 border border-slate-100">
-                                            <button type="button" onClick={() => setEditIsUpcountry(false)} className={`btn-bouncy flex-1 py-2.5 text-sm font-bold rounded-lg transition-colors ${!editIsUpcountry ? 'bg-white text-slate-800 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100'}`}>พื้นที่ปกติ</button>
-                                            <button type="button" onClick={() => setEditIsUpcountry(true)} className={`btn-bouncy flex-1 py-2.5 text-sm font-bold rounded-lg transition-colors ${editIsUpcountry ? 'bg-white text-purple-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100'}`}>ตจว.</button>
+                                        <label className="text-xs font-bold text-slate-500 mb-1.5 block ml-1">โซนพื้นที่</label>
+                                        <div className="flex bg-slate-100/80 p-1.5 rounded-2xl gap-1 border border-slate-200">
+                                            <button type="button" onClick={() => setEditIsUpcountry(false)} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${!editIsUpcountry ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200/50'}`}>พื้นที่ปกติ</button>
+                                            <button type="button" onClick={() => setEditIsUpcountry(true)} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${editIsUpcountry ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200/50'}`}>ตจว.</button>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 block ml-1">วันที่กำหนดส่ง</label>
-                                        <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl outline-none font-medium text-slate-700 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 input-focus" />
+                                        <label className="text-xs font-bold text-slate-500 mb-1.5 block ml-1">วันที่กำหนดส่ง</label>
+                                        <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none font-bold focus:border-emerald-400" />
                                     </div>
                                 </div>
-                                <button onClick={saveEditItem} className="btn-bouncy w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-base shadow-md">บันทึกการแก้ไข</button>
+                                <button onClick={saveEditItem} className="w-full py-3.5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-colors">บันทึกการแก้ไข</button>
                             </div>
                         </div>
                     )}
 
-                    {/* Layout โครงสร้างหลักแบบ 2 คอลัมน์ */}
+                    {showConfirmModal && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="text-center mb-6">
+                                    <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-5 border-[6px] border-white"><i className="fa-solid fa-paper-plane text-3xl"></i></div>
+                                    <h3 className="text-xl font-black text-slate-800">ยืนยันการส่งข้อมูล?</h3>
+                                    <p className="text-sm text-slate-500 mt-2">จำนวน <span className="font-bold text-emerald-600 text-lg mx-1">{currentItems.length}</span> เที่ยว</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-bold hover:bg-slate-200 transition-colors">ยกเลิก</button>
+                                    <button onClick={() => { setShowConfirmModal(false); executeSaveBatch(); }} className="flex-1 py-3.5 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/30 hover:bg-emerald-700 transition-colors">ยืนยันส่ง</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        
-                        {/* ฝั่งซ้าย: ส่วนสแกนและกรอกข้อมูล */}
-                        <div className="lg:col-span-7 space-y-5">
-                            
-                            <div className="bg-white p-5 rounded-[2rem] soft-shadow border border-slate-100">
-                                {/* การตั้งค่ารูปแบบงาน */}
-                                <div className="mb-5 relative border-b border-slate-50 pb-5">
-                                    <div className="flex bg-slate-50 p-1.5 rounded-xl gap-1 border border-slate-100">
-                                        <button onClick={() => handleTypeToggle('DC')} className={`btn-bouncy flex-1 py-3 font-bold rounded-lg flex justify-center items-center text-sm transition-colors ${deliveryType === 'DC' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100'}`}>
-                                            <i className="fa-solid fa-box-open mr-1.5"></i> DC {deliveryType === 'DC' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
-                                            {deliveryType === 'DC' && <i className={`fa-solid fa-chevron-down ml-2 text-[10px] transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
+                        <div className="lg:col-span-7 space-y-6">
+                            <div className="bg-white/95 backdrop-blur-sm p-6 rounded-[32px] shadow-sm border border-white/60">
+                                
+                                <div className="mb-6 relative">
+                                    <div className="flex bg-slate-100/80 p-1.5 rounded-[20px] gap-1 border border-slate-200/50">
+                                        <button onClick={() => handleTypeToggle('DC')} className={`flex-1 py-3.5 font-bold rounded-2xl flex justify-center items-center gap-2 transition-colors ${deliveryType === 'DC' ? 'bg-emerald-200 text-emerald-800 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50'}`}>
+                                            <i className="fa-solid fa-box-open"></i> DC {deliveryType === 'DC' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
+                                            {deliveryType === 'DC' && <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
                                         </button>
-                                        <button onClick={() => handleTypeToggle('FACTORY')} className={`btn-bouncy flex-1 py-3 font-bold rounded-lg flex justify-center items-center text-sm transition-colors ${deliveryType === 'FACTORY' ? 'bg-white text-orange-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:bg-slate-100'}`}>
-                                            <i className="fa-solid fa-scissors mr-1.5"></i> โรงตัด {deliveryType === 'FACTORY' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
-                                            {deliveryType === 'FACTORY' && <i className={`fa-solid fa-chevron-down ml-2 text-[10px] transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
+                                        <button onClick={() => handleTypeToggle('FACTORY')} className={`flex-1 py-3.5 font-bold rounded-2xl flex justify-center items-center gap-2 transition-colors ${deliveryType === 'FACTORY' ? 'bg-orange-200 text-orange-800 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50'}`}>
+                                            <i className="fa-solid fa-scissors"></i> โรงตัด {deliveryType === 'FACTORY' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
+                                            {deliveryType === 'FACTORY' && <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
                                         </button>
                                     </div>
                                     
                                     {showZoneDropdown && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 p-1.5 bg-white rounded-xl shadow-lg border border-slate-100 z-20 flex gap-1 animate-in slide-in-from-top-2">
-                                            <button onClick={() => { setDeliveryZone('NORMAL'); setShowZoneDropdown(false); }} className={`btn-bouncy flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryZone === 'NORMAL' ? 'bg-slate-800 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}>พื้นที่ปกติ</button>
-                                            <button onClick={() => { setDeliveryZone('UPCOUNTRY'); setShowZoneDropdown(false); }} className={`btn-bouncy flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${deliveryZone === 'UPCOUNTRY' ? 'bg-purple-50 text-purple-600 border border-purple-100' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-truck-fast mr-1"></i> งาน ตจว.</button>
+                                        <div className="absolute top-full left-0 right-0 mt-2 p-1.5 bg-white/95 backdrop-blur-md rounded-[20px] shadow-lg border border-slate-100 z-10 flex gap-1 animate-in slide-in-from-top-2">
+                                            <button onClick={() => { setDeliveryZone('NORMAL'); setShowZoneDropdown(false); }} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${deliveryZone === 'NORMAL' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}>พื้นที่ปกติ</button>
+                                            <button onClick={() => { setDeliveryZone('UPCOUNTRY'); setShowZoneDropdown(false); }} className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${deliveryZone === 'UPCOUNTRY' ? 'bg-indigo-500 text-white shadow-md' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-truck-fast mr-1"></i> งาน ตจว.</button>
                                         </div>
                                     )}
                                 </div>
-                                
-                                {/* กล้องสแกน & กรอกข้อมูล */}
+
                                 <div className="space-y-4">
                                     {isScanning ? (
-                                        <div className="relative rounded-[1.5rem] border border-slate-200 bg-slate-900 overflow-hidden shadow-inner">
+                                        <div className="relative rounded-3xl border-4 border-emerald-400 bg-black overflow-hidden shadow-lg shadow-emerald-400/20">
                                             <div id="reader" className="w-full h-[280px]"></div>
-                                            <button onClick={stopScanner} className="btn-bouncy absolute top-3 right-3 bg-white/20 backdrop-blur-md text-white w-10 h-10 rounded-full z-10 hover:bg-white/30 transition-colors"><i className="fa-solid fa-xmark"></i></button>
-                                            <button onClick={toggleFlashlight} className={`btn-bouncy absolute top-3 left-3 w-10 h-10 rounded-full z-10 backdrop-blur-md transition-colors ${isFlashlightOn ? 'bg-yellow-400 text-slate-900' : 'bg-white/20 text-white hover:bg-white/30'}`}><i className="fa-solid fa-bolt"></i></button>
+                                            <button onClick={stopScanner} className="absolute top-3 right-3 bg-white/20 text-white w-10 h-10 rounded-full z-10 hover:bg-white/30 transition-colors"><i className="fa-solid fa-xmark"></i></button>
+                                            <button onClick={toggleFlashlight} className={`absolute top-3 left-3 w-10 h-10 rounded-full z-10 transition-colors ${isFlashlightOn ? 'bg-yellow-400 text-slate-900' : 'bg-white/20 text-white hover:bg-white/30'}`}><i className="fa-solid fa-bolt"></i></button>
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-3">
-                                            <button onClick={startScanner} className="btn-bouncy w-full h-[120px] bg-slate-50 hover:bg-blue-50 border-2 border-dashed border-slate-200 hover:border-blue-300 text-slate-500 hover:text-blue-600 rounded-[1.5rem] flex flex-col items-center justify-center transition-colors group">
-                                                <i className="fa-solid fa-barcode text-4xl mb-2 group-hover:scale-110 transition-transform duration-300"></i>
-                                                <span className="font-bold text-sm">สแกนบาร์โค้ดบิล</span>
-                                            </button>
-                                            
+                                            <button onClick={startScanner} className="w-full h-16 bg-slate-800 hover:bg-slate-700 transition-colors text-white rounded-[20px] text-3xl shadow-md"><i className="fa-solid fa-camera"></i></button>
                                             <form onSubmit={handleManualAdd} className="flex gap-2">
-                                                <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="พิมพ์เลขบิล 4 หรือ 10 หลัก..." className="flex-1 px-5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl outline-none text-sm font-bold h-[52px] placeholder-slate-400 input-focus" />
-                                                <button type="submit" className="btn-bouncy w-[52px] h-[52px] bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-lg flex items-center justify-center shadow-sm transition-colors"><i className="fa-solid fa-plus font-bold"></i></button>
+                                                <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="พิมพ์เลข 4 หรือ 10 หลัก..." className="flex-1 px-4 border border-slate-200 rounded-[18px] outline-none text-sm font-bold h-[46px] focus:border-emerald-400" />
+                                                <button type="submit" className="w-[46px] h-[46px] bg-emerald-100 hover:bg-emerald-200 transition-colors text-emerald-700 rounded-[18px] text-lg shadow-sm"><i className="fa-solid fa-plus font-bold"></i></button>
                                             </form>
                                         </div>
                                     )}
                                 </div>
-                                
                                 {lastSavedMessage && (
-                                    <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-                                        <div className="flex-1 pr-3">
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">สถานะล่าสุด</div>
-                                            <h4 className="text-sm font-bold text-slate-700 truncate">บันทึกข้อความสำเร็จแล้ว</h4>
-                                        </div>
-                                        <button onClick={() => { setLineMessageToCopy(lastSavedMessage); setShowCopyModal(true); }} className="btn-bouncy px-4 py-2 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg font-bold text-xs hover:bg-slate-100 transition-colors"><i className="fa-solid fa-eye mr-1"></i> ดูข้อความ</button>
+                                    <div className="mt-5 pt-4 bg-blue-50/60 border border-blue-200 rounded-3xl p-4 flex items-center justify-between">
+                                        <div className="flex-1 pr-3"><h4 className="text-sm font-black text-blue-800"><i className="fa-solid fa-clock-rotate-left"></i> ข้อความที่ส่งล่าสุด</h4></div>
+                                        <button onClick={() => { setLineMessageToCopy(lastSavedMessage); setShowCopyModal(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-colors"><i className="fa-solid fa-copy"></i> คัดลอก</button>
                                     </div>
                                 )}
                             </div>
-
-                            {/* วันที่ส่งมอบ */}
-                            <div className={`p-5 rounded-[2rem] border transition-colors duration-300 soft-shadow ${checkIsUrgent(dueDate) ? 'bg-red-50/50 border-red-100' : 'bg-white border-slate-100'}`}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <label className={`text-sm font-bold flex items-center gap-2 ${checkIsUrgent(dueDate) ? 'text-red-600' : 'text-slate-800'}`}><i className="fa-regular fa-calendar-check text-lg"></i> วันที่กำหนดส่ง</label>
-                                    {checkIsUrgent(dueDate) && <span className="bg-red-100 text-red-600 text-[10px] px-2.5 py-1 rounded-md font-bold border border-red-200">งานด่วน</span>}
+                            <div className={`p-6 rounded-[32px] border-2 transition-colors ${checkIsUrgent(dueDate) ? 'bg-red-50/80 border-red-200' : 'bg-white/95 border-emerald-100'}`}>
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className={`text-sm font-bold flex gap-2 ${checkIsUrgent(dueDate) ? 'text-red-800' : 'text-emerald-800'}`}><i className="fa-regular fa-calendar-check"></i> กำหนดส่ง</label>
+                                    {checkIsUrgent(dueDate) && <span className="bg-red-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold animate-pulse">งานด่วน</span>}
                                 </div>
-                                <input type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-5 py-3.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 text-base input-focus" />
+                                <input type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-5 py-3.5 bg-white border border-slate-200 rounded-[20px] outline-none font-bold shadow-sm focus:border-emerald-400" />
                             </div>
                         </div>
 
-                        {/* ฝั่งขวา: ตะกร้าบิล (ล็อคความสูง มี Scrollbar) */}
-                        <div className="lg:col-span-5 flex flex-col h-[500px] lg:h-[600px]">
-                            <div className="flex flex-col bg-white rounded-[2rem] p-2 soft-shadow border border-slate-100 relative flex-1 overflow-hidden">
-                                {isSaving && <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-[2rem]"><div className="w-12 h-12 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin mb-3"></div><span className="font-bold text-slate-600 text-sm">กำลังประมวลผล...</span></div>}
-                                
-                                {/* Header ตะกร้า */}
-                                <div className="flex justify-between items-center px-4 py-4 shrink-0 bg-white z-10 border-b border-slate-100 mb-2">
-                                    <h3 className="text-slate-800 font-black text-lg flex items-center gap-2">ตะกร้ารอส่ง</h3>
-                                    <div className="flex items-center gap-2">
-                                        {currentItems.length > 0 && <button onClick={() => setShowClearConfirmModal(true)} className="btn-bouncy text-slate-400 hover:text-red-500 text-xs font-bold px-2 py-1"><i className="fa-solid fa-trash-can"></i> ล้าง</button>}
-                                        <span className="bg-slate-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg">{currentItems.length} รายการ</span>
+                        <div className="lg:col-span-5 flex flex-col h-[550px] lg:h-[650px]">
+                            <div className="flex flex-col bg-slate-800 rounded-[36px] p-2 shadow-2xl relative flex-1">
+                                {isSaving && <div className="absolute inset-0 bg-white/90 z-50 flex items-center justify-center rounded-[36px]"><div className="w-14 h-14 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin"></div></div>}
+                                <div className="flex justify-between items-center px-6 py-5 shrink-0">
+                                    <h3 className="text-white font-semibold"><i className="fa-solid fa-layer-group text-emerald-400"></i> ตะกร้ารอส่ง</h3>
+                                    <div className="flex items-center gap-2.5">
+                                        {currentItems.length > 0 && <button onClick={() => setShowClearConfirmModal(true)} className="text-red-400 text-[11px] font-bold px-3 py-1.5 bg-slate-700/80 rounded-xl hover:bg-slate-700 transition-colors"><i className="fa-solid fa-trash-can"></i> ล้าง</button>}
+                                        <span className="bg-emerald-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-full">{currentItems.length} เที่ยว</span>
                                     </div>
                                 </div>
-                                
-                                {/* 🟢 พื้นที่ Scroll (ตะกร้าที่ถูกล็อกความสูง) 🟢 */}
-                                <div className="flex-1 overflow-y-auto bg-slate-50/50 rounded-[1.5rem] p-3 space-y-2.5 custom-scrollbar border border-slate-100">
+                                <div className="flex-1 overflow-y-auto bg-slate-50/95 rounded-[28px] p-3 space-y-2.5 custom-scrollbar">
                                     {currentItems.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
-                                            <i className="fa-solid fa-inbox text-5xl mb-3"></i>
-                                            <p className="font-medium text-sm">ยังไม่มีบิลในตะกร้า</p>
+                                            <i className="fa-solid fa-inbox text-6xl mb-4"></i>
+                                            <p className="font-bold text-lg">ตะกร้ายังว่างเปล่า</p>
                                         </div>
                                     ) : (
                                         currentItems.map((item, index) => {
@@ -626,37 +592,27 @@
                                             const isFactory = item.code.includes('(รับโรงตัด)');
                                             const isUpcountry = item.code.includes('(ตจว.)');
                                             return (
-                                                <div key={index} className="flex justify-between bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:border-slate-300 hover:shadow-md transition-all animate-in slide-in-from-bottom-2">
-                                                    <div className="flex flex-col justify-center">
-                                                        <span className="font-bold text-[15px] text-slate-800 tracking-wide mb-1">{item.code.replace('(รับโรงตัด)','').replace('(ตจว.)','').trim()}</span>
+                                                <div key={index} className="flex justify-between bg-white border border-slate-100 p-3.5 rounded-2xl shadow-sm animate-in slide-in-from-bottom-2">
+                                                    <div className="flex flex-col">
+                                                        <span className={`font-bold text-base ${isFactory ? 'text-orange-700' : 'text-slate-800'}`}>{item.code}</span>
                                                         <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                                            {/* 🟢 ป้ายแท็กแยกสี DC (ฟ้า) / โรงตัด (ส้ม) แบบอ่านง่าย 🟢 */}
-                                                            {isFactory ? (
-                                                                <span className="text-[10px] bg-orange-50 text-orange-600 border border-orange-100 px-2 py-0.5 rounded-md font-bold">โรงตัด</span>
-                                                            ) : (
-                                                                <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-md font-bold">DC</span>
-                                                            )}
-
-                                                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-md border ${isUrgent ? 'bg-red-50 text-red-600 border-red-100 font-bold' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>ดิว: {formatThaiDate(item.dueDate)}</span>
-                                                            
-                                                            {isUpcountry && <span className="text-[10px] bg-purple-50 text-purple-600 border border-purple-100 px-2 py-0.5 rounded-md font-bold"><i className="fa-solid fa-truck-fast"></i> ตจว.</span>}
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isUrgent ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'}`}>ดิว: {formatThaiDate(item.dueDate)}</span>
+                                                            {isUrgent && <span className="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded-md font-bold animate-pulse"><i className="fa-solid fa-bolt"></i> ด่วน</span>}
+                                                            {isUpcountry && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-bold"><i className="fa-solid fa-truck-fast mr-1"></i> ตจว.</span>}
+                                                            {isFactory && <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-md font-bold">โรงตัด</span>}
                                                         </div>
                                                     </div>
-                                                    <div className="flex gap-1 items-center">
-                                                        <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); setEditIsUpcountry(isUpcountry); }} className="btn-bouncy text-slate-400 hover:text-blue-600 hover:bg-blue-50 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"><i className="fa-solid fa-pen text-xs"></i></button>
-                                                        <button onClick={() => setCurrentItems(prev => prev.filter((_, i) => i !== index))} className="btn-bouncy text-slate-400 hover:text-red-500 hover:bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"><i className="fa-solid fa-trash-can text-xs"></i></button>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); setEditIsUpcountry(isUpcountry); }} className="text-slate-400 w-10 h-10 bg-slate-50 rounded-xl hover:text-blue-500 transition-colors"><i className="fa-solid fa-pen-to-square"></i></button>
+                                                        <button onClick={() => setCurrentItems(prev => prev.filter((_, i) => i !== index))} className="text-slate-400 w-10 h-10 bg-slate-50 rounded-xl hover:text-red-500 transition-colors"><i className="fa-solid fa-trash-can"></i></button>
                                                     </div>
                                                 </div>
                                             )
                                         })
                                     )}
                                 </div>
-                                
-                                {/* ปุ่มส่งข้อมูล */}
-                                <div className="p-2.5 mt-1 shrink-0 bg-white z-10">
-                                    <button onClick={() => setShowConfirmModal(true)} disabled={currentItems.length === 0 || isSaving} className="btn-bouncy w-full text-white font-bold text-base py-4 rounded-xl bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 shadow-md shadow-slate-800/20 disabled:shadow-none flex justify-center items-center gap-2 transition-colors">
-                                        บันทึกเข้าระบบ
-                                    </button>
+                                <div className="p-2.5 mt-2 shrink-0">
+                                    <button onClick={() => setShowConfirmModal(true)} disabled={currentItems.length === 0 || isSaving} className="w-full text-white font-bold text-base py-4 rounded-[24px] bg-emerald-600 disabled:bg-slate-700 hover:bg-emerald-500 transition-colors"><i className="fa-regular fa-paper-plane"></i> บันทึกเข้าระบบ</button>
                                 </div>
                             </div>
                         </div>
@@ -794,17 +750,17 @@
 
                 chartInstance.current = new window.Chart(ctx, {
                     type: 'bar',
-                    data: { labels: labels, datasets: [{ label: 'จำนวน', data: dataTotals, backgroundColor: '#3b82f6', borderRadius: 4, barPercentage: 0.5 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: {family: "'Prompt', sans-serif"} }, grid: { color: '#f1f5f9', borderDash: [5, 5] }, border: {display: false} }, x: { grid: { display: false }, ticks: { font: {family: "'Prompt', sans-serif"} }, border: {display: false} } }, animation: { duration: 1000 } }
+                    data: { labels: labels, datasets: [{ label: 'รวมเที่ยวส่ง', data: dataTotals, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: 'rgb(4, 120, 87)', borderWidth: 1, borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: {family: "'Sarabun', sans-serif"} } }, x: { grid: { display: false }, ticks: { font: {family: "'Sarabun', sans-serif"} } } }, animation: { duration: 1000 } }
                 });
             }, [stats, isActive, daysInMonth]);
 
             const handleExportExcel = async () => {
-                if (!window.ExcelJS) { alert('กำลังโหลดระบบ...'); return; }
+                if (!window.ExcelJS) { alert('ระบบสร้างไฟล์กำลังโหลด...'); return; }
                 setIsExporting(true);
                 try {
                     const workbook = new window.ExcelJS.Workbook();
-                    const sheet = workbook.addWorksheet('สรุปยอด');
+                    const sheet = workbook.addWorksheet('สรุปยอดส่งบิล');
                     const year = parseInt(selectedMonth.split('-')[0]);
                     const month = parseInt(selectedMonth.split('-')[1]);
                     const thaiMonth = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"][month-1];
@@ -817,28 +773,104 @@
                     const compSameDay = ['ส่งบิลในวันนัดส่ง'];
                     const compAfterDue = ['ส่งบิลหลังคิวส่ง (ล่าช้า)'];
                     const compEvening = ['ส่งบิลหลัง 18.00 น. (รวม)'];
+                    const compEvening_b1 = ['    - ดิวส่งล่วงหน้า 1 วัน'];
+                    const compEvening_b2 = ['    - ดิวส่งล่วงหน้า 2 วัน'];
+                    const compEvening_b3p = ['    - ดิวส่งล่วงหน้า 3 วันขึ้นไป'];
+                    const compEvening_after = ['    - ดิวส่งล่าช้า (หลังคิวส่ง)'];
 
-                    let sumTotal=0;
+                    let sumTotal=0, sumCompBefore1Day=0, sumCompBefore2DaysPlus=0, sumCompSameDay=0, sumCompAfterDue=0;
+                    let sumEvening=0, sumCompEvening_b1=0, sumCompEvening_b2=0, sumCompEvening_b3p=0, sumCompEvening_after=0;
+
                     for(let i=0; i<daysInMonth; i++) {
                         compHeader.push(i+1);
                         compTotal.push(stats[i].total); sumTotal += stats[i].total;
+                        compBefore1Day.push(stats[i].before1Day); sumCompBefore1Day += stats[i].before1Day;
+                        compBefore2DaysPlus.push(stats[i].before2DaysPlus); sumCompBefore2DaysPlus += stats[i].before2DaysPlus;
+                        compSameDay.push(stats[i].sameDay); sumCompSameDay += stats[i].sameDay;
+                        compAfterDue.push(stats[i].afterDue); sumCompAfterDue += stats[i].afterDue;
+                        compEvening.push(stats[i].evening); sumEvening += stats[i].evening;
+                        compEvening_b1.push(stats[i].evening_before1Day); sumCompEvening_b1 += stats[i].evening_before1Day;
+                        compEvening_b2.push(stats[i].evening_before2Days); sumCompEvening_b2 += stats[i].evening_before2Days;
+                        compEvening_b3p.push(stats[i].evening_before3DaysPlus); sumCompEvening_b3p += stats[i].evening_before3DaysPlus;
+                        compEvening_after.push(stats[i].evening_afterDue); sumCompEvening_after += stats[i].evening_afterDue;
                     }
 
                     compHeader.push('Total');
                     compTotal.push(sumTotal);
+                    compBefore1Day.push(sumCompBefore1Day);
+                    compBefore2DaysPlus.push(sumCompBefore2DaysPlus);
+                    compSameDay.push(sumCompSameDay);
+                    compAfterDue.push(sumCompAfterDue);
+                    compEvening.push(sumEvening);
+                    compEvening_b1.push(sumCompEvening_b1);
+                    compEvening_b2.push(sumCompEvening_b2);
+                    compEvening_b3p.push(sumCompEvening_b3p);
+                    compEvening_after.push(sumCompEvening_after);
 
                     sheet.addRow([`เดือน ${thaiMonth} ${thaiYear}`]);
                     const titleCell = sheet.getCell('A1');
-                    titleCell.font = { name: 'Prompt', bold: true, size: 16 };
+                    titleCell.font = { name: 'Angsana New', bold: true, size: 16 };
                     sheet.mergeCells('A1:C1');
 
-                    sheet.addRow(compHeader);
-                    sheet.addRow(compTotal);
+                    const rComp1 = sheet.addRow(compHeader);
+                    const rComp2 = sheet.addRow(compTotal);
+                    const rComp3 = sheet.addRow(compBefore1Day); 
+                    const rComp4 = sheet.addRow(compBefore2DaysPlus); 
+                    const rComp5 = sheet.addRow(compSameDay);
+                    const rComp6 = sheet.addRow(compAfterDue);
+                    const rComp7 = sheet.addRow(compEvening);
+                    const rComp7_1 = sheet.addRow(compEvening_b1);
+                    const rComp7_2 = sheet.addRow(compEvening_b2);
+                    const rComp7_3 = sheet.addRow(compEvening_b3p);
+                    const rComp7_4 = sheet.addRow(compEvening_after);
+
+                    const styleCompRow = (row, bgArgb, fontColorArgb, isBold = false) => {
+                        row.eachCell((cell, colNumber) => {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
+                            cell.font = { name: 'Angsana New', size: 12, color: { argb: fontColorArgb }, bold: isBold };
+                            cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                            cell.alignment = { vertical: 'middle', horizontal: colNumber === 1 ? 'left' : 'center' };
+                        });
+                        const lastColNumber = daysInMonth + 2;
+                        const lastCell = row.getCell(lastColNumber);
+                        lastCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                        lastCell.font = { name: 'Angsana New', size: 12, color: { argb: fontColorArgb }, bold: true };
+                    };
+
+                    rComp1.eachCell((cell, colNumber) => {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C6E7' } };
+                        cell.font = { name: 'Angsana New', size: 12, color: { argb: 'FF000000' }, bold: true };
+                        cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    });
+
+                    styleCompRow(rComp2, 'FFFFFFFF', 'FFFF0000', true); 
+                    rComp2.getCell(1).font = { name: 'Angsana New', size: 12, color: { argb: 'FF000000' }, bold: true }; 
+
+                    styleCompRow(rComp3, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp4, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp5, 'FFFFFFFF', 'FF000000');
+                    styleCompRow(rComp6, 'FFFFFFFF', 'FF000000');
+
+                    styleCompRow(rComp7, 'FFEFF6FF', 'FF1E40AF', true); 
+                    styleCompRow(rComp7_1, 'FFFFFFFF', 'FF475569'); 
+                    styleCompRow(rComp7_2, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp7_3, 'FFFFFFFF', 'FF475569');
+                    styleCompRow(rComp7_4, 'FFFFFFFF', 'FF475569');
+                    
+                    rComp7_1.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_2.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_3.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    rComp7_4.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+
+                    sheet.getColumn(1).width = 40; 
+                    for(let i=2; i<=daysInMonth+1; i++) sheet.getColumn(i).width = 5; 
+                    sheet.getColumn(daysInMonth+2).width = 8;
 
                     const buffer = await workbook.xlsx.writeBuffer();
                     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                    window.saveAs(blob, `สรุปยอด_${thaiMonth}_${thaiYear}.xlsx`);
-                } catch (err) { alert('ส่งออก Excel ไม่สำเร็จ'); } finally { setIsExporting(false); }
+                    window.saveAs(blob, `สรุปยอดส่งบิล_${thaiMonth}_${thaiYear}.xlsx`);
+                } catch (err) { alert('เกิดข้อผิดพลาดในการสร้างไฟล์ Excel'); } finally { setIsExporting(false); }
             };
 
             const handleGetDailySummary = async () => {
@@ -847,14 +879,14 @@
                     const todayStr = new Date().toLocaleDateString('en-CA');
                     const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailySummaryText&date=${todayStr}`);
                     const text = await response.text();
-                    if (text.trim().startsWith('<')) { alert("เชื่อมต่อผิดพลาด"); return; }
+                    if (text.trim().startsWith('<')) { alert("❌ เซิร์ฟเวอร์ตอบกลับผิดพลาด"); return; }
                     
                     const result = JSON.parse(text);
                     if (result.status === 'success') {
                         setLineMessageToCopy(result.data);
                         setShowCopyModal(true);
-                    } else { alert("เกิดข้อผิดพลาดจากฝั่งเซิร์ฟเวอร์"); }
-                } catch (error) { alert("ดึงข้อมูลไม่สำเร็จ"); } finally { setIsFetchingSummary(false); }
+                    } else { alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์"); }
+                } catch (error) { alert("❌ ไม่สามารถดึงข้อมูลสรุปได้"); } finally { setIsFetchingSummary(false); }
             };
 
             const forceRefresh = () => {
@@ -862,78 +894,77 @@
             };
 
             return (
-                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
-                    
+                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
                     {showCopyModal && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[160] flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[2rem] p-6 w-full max-w-sm shadow-xl border border-slate-100 animate-in zoom-in-95 duration-200">
-                                <div className="text-center mb-4 border-b border-slate-100 pb-4">
-                                    <h3 className="text-lg font-bold text-slate-800">สรุปยอดประจำวัน</h3>
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[160] flex items-center justify-center p-4">
+                            <div className="bg-white/95 backdrop-blur-sm rounded-[28px] p-7 w-full max-w-sm shadow animate-in zoom-in-95">
+                                <div className="text-center mb-4">
+                                    <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-3 border-[4px] border-white"><i className="fa-regular fa-copy text-2xl"></i></div>
+                                    <h3 className="text-lg font-black text-slate-800">คัดลอกข้อความแจ้งเตือน</h3>
                                 </div>
-                                <div className="bg-slate-50 p-4 rounded-xl mb-5 max-h-[40vh] overflow-y-auto border border-slate-200 text-left custom-scrollbar">
-                                    <pre className="text-[13px] text-slate-600 whitespace-pre-wrap font-sans leading-relaxed">{lineMessageToCopy}</pre>
+                                <div className="bg-slate-50 p-3 rounded-2xl mb-5 max-h-[40vh] overflow-y-auto border border-slate-200 text-left">
+                                    <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans">{lineMessageToCopy}</pre>
                                 </div>
                                 <div className="flex gap-3">
-                                    <button onClick={() => setShowCopyModal(false)} className="btn-bouncy flex-1 py-3.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl font-medium text-sm">ปิด</button>
-                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="btn-bouncy flex-1 py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium shadow-md shadow-slate-800/20 flex justify-center items-center gap-2 text-sm"><i className="fa-solid fa-copy"></i> คัดลอก</button>
+                                    <button onClick={() => setShowCopyModal(false)} className="flex-1 py-3.5 bg-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-colors">ปิด</button>
+                                    <button onClick={() => handleCopyTextGlobal(lineMessageToCopy)} className="flex-1 py-3.5 bg-blue-600 text-white rounded-2xl font-bold text-sm flex justify-center items-center gap-2 shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-colors"><i className="fa-solid fa-copy"></i> คัดลอก</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    <div className="flex items-center justify-between bg-white p-4 pl-5 rounded-[1.5rem] soft-shadow border border-slate-100">
+                    <div className="flex items-center justify-between bg-blue-50 border border-blue-100 p-2.5 pl-5 rounded-[24px] shadow-sm">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100"><i className="fa-regular fa-comment-dots text-slate-500"></i></div>
-                            <span className="text-slate-700 font-bold text-sm">สรุปยอดวันนี้</span>
+                            <i className="fa-solid fa-comment-dots text-blue-500 text-lg"></i>
+                            <span className="text-blue-900 font-bold text-sm">คัดลอกสรุปยอดวันนี้</span>
                         </div>
-                        <button onClick={handleGetDailySummary} disabled={isFetchingSummary} className="btn-bouncy px-4 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors">
-                            {isFetchingSummary ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-download"></i>} ดึงข้อความ
+                        <button onClick={handleGetDailySummary} disabled={isFetchingSummary} className="px-5 py-3 bg-blue-600 text-white rounded-[18px] font-bold text-xs flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors">
+                            {isFetchingSummary ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-copy"></i>} ดึงข้อความ
                         </button>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-5 rounded-[1.5rem] soft-shadow border border-slate-100 gap-4">
-                        <div className="flex-1 w-full">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">เลือกเดือน</label>
-                            <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 outline-none w-full focus:border-blue-400 focus:ring-1 focus:ring-blue-400" />
-                        </div>
-                        <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} className="btn-bouncy w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-5 py-3 rounded-lg font-medium text-sm transition-colors mt-2 sm:mt-0 border border-emerald-100">
-                            {isExporting ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-file-excel"></i>} โหลด Excel
-                        </button>
-                    </div>
-
-                    <div className="bg-slate-800 rounded-[1.5rem] p-6 text-white flex justify-between items-center shadow-lg shadow-slate-800/20 relative overflow-hidden">
-                        <i className="fa-solid fa-chart-line absolute -right-6 -bottom-6 text-7xl text-slate-700 rotate-12 opacity-50"></i>
-                        <div className="relative z-10">
-                            <h3 className="text-slate-300 text-xs font-medium tracking-wide mb-1">ยอดส่งบิลสะสม (เดือนนี้)</h3>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-5xl font-bold">{totalMonthCount}</span>
-                                <span className="text-slate-300 font-medium text-sm">รายการ</span>
+                    <div className="flex flex-col sm:flex-row justify-between items-center bg-white/95 px-6 py-5 rounded-[32px] shadow-sm border border-slate-100 gap-4">
+                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                            <div className="bg-slate-50 p-3 rounded-2xl text-slate-500 border border-slate-100"><i className="fa-regular fa-calendar-days text-xl"></i></div>
+                            <div className="flex-1">
+                                <label className="text-[10px] font-bold text-slate-400">เลือกเดือน</label>
+                                <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-sm font-bold text-slate-800 outline-none w-full" />
                             </div>
                         </div>
-                        <button onClick={forceRefresh} className="btn-bouncy relative z-10 bg-white/10 w-10 h-10 rounded-full flex items-center justify-center border border-white/10 hover:bg-white/20 transition-colors"><i className={`fa-solid fa-rotate-right text-sm ${isLoadingHistory ? 'animate-spin' : ''}`}></i></button>
+                        <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 px-6 py-3.5 rounded-2xl font-bold border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                            {isExporting ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-file-excel"></i>} ดาวน์โหลด Excel
+                        </button>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[32px] p-8 text-white flex justify-between items-center">
+                        <div>
+                            <h3 className="text-slate-300 text-xs font-bold uppercase mb-2">ยอดส่งบิลเดือนนี้</h3>
+                            <div className="flex items-baseline gap-3"><span className="text-6xl font-black text-emerald-400">{totalMonthCount}</span><span className="text-slate-300 font-bold text-lg">เที่ยว</span></div>
+                        </div>
+                        <button onClick={forceRefresh} className="bg-slate-700/50 p-4 rounded-full hover:bg-slate-600 transition-colors"><i className={`fa-solid fa-rotate-right text-lg ${isLoadingHistory ? 'animate-spin' : ''}`}></i></button>
                     </div>
                     
-                    <div className="grid grid-cols-4 gap-3">
-                        <div className="bg-white rounded-xl p-3 flex flex-col items-center justify-center border border-slate-100 shadow-sm">
-                            <span className="text-[10px] font-medium text-slate-400 mb-0.5">รวมวันนี้</span><span className="text-xl font-bold text-slate-800">{todayTotal}</span>
+                    <div className="grid grid-cols-4 gap-3 sm:gap-4">
+                        <div className="bg-white rounded-[24px] p-4 border border-emerald-100 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[10px] sm:text-xs font-bold text-slate-400 mb-1.5">รวมวันนี้</span><span className="text-2xl sm:text-3xl font-black text-emerald-600">{todayTotal}</span>
                         </div>
-                        <div className="bg-white rounded-xl p-3 flex flex-col items-center justify-center border border-slate-100 shadow-sm">
-                            <span className="text-[10px] font-medium text-slate-400 mb-0.5">ก่อนเที่ยง</span><span className="text-xl font-bold text-slate-800">{todayMorning}</span>
+                        <div className="bg-orange-50 rounded-[24px] p-4 border border-orange-100 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[10px] sm:text-xs font-bold text-orange-600 mb-1.5">ก่อนเที่ยง</span><span className="text-2xl sm:text-3xl font-black text-orange-700">{todayMorning}</span>
                         </div>
-                        <div className="bg-white rounded-xl p-3 flex flex-col items-center justify-center border border-slate-100 shadow-sm">
-                            <span className="text-[10px] font-medium text-slate-400 mb-0.5">รอบบ่าย</span><span className="text-xl font-bold text-slate-800">{todayAfternoon}</span>
+                        <div className="bg-amber-50 rounded-[24px] p-4 border border-amber-100 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[10px] sm:text-xs font-bold text-amber-600 mb-1.5">บ่าย</span><span className="text-2xl sm:text-3xl font-black text-amber-700">{todayAfternoon}</span>
                         </div>
-                        <div className="bg-white rounded-xl p-3 flex flex-col items-center justify-center border border-slate-100 shadow-sm">
-                            <span className="text-[10px] font-medium text-slate-400 mb-0.5">หลัง 18.00</span><span className="text-xl font-bold text-slate-800">{todayEvening}</span>
+                        <div className="bg-indigo-50 rounded-[24px] p-4 border border-indigo-100 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[10px] sm:text-xs font-bold text-indigo-600 mb-1.5">หลัง 18.00</span><span className="text-2xl sm:text-3xl font-black text-indigo-700">{todayEvening}</span>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden p-4">
-                        <div className="mb-4">
-                            <h3 className="text-sm font-bold text-slate-700">สถิติรายวัน</h3>
-                        </div>
-                        <div className="w-full h-56 relative">
-                            <canvas ref={chartRef}></canvas>
+                    <div className="bg-white/95 rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="px-6 py-5 border-b border-slate-100"><h3 className="text-sm font-bold text-slate-800"><i className="fa-solid fa-chart-simple text-emerald-500 mr-2"></i>กราฟจำนวนเที่ยวรายวัน</h3></div>
+                        <div className="p-6 bg-slate-50/30">
+                            <div className="w-full h-64 bg-white p-4 rounded-[24px] border border-slate-100 relative">
+                                <canvas ref={chartRef}></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -990,25 +1021,25 @@
 
             if (!isLiffReady) {
                 return (
-                    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-                        <div className="w-10 h-10 border-[3px] border-slate-200 border-t-slate-800 rounded-full animate-spin mb-4"></div>
-                        <p className="text-slate-500 font-medium text-sm">กำลังเชื่อมต่อ...</p>
+                    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
+                        <p className="text-slate-500 font-bold text-sm animate-pulse">กำลังตรวจสอบข้อมูลผู้ใช้งาน...</p>
                     </div>
                 );
             }
 
             if (!userProfile) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-                        <div className="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center soft-shadow border border-slate-100">
-                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-5 border border-slate-100">
-                                <i className="fa-solid fa-qrcode text-2xl text-slate-700"></i>
+                    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                        <div className="bg-white p-8 rounded-[32px] shadow-lg border border-slate-100 max-w-sm w-full text-center">
+                            <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <i className="fa-solid fa-barcode text-5xl text-emerald-500"></i>
                             </div>
-                            <h2 className="text-xl font-bold text-slate-800 mb-2">สแกนส่งบิล</h2>
-                            <p className="text-xs text-slate-500 mb-8 font-medium">เข้าสู่ระบบผ่านบัญชี LINE</p>
+                            <h2 className="text-2xl font-black text-slate-800 mb-2">เข้าสู่ระบบสแกนส่งบิล</h2>
+                            <p className="text-sm text-slate-500 mb-8">กรุณาเข้าสู่ระบบผ่านบัญชี LINE ของคุณเพื่อยืนยันตัวตนก่อนจัดส่งข้อมูล</p>
                             
-                            <button onClick={() => liff.login()} className="btn-bouncy w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-semibold py-3.5 rounded-xl shadow-md shadow-[#06C755]/20 flex items-center justify-center gap-2 text-sm transition-colors">
-                                <i className="fa-brands fa-line text-lg"></i> ล็อกอินด้วย LINE
+                            <button onClick={() => liff.login()} className="w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-4 rounded-[20px] shadow-lg shadow-[#06C755]/30 transition-all active:scale-95 flex items-center justify-center gap-3">
+                                <i className="fa-brands fa-line text-2xl"></i> เข้าสู่ระบบด้วย LINE
                             </button>
                         </div>
                     </div>
@@ -1016,17 +1047,16 @@
             }
 
             return (
-                <div className="min-h-screen pb-28 relative">
-                    {/* Header แบบเรียบหรู */}
-                    <div className="bg-white/90 backdrop-blur-md px-5 py-3 flex items-center justify-between border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <img src={userProfile.pictureUrl} alt="profile" className="w-9 h-9 rounded-full border border-slate-200" />
+                <div className="min-h-screen pb-32 relative bg-slate-50/50">
+                    <div className="bg-white/80 backdrop-blur-md px-5 py-3.5 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-slate-100">
+                        <div className="flex items-center gap-3.5">
+                            <img src={userProfile.pictureUrl} alt="profile" className="w-11 h-11 rounded-full border-[3px] border-emerald-100 shadow-sm" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">บัญชี</span>
-                                <span className="text-sm font-bold text-slate-800">{userProfile.displayName}</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">เข้าสู่ระบบแล้ว</span>
+                                <span className="text-sm font-black text-slate-800">{userProfile.displayName}</span>
                             </div>
                         </div>
-                        <button onClick={() => {liff.logout(); setUserProfile(null); localStorage.removeItem('liff_profile_cache');}} className="btn-bouncy text-[10px] text-slate-500 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-md font-semibold border border-slate-200 transition-colors">ออกจากระบบ</button>
+                        <button onClick={() => {liff.logout(); setUserProfile(null); localStorage.removeItem('liff_profile_cache');}} className="text-[10px] text-red-500 bg-red-50 px-3 py-1.5 rounded-full font-bold hover:bg-red-100 transition-colors">ออกจากระบบ</button>
                     </div>
 
                     <ScannerTab 
@@ -1040,17 +1070,10 @@
                         refreshTrigger={refreshHistoryTrigger} 
                     />
 
-                    {/* เมนูล่างแบบเรียบง่าย (Docked Bar) */}
-                    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 pb-[env(safe-area-inset-bottom)] shadow-[0_-5px_15px_rgba(0,0,0,0.03)]">
-                        <div className="flex w-full max-w-md mx-auto">
-                            <button onClick={() => setActiveTab('scan')} className={`flex-1 flex flex-col justify-center items-center h-16 transition-colors ${activeTab === 'scan' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
-                                <i className="fa-solid fa-barcode text-xl mb-1"></i>
-                                <span className="text-[10px] font-bold">สแกน</span>
-                            </button>
-                            <button onClick={() => setActiveTab('history')} className={`flex-1 flex flex-col justify-center items-center h-16 transition-colors ${activeTab === 'history' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
-                                <i className="fa-solid fa-chart-pie text-xl mb-1"></i>
-                                <span className="text-[10px] font-bold">สรุปยอด</span>
-                            </button>
+                    <div className="fixed bottom-6 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)] flex justify-center px-4 pointer-events-none">
+                        <div className="bg-white/40 backdrop-blur-md border border-white/60 p-1.5 rounded-[30px] flex w-full max-w-[320px] pointer-events-auto shadow-lg">
+                            <button onClick={() => setActiveTab('scan')} className={`flex-1 flex justify-center items-center h-14 rounded-[24px] transition-all ${activeTab === 'scan' ? 'bg-white/90 text-emerald-600 shadow-sm' : 'text-slate-600'}`}><i className="fa-solid fa-barcode text-xl"></i><span className="ml-2.5 font-bold text-sm">สแกนบิล</span></button>
+                            <button onClick={() => setActiveTab('history')} className={`flex-1 flex justify-center items-center h-14 rounded-[24px] transition-all ${activeTab === 'history' ? 'bg-white/90 text-emerald-600 shadow-sm' : 'text-slate-600'}`}><i className="fa-solid fa-clipboard-list text-xl"></i><span className="ml-2.5 font-bold text-sm">สรุป</span></button>
                         </div>
                     </div>
                 </div>
