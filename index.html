@@ -543,7 +543,6 @@
                         </div>
                     )}
 
-                    {/* 🟢 หน้าต่างแก้ไขบิล เพิ่มกล่องหมายเหตุ */}
                     {editingIndex !== null && (
                         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity animate-in fade-in duration-200">
                             <div className="bg-white/95 rounded-[3rem] p-8 w-full max-w-sm shadow-xl glass-inner-border">
@@ -570,7 +569,6 @@
                                         <label className="text-sm font-semibold text-slate-600 mb-1.5 block ml-2">วันที่กำหนดส่ง</label>
                                         <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-[2rem] outline-none font-semibold text-slate-700" />
                                     </div>
-                                    {/* 🟢 ช่องกรอกหมายเหตุ */}
                                     <div>
                                         <label className="text-sm font-semibold text-slate-600 mb-1.5 block ml-2">หมายเหตุ (ถ้ามี)</label>
                                         <input type="text" value={editRemark} onChange={(e) => setEditRemark(e.target.value)} placeholder="เช่น ลูกค้าขอรับเช้า, ลังแตก" className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-[2rem] outline-none font-semibold text-slate-700 placeholder-slate-400 text-sm" />
@@ -581,13 +579,28 @@
                         </div>
                     )}
 
+                    {/* 🟢 หน้าต่างยืนยันการส่งข้อมูลที่หายไปกลับมาแล้ว */}
+                    {showConfirmModal && (
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity animate-in fade-in duration-200">
+                            <div className="bg-white/95 rounded-[3rem] p-8 w-full max-w-sm shadow-xl glass-inner-border">
+                                <div className="text-center mb-6">
+                                    <div className="w-20 h-20 bg-gradient-to-tr from-emerald-400 to-teal-400 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-5 shadow-sm"><i className="fa-solid fa-paper-plane text-4xl"></i></div>
+                                    <h3 className="text-2xl font-bold text-slate-800">ส่งข้อมูล?</h3>
+                                    <p className="text-base text-slate-500 mt-2">จำนวนทั้งหมด <span className="font-bold text-emerald-500 text-xl mx-1">{currentItems.length}</span> เที่ยว</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setShowConfirmModal(false)} className="btn-bouncy flex-1 py-4 bg-slate-100 rounded-[2rem] font-semibold shadow-sm text-slate-600">ไว้ก่อน</button>
+                                    <button onClick={() => { setShowConfirmModal(false); executeSaveBatch(); }} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-[2rem] font-semibold shadow-sm">ยืนยันการส่ง</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div className="lg:col-span-7 space-y-6">
                             
-                            {}
                             <div className="glass-card p-6 rounded-[2.5rem]">
                                 
-                                {/* 1. กล่องสแกนเนอร์ */}
                                 <div className="space-y-5">
                                     {isScanning ? (
                                         <div className="relative rounded-[2.5rem] bg-slate-900 shadow-md overflow-hidden glass-inner-border">
@@ -597,7 +610,6 @@
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-4">
-                                            {/* เอาเอฟเฟกต์เด้งออกจากปุ่มกล้อง */}
                                             <button onClick={startScanner} className="w-full h-[120px] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-[2.5rem] flex flex-col items-center justify-center group relative overflow-hidden shadow-sm glass-inner-border hover:opacity-90 transition-opacity">
                                                 <i className="fa-solid fa-camera text-6xl transition-transform duration-300"></i>
                                             </button>
@@ -612,7 +624,6 @@
 
                                 <div className="h-px bg-slate-200/50 my-6"></div>
 
-                                {/* 2. ปุ่มเลือก รับ DC / โรงตัด */}
                                 <div className="mb-4 relative">
                                     <div className="flex glass-input p-2 rounded-[2rem] gap-2">
                                         <button onClick={() => handleTypeToggle('DC')} className={`btn-bouncy flex-1 py-4 font-semibold rounded-[1.5rem] flex justify-center items-center text-sm ${deliveryType === 'DC' ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-sm glass-inner-border' : 'text-slate-500'}`}>
@@ -633,7 +644,6 @@
                                     )}
                                 </div>
 
-                                {/* 3. กล่องเลือกวันที่ (ย้ายมาต่อท้ายปุ่ม และลบข้อความ) */}
                                 <div className={`relative p-1 rounded-[2rem] transition-colors duration-300 ${checkIsUrgent(dueDate) ? 'bg-rose-50/80 glass-inner-border shadow-sm' : ''}`}>
                                     {checkIsUrgent(dueDate) && <span className="absolute -top-3 right-4 bg-rose-500 text-white text-[10px] px-3 py-1 rounded-full font-bold shadow-md z-10 border border-white"><i className="fa-solid fa-bolt mr-1"></i> ด่วนพิเศษ</span>}
                                     <input type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-5 py-4 glass-input rounded-[1.5rem] outline-none font-semibold text-slate-800 text-base" />
@@ -642,11 +652,9 @@
                         </div>
 
                         <div className="lg:col-span-5 flex flex-col">
-                            {}
                             <div className="flex flex-col glass-card rounded-[3rem] p-3 shadow-sm h-full">
                                 {isSaving && <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin mb-4"></div><span className="font-semibold text-emerald-600 text-base">กำลังส่งข้อมูล...</span></div>}
                                 
-                                {/* 🟢 แก้ไขป้ายตะกร้า ไม่ให้ตกบรรทัดด้วย whitespace-nowrap */}
                                 <div className="flex justify-between items-center px-6 py-5">
                                     <h3 className="text-slate-800 font-bold text-xl flex items-center gap-2"><i className="fa-solid fa-box-open text-emerald-500 text-2xl"></i> ตะกร้าบิล</h3>
                                     <div className="flex items-center gap-2 shrink-0">
@@ -681,7 +689,6 @@
                                                             
                                                             {isUpcountry && <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-bold"><i className="fa-solid fa-truck-fast"></i> ตจว.</span>}
 
-                                                            {/* 🟢 แสดงหมายเหตุถ้ามีการพิมพ์ไว้ */}
                                                             {item.remark && <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-md font-bold shadow-sm whitespace-nowrap"><i className="fa-solid fa-pen text-[10px]"></i> {item.remark}</span>}
                                                         </span>
                                                     </div>
