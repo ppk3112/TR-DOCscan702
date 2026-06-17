@@ -1,0 +1,14 @@
+# อัปเดตเป็น v5
+  - name: Setup Pages
+    uses: actions/configure-pages@v5
+    
+  # อัปเดตเป็น v3
+  - name: Upload artifact
+    uses: actions/upload-pages-artifact@v3
+    with:
+      path: '.'
+      
+  # อัปเดตเป็น v4 (รองรับ Node 20/24)
+  - name: Deploy to GitHub Pages
+    id: deployment
+    uses: actions/deploy-pages@v4
