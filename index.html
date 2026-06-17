@@ -787,6 +787,7 @@
 
         const HistoryTab = ({ isActive, refreshTrigger }) => {
             const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleDateString('en-CA').substring(0, 7));
+            const [summaryDate, setSummaryDate] = useState(new Date().toLocaleDateString('en-CA'));
             const [monthHistoryData, setMonthHistoryData] = useState([]);
             const [isLoadingHistory, setIsLoadingHistory] = useState(false);
             const [isExporting, setIsExporting] = useState(false);
@@ -1049,8 +1050,8 @@
             const handleGetDailySummary = async () => {
                 setIsFetchingSummary(true);
                 try {
-                    const todayStr = new Date().toLocaleDateString('en-CA');
-                    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailySummaryText&date=${todayStr}`);
+                    const targetDateStr = summaryDate || new Date().toLocaleDateString('en-CA');
+                    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailySummaryText&date=${targetDateStr}`);
                     const text = await response.text();
                     if (text.trim().startsWith('<')) { setAlertMsg("เซิร์ฟเวอร์ตอบกลับผิดพลาด"); return; }
                     
@@ -1089,12 +1090,17 @@
                         </div>
                     )}
 
-                    <div className="flex items-center justify-between glass-card p-3 pl-6 rounded-[2.5rem] shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <i className="fa-regular fa-comment-dots text-indigo-500 text-2xl"></i>
-                            <span className="text-indigo-900 font-bold text-base">สรุปยอดวันนี้</span>
+                    <div className="flex flex-col sm:flex-row items-center justify-between glass-card p-3 sm:pl-6 rounded-[2.5rem] shadow-sm gap-3">
+                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                            <div className="bg-white/80 p-3 rounded-[1.5rem] text-indigo-500 shadow-inner shrink-0">
+                                <i className="fa-regular fa-calendar-check text-2xl"></i>
+                            </div>
+                            <div className="flex flex-col flex-1">
+                                <label className="text-[10px] sm:text-xs font-semibold text-slate-500 tracking-wider">เลือกวันที่ดึงสรุปยอด</label>
+                                <input type="date" value={summaryDate} onChange={(e) => setSummaryDate(e.target.value)} className="bg-transparent text-sm sm:text-base font-bold text-indigo-900 outline-none w-full" />
+                            </div>
                         </div>
-                        <button onClick={handleGetDailySummary} disabled={isFetchingSummary} className="btn-bouncy px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
+                        <button onClick={handleGetDailySummary} disabled={isFetchingSummary} className="btn-bouncy w-full sm:w-auto px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
                             {isFetchingSummary ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-magic"></i>} ดึงข้อความ
                         </button>
                     </div>
