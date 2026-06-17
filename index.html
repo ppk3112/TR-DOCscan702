@@ -525,8 +525,9 @@
                 }
             };
 
+            // แก้ไข: เพิ่ม Padding บนสุดให้มากขึ้น (pt-20) เพื่อหลบให้รูปโปรไฟล์
             return (
-                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
+                <div className={`pt-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
                     <CustomAlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
 
                     {saveSuccess && (
@@ -639,22 +640,6 @@
                         </div>
                     )}
 
-                    {showConfirmModal && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                            <div className="glass-card rounded-[3rem] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300">
-                                <div className="text-center mb-6">
-                                    <div className="w-24 h-24 bg-gradient-to-tr from-emerald-400 to-teal-400 text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/40 rotate-6"><i className="fa-solid fa-paper-plane text-4xl"></i></div>
-                                    <h3 className="text-2xl font-bold text-slate-800">ส่งข้อมูล?</h3>
-                                    <p className="text-base text-slate-500 mt-2">จำนวนทั้งหมด <span className="font-bold text-emerald-500 text-xl mx-1">{currentItems.length}</span> เที่ยว</p>
-                                </div>
-                                <div className="flex gap-4">
-                                    <button onClick={() => setShowConfirmModal(false)} className="btn-bouncy flex-1 py-4 bg-white/80 rounded-[2rem] font-semibold text-slate-600 shadow-sm">ไว้ก่อน</button>
-                                    <button onClick={() => { setShowConfirmModal(false); executeSaveBatch(); }} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-[2rem] font-semibold text-lg shadow-lg shadow-emerald-500/40">ยืนยันการส่ง</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div className="lg:col-span-7 space-y-6">
                             
@@ -697,6 +682,31 @@
                                                 <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="พิมพ์เลขบิล 4 หรือ 10 หลัก..." className="flex-1 px-6 glass-input rounded-[2rem] outline-none text-base font-medium h-[56px] placeholder-slate-400" />
                                                 <button type="submit" className="btn-bouncy w-[56px] h-[56px] bg-gradient-to-tr from-emerald-400 to-teal-400 text-white rounded-[2rem] text-xl shadow-lg shadow-teal-500/30 flex items-center justify-center"><i className="fa-solid fa-plus font-bold"></i></button>
                                             </form>
+                                        </div>
+                                    )}
+                                    
+                                    {/* แก้ไข: เพิ่มแถบแสดงรายการล่าสุดไว้ใต้กล่องสแกน */}
+                                    {currentItems.length > 0 && (
+                                        <div className="mt-4 bg-white/80 backdrop-blur-md border border-slate-200 p-4 rounded-[2rem] flex justify-between items-center shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className="w-12 h-12 shrink-0 bg-gradient-to-tr from-emerald-100 to-teal-100 text-emerald-500 rounded-[1.2rem] flex items-center justify-center shadow-inner">
+                                                    <i className="fa-solid fa-clock-rotate-left text-xl"></i>
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">ล่าสุดในตะกร้า</span>
+                                                    <span className="font-bold text-lg text-slate-700 truncate">{currentItems[0].code}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 shrink-0">
+                                                {checkIsUrgent(currentItems[0].dueDate) && (
+                                                    <span className="bg-rose-100 text-rose-600 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm flex items-center gap-1">
+                                                        <i className="fa-solid fa-bolt"></i> ด่วน
+                                                    </span>
+                                                )}
+                                                <span className="bg-slate-100 text-slate-500 px-3 py-1.5 rounded-xl text-xs font-bold">
+                                                    {currentItems.length} เที่ยว
+                                                </span>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -785,6 +795,7 @@
             );
         };
 
+        // แก้ไข: เพิ่ม Padding บนสุดให้มากขึ้น (pt-20) เพื่อหลบให้รูปโปรไฟล์
         const HistoryTab = ({ isActive, refreshTrigger }) => {
             const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleDateString('en-CA').substring(0, 7));
             const [summaryDate, setSummaryDate] = useState(new Date().toLocaleDateString('en-CA'));
@@ -1068,7 +1079,7 @@
             };
 
             return (
-                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
+                <div className={`pt-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
                     
                     <CustomAlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
 
@@ -1167,6 +1178,8 @@
             const [isLiffReady, setIsLiffReady] = useState(false);
             const [activeTab, setActiveTab] = useState('scan');
             const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0); 
+            // แก้ไข: เพิ่ม State สำหรับเปิดปิดเมนูโปรไฟล์
+            const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
             const wakeLockRef = useRef(null);
 
@@ -1237,15 +1250,37 @@
 
             return (
                 <div className="min-h-screen pb-36 relative">
-                    <div className="bg-white/60 backdrop-blur-xl px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-white/50">
-                        <div className="flex items-center gap-4">
-                            <img src={userProfile.pictureUrl} alt="profile" className="w-12 h-12 rounded-full border-2 border-white shadow-md" />
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-widest">ยินดีต้อนรับ</span>
-                                <span className="text-base font-bold text-slate-800">{userProfile.displayName}</span>
-                            </div>
-                        </div>
-                        <button onClick={() => {liff.logout(); setUserProfile(null); try { localStorage.removeItem('liff_profile_cache'); } catch(e){} }} className="btn-bouncy text-[11px] text-rose-500 bg-white/80 backdrop-blur-md px-4 py-2 rounded-[1rem] font-semibold shadow-sm border border-white">ออกจากระบบ</button>
+                    
+                    {/* แก้ไข: ซ่อนปุ่มออกจากระบบมาไว้ในรูปโปรไฟล์วงกลมมุมขวาบน */}
+                    <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[100]">
+                        <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="relative block btn-bouncy outline-none">
+                            <img src={userProfile.pictureUrl} alt="profile" className="w-12 h-12 rounded-full border-[3px] border-white shadow-md bg-white object-cover" />
+                        </button>
+
+                        {isProfileMenuOpen && (
+                            <>
+                                {/* แบ็คกราวด์ใสๆ ไว้ดักกดปิดเมื่อคลิกที่อื่น */}
+                                <div className="fixed inset-0 z-40" onClick={() => setIsProfileMenuOpen(false)}></div>
+                                
+                                {/* กล่องเมนูออกจากระบบ */}
+                                <div className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-xl rounded-[1.5rem] shadow-2xl border border-white/50 p-2 z-50 animate-in zoom-in-95 duration-200">
+                                    <div className="px-4 py-3 border-b border-slate-100 mb-2">
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">เข้าสู่ระบบโดย</p>
+                                        <p className="text-sm font-bold text-slate-800 truncate">{userProfile.displayName}</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            liff.logout(); 
+                                            setUserProfile(null); 
+                                            try { localStorage.removeItem('liff_profile_cache'); } catch(e){} 
+                                        }} 
+                                        className="btn-bouncy w-full text-left px-4 py-3.5 text-sm font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-[1rem] transition-colors flex items-center gap-3"
+                                    >
+                                        <i className="fa-solid fa-arrow-right-from-bracket"></i> ออกจากระบบ
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     <ScannerTab 
