@@ -711,8 +711,8 @@
                             </div>
                         </div>
 
-                        <div className="lg:col-span-5 flex flex-col h-[500px] lg:h-[600px]">
-                            <div className="flex flex-col glass-card bg-white/40 rounded-[3rem] p-3 shadow-[0_20px_50px_rgba(31,38,135,0.05)] relative flex-1 border border-white/80">
+                        <div className="lg:col-span-5 flex flex-col">
+                            <div className="flex flex-col glass-card bg-white/40 rounded-[3rem] p-3 shadow-[0_20px_50px_rgba(31,38,135,0.05)] relative border border-white/80 h-full">
                                 {isSaving && <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin mb-4"></div><span className="font-semibold text-emerald-600 animate-pulse text-lg">กำลังส่งข้อมูล...</span></div>}
                                 
                                 <div className="flex justify-between items-center px-6 py-5">
@@ -723,7 +723,7 @@
                                     </div>
                                 </div>
                                 
-                                <div className="flex-1 overflow-y-auto max-h-[350px] lg:max-h-[450px] rounded-[2.5rem] p-3 space-y-3 custom-scrollbar">
+                                <div className="overflow-y-auto h-[300px] lg:h-[400px] rounded-[2.5rem] p-3 space-y-3 custom-scrollbar">
                                     {currentItems.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
                                             <i className="fa-solid fa-inbox text-6xl mb-4"></i>
