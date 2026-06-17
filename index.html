@@ -92,7 +92,6 @@
         const { useState, useEffect, useRef, useCallback } = React;
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYAYulOU-9KV7t4y08pz_GhicwWL2S9laTWsRkTqHvo5Fk_UIbGPF_EI0-kHzyY1P57A/exec';
 
-        // 🟢 นำอนิเมชันเด้งๆ และหมุนออกทั้งหมด (ลบ animate-bounce, spin-in, rotate)
         const CustomAlertModal = ({ message, onClose }) => {
             if (!message) return null;
             return (
@@ -197,7 +196,6 @@
             const [editDueDate, setEditDueDate] = useState('');
             const [editIsFactory, setEditIsFactory] = useState(false);
             const [editIsUpcountry, setEditIsUpcountry] = useState(false); 
-            // 🟢 State สำหรับช่องกรอกหมายเหตุ
             const [editRemark, setEditRemark] = useState(''); 
 
             const [showUrgencyModal, setShowUrgencyModal] = useState(false);
@@ -266,7 +264,6 @@
                     setShowUrgencyModal(true);
                 } else {
                     playBeep();
-                    // เพิ่ม remark ค่าเริ่มต้นเป็นว่าง
                     setCurrentItems(prev => [{ code: finalCode, dueDate: itemDueDate, urgencyTag: null, remark: '' }, ...prev]);
                 }
             };
@@ -307,7 +304,18 @@
                             if (showUrgencyModalRef.current) return;
                             if (lastScannedRef.current !== decodedText) {
                                 lastScannedRef.current = decodedText;
-                                let finalCode = deliveryTypeRef.current === 'FACTORY' ? `${decodedText.trim()}(รับโรงตัด)` : decodedText.trim();
+                                
+                                let rawCode = decodedText.trim();
+                                const yy = String(new Date().getFullYear()).slice(-2);
+                                
+                                // 🟢 ตรวจสอบเงื่อนไขถ้าสแกนต้องเป็น 10 หลัก และขึ้นต้นด้วยปีปัจจุบัน
+                                if (rawCode.length !== 10 || !rawCode.startsWith(yy)) {
+                                    setAlertMsg(`บาร์โค้ดไม่ถูกต้อง!\nต้องมี 10 หลัก และขึ้นต้นด้วยปี ${yy} เท่านั้น\n(คุณสแกนได้: ${rawCode})`);
+                                    setTimeout(() => { lastScannedRef.current = null }, 3000);
+                                    return;
+                                }
+
+                                let finalCode = deliveryTypeRef.current === 'FACTORY' ? `${rawCode}(รับโรงตัด)` : rawCode;
                                 if (deliveryZoneRef.current === 'UPCOUNTRY') finalCode += '(ตจว.)';
                                 processNewItem(finalCode, dueDateRef.current);
                                 setTimeout(() => { lastScannedRef.current = null }, 1500);
@@ -346,9 +354,17 @@
                     setAlertMsg("กรุณาพิมพ์เลขเที่ยว 4 หลัก หรือ 10 หลัก เท่านั้นครับ");
                     return;
                 }
+                
+                const now = new Date();
+                const yy = String(now.getFullYear()).slice(-2);
+                
+                // 🟢 ตรวจสอบเงื่อนไขถ้าพิมพ์ 10 หลัก ต้องขึ้นต้นด้วยปีปัจจุบัน
+                if (val.length === 10 && !val.startsWith(yy)) {
+                    setAlertMsg(`เลขบิล 10 หลักต้องขึ้นต้นด้วยปีปัจจุบัน (${yy}) เท่านั้นครับ`);
+                    return;
+                }
+
                 if (val.length === 4) {
-                    const now = new Date();
-                    const yy = String(now.getFullYear()).slice(-2);
                     const mm = String(now.getMonth() + 1).padStart(2, '0');
                     val = `${yy}${mm}00${val}`; 
                 }
@@ -377,7 +393,6 @@
                 }
 
                 const existingTag = newItems[editingIndex].urgencyTag || null;
-                // 🟢 นำหมายเหตุใหม่บันทึกลงไป
                 newItems[editingIndex] = { ...newItems[editingIndex], code: finalCode, dueDate: editDueDate, urgencyTag: existingTag, remark: editRemark.trim() };
                 setCurrentItems(newItems);
                 setEditingIndex(null);
@@ -450,7 +465,6 @@
                 <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
                     <CustomAlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
 
-                    {/* ป๊อปอัปสำเร็จ (เอาแอนิเมชันกระเด้งสั่นๆ ออก) */}
                     {saveSuccess && (
                         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[150] flex flex-col items-center justify-center transition-opacity animate-in fade-in duration-200">
                             <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[3rem] shadow-xl flex flex-col items-center glass-inner-border">
@@ -563,22 +577,6 @@
                                     </div>
                                 </div>
                                 <button onClick={saveEditItem} className="btn-bouncy w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-[2rem] font-semibold text-lg shadow-sm">บันทึกการแก้ไข</button>
-                            </div>
-                        </div>
-                    )}
-
-                    {showConfirmModal && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity animate-in fade-in duration-200">
-                            <div className="bg-white/95 rounded-[3rem] p-8 w-full max-w-sm shadow-xl glass-inner-border">
-                                <div className="text-center mb-6">
-                                    <div className="w-24 h-24 bg-gradient-to-tr from-emerald-400 to-teal-400 text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-sm"><i className="fa-solid fa-paper-plane text-4xl"></i></div>
-                                    <h3 className="text-2xl font-bold text-slate-800">ส่งข้อมูล?</h3>
-                                    <p className="text-base text-slate-500 mt-2">จำนวนทั้งหมด <span className="font-bold text-emerald-500 text-xl mx-1">{currentItems.length}</span> เที่ยว</p>
-                                </div>
-                                <div className="flex gap-4">
-                                    <button onClick={() => setShowConfirmModal(false)} className="btn-bouncy flex-1 py-4 bg-slate-100 rounded-[2rem] font-semibold text-slate-600 shadow-sm">ไว้ก่อน</button>
-                                    <button onClick={() => { setShowConfirmModal(false); executeSaveBatch(); }} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-[2rem] font-semibold text-lg shadow-sm">ยืนยันการส่ง</button>
-                                </div>
                             </div>
                         </div>
                     )}
