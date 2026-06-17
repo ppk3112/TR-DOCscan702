@@ -44,7 +44,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- แก้ไข: ล็อกเวอร์ชัน babel standalone เป็น 7.23.6 ที่เสถียรที่สุด เพื่อป้องกันปัญหา SyntaxError -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
@@ -99,7 +100,21 @@
 <body class="text-slate-800">
     <div id="root"></div>
 
-    <script type="text/babel">
+    <!-- แก้ไข: เพิ่ม data-presets="react,env" เพื่อบังคับการคอมไพล์โค้ดให้อยู่ในโหมดที่ถูกต้อง -->
+    <script type="text/babel" data-presets="react,env">
+        // ระบบดักจับ Error เพื่อป้องกันหน้าจอขาว
+        window.addEventListener('error', (event) => {
+            document.getElementById('root').innerHTML = `
+                <div style="padding: 20px; color: #b91c1c; font-family: 'Prompt', sans-serif; text-align: center; margin-top: 50px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 50px; margin-bottom: 20px;"></i>
+                    <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">พบข้อผิดพลาดของระบบ</h3>
+                    <p style="font-size: 14px; margin-bottom: 15px;">ระบบอาจโดนบล็อกการทำงาน หรือแคชมีปัญหา</p>
+                    <pre style="text-align: left; background: #fee2e2; padding: 15px; border-radius: 10px; font-size: 12px; overflow-x: auto;">${event.message}</pre>
+                    <button onclick="window.location.reload(true)" style="margin-top: 20px; padding: 12px 24px; background: #b91c1c; color: white; border: none; border-radius: 20px; font-family: 'Prompt'; font-weight: bold;">รีเฟรชหน้าเว็บ</button>
+                </div>
+            `;
+        });
+
         const { useState, useEffect, useRef, useCallback } = React;
 
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYAYulOU-9KV7t4y08pz_GhicwWL2S9laTWsRkTqHvo5Fk_UIbGPF_EI0-kHzyY1P57A/exec';
@@ -198,8 +213,12 @@
 
         const ScannerTab = ({ isActive, userProfile, onSaveSuccess }) => {
             const [currentItems, setCurrentItems] = useState(() => {
-                const savedBasket = localStorage.getItem('delivery_basket');
-                return savedBasket ? JSON.parse(savedBasket) : [];
+                try {
+                    const savedBasket = localStorage.getItem('delivery_basket');
+                    return savedBasket ? JSON.parse(savedBasket) : [];
+                } catch (e) {
+                    return [];
+                }
             });
             const [inputValue, setInputValue] = useState('');
             const [dueDate, setDueDate] = useState(() => {
@@ -214,7 +233,7 @@
             
             const [allSentCodesCache, setAllSentCodesCache] = useState(new Set());
             const [duplicateWarning, setDuplicateWarning] = useState(null);
-            const [alertMsg, setAlertMsg] = useState(null); // สำหรับแสดง Popup Alert
+            const [alertMsg, setAlertMsg] = useState(null); 
             
             const [isScanning, setIsScanning] = useState(false);
             const [isSaving, setIsSaving] = useState(false);
@@ -225,14 +244,16 @@
             const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
             const [showCopyModal, setShowCopyModal] = useState(false);
             const [lineMessageToCopy, setLineMessageToCopy] = useState('');
-            const [lastSavedMessage, setLastSavedMessage] = useState(() => localStorage.getItem('last_saved_message') || '');
+            const [lastSavedMessage, setLastSavedMessage] = useState(() => {
+                try { return localStorage.getItem('last_saved_message') || ''; } 
+                catch (e) { return ''; }
+            });
             
             const [editingIndex, setEditingIndex] = useState(null);
             const [editDueDate, setEditDueDate] = useState('');
             const [editIsFactory, setEditIsFactory] = useState(false);
             const [editIsUpcountry, setEditIsUpcountry] = useState(false); 
 
-            // สำหรับป๊อปอัพงานด่วน
             const [showUrgencyModal, setShowUrgencyModal] = useState(false);
             const [pendingItem, setPendingItem] = useState(null);
 
@@ -251,12 +272,17 @@
             useEffect(() => { currentItemsRef.current = currentItems; }, [currentItems]);
             useEffect(() => { allSentCodesCacheRef.current = allSentCodesCache; }, [allSentCodesCache]);
             useEffect(() => { showUrgencyModalRef.current = showUrgencyModal; }, [showUrgencyModal]);
-            useEffect(() => { localStorage.setItem('delivery_basket', JSON.stringify(currentItems)); }, [currentItems]);
+            useEffect(() => { 
+                try { localStorage.setItem('delivery_basket', JSON.stringify(currentItems)); } 
+                catch (e) {} 
+            }, [currentItems]);
 
             useEffect(() => {
                 const fetchAllCodes = async () => {
-                    const cachedCodes = localStorage.getItem('all_sent_codes_backup');
-                    if (cachedCodes) { try { setAllSentCodesCache(new Set(JSON.parse(cachedCodes))); } catch(e) {} }
+                    try {
+                        const cachedCodes = localStorage.getItem('all_sent_codes_backup');
+                        if (cachedCodes) { setAllSentCodesCache(new Set(JSON.parse(cachedCodes))); } 
+                    } catch(e) {}
                     try {
                         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCodes`);
                         const text = await res.text();
@@ -265,7 +291,7 @@
                         if (json.status === 'success' && json.data) {
                             const uppercaseCodes = json.data.map(code => String(code).trim().toUpperCase());
                             setAllSentCodesCache(new Set(uppercaseCodes));
-                            localStorage.setItem('all_sent_codes_backup', JSON.stringify(uppercaseCodes));
+                            try { localStorage.setItem('all_sent_codes_backup', JSON.stringify(uppercaseCodes)); } catch(e) {}
                         }
                     } catch (e) { console.error("Failed to fetch all codes", e); }
                 };
@@ -295,23 +321,19 @@
                 return false;
             }, []);
 
-            // ฟังก์ชันตรวจสอบและดักจับบิลก่อนลงตะกร้า
             const processNewItem = (finalCode, itemDueDate) => {
                 if (checkDuplicate(finalCode)) return;
 
                 if (checkIsUrgent(itemDueDate)) {
-                    // ถ้าเข้าเงื่อนไขด่วน ให้พักข้อมูลไว้ก่อนแล้วเปิดป๊อปอัพให้เลือก
                     setPendingItem({ code: finalCode, dueDate: itemDueDate });
                     setShowUrgencyModal(true);
                     if (navigator.vibrate) navigator.vibrate(50); 
                 } else {
-                    // ถ้าไม่ด่วน ลงตะกร้าปกติ
                     playBeep();
                     setCurrentItems(prev => [{ code: finalCode, dueDate: itemDueDate, urgencyTag: null }, ...prev]);
                 }
             };
 
-            // ฟังก์ชันตอนกดปุ่มยืนยันสาเหตุความด่วน
             const handleConfirmUrgency = (tag) => {
                 if (pendingItem) {
                     playBeep();
@@ -350,7 +372,6 @@
                     html5QrCode.start(
                         { facingMode: "environment" }, config,
                         (decodedText) => {
-                            // ป้องกันการสแกนซ้ำซ้อนขณะป๊อปอัพด่วนเปิดอยู่
                             if (showUrgencyModalRef.current) return;
                             
                             if (lastScannedRef.current !== decodedText) {
@@ -469,7 +490,8 @@
                         setIsSaving(false); return; 
                     }
 
-                    setCurrentItems([]); localStorage.removeItem('delivery_basket');
+                    setCurrentItems([]); 
+                    try { localStorage.removeItem('delivery_basket'); } catch(e) {}
                     setSaveSuccess(true); playSuccessBeep();
                     
                     if (window.confetti) {
@@ -484,7 +506,7 @@
                     if (result.lineMessage) {
                         setLineMessageToCopy(result.lineMessage);
                         setLastSavedMessage(result.lineMessage); 
-                        localStorage.setItem('last_saved_message', result.lineMessage);
+                        try { localStorage.setItem('last_saved_message', result.lineMessage); } catch(e) {}
                         setTimeout(() => { setShowCopyModal(true); }, 1500); 
                     }
                     
@@ -505,7 +527,6 @@
 
             return (
                 <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden'}`}>
-                    
                     <CustomAlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
 
                     {saveSuccess && (
@@ -527,8 +548,6 @@
                         </div>
                     )}
 
-                    {/* ป๊อปอัพถามสาเหตุงานด่วน */}
-                    {}
                     {showUrgencyModal && pendingItem && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[160] flex items-center justify-center p-4">
                             <div className="bg-white rounded-[3rem] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-300 border-4 border-rose-100">
@@ -636,7 +655,6 @@
                         </div>
                     )}
 
-                    {}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div className="lg:col-span-7 space-y-6">
                             
@@ -700,7 +718,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div className="lg:col-span-5 flex flex-col h-[500px] lg:h-[600px]">
                             <div className="flex flex-col glass-card bg-white/40 rounded-[3rem] p-3 shadow-[0_20px_50px_rgba(31,38,135,0.05)] relative flex-1 border border-white/80">
                                 {isSaving && <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin mb-4"></div><span className="font-semibold text-emerald-600 animate-pulse text-lg">กำลังส่งข้อมูล...</span></div>}
@@ -732,11 +749,9 @@
                                                         <span className={`text-xs font-semibold mt-1.5 flex flex-wrap items-center gap-1.5 ${isUrgent ? 'text-rose-500' : 'text-teal-600'}`}>
                                                             <span className="bg-white/50 px-2 py-0.5 rounded-md border border-slate-100">ดิว: {formatThaiDate(item.dueDate)}</span> 
                                                             
-                                                            {/* แสดงแท็กสาเหตุงานด่วนถ้ามีการเลือกไว้ */}
                                                             {item.urgencyTag === 'ด่วนมาก' && <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-md font-bold shadow-sm"><i className="fa-solid fa-fire text-rose-500"></i> ด่วนมาก</span>}
                                                             {item.urgencyTag === 'ขายพึ่งลง TMS' && <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md font-bold shadow-sm"><i className="fa-solid fa-clock-rotate-left"></i> ขายพึ่งลง TMS</span>}
                                                             
-                                                            {/* กรณีเป็นงานด่วนแต่ไม่มีแท็ก (หลุดมาจากเงื่อนไขอื่น) จะแสดงอันเดิม */}
                                                             {!item.urgencyTag && isUrgent && <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-md font-bold"><i className="fa-solid fa-bolt text-rose-500"></i> </span>}
                                                             
                                                             {isUpcountry && <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-bold"><i className="fa-solid fa-truck-fast"></i> ตจว.</span>}
@@ -791,11 +806,13 @@
                         const json = JSON.parse(text);
                         if (json.status === 'success' && json.data) {
                             setMonthHistoryData(json.data);
-                            localStorage.setItem(cacheKey, JSON.stringify(json.data));
+                            try { localStorage.setItem(cacheKey, JSON.stringify(json.data)); } catch(e){}
                         }
                     } catch (error) { 
-                        const cachedData = localStorage.getItem(cacheKey);
-                        if (cachedData) { try { setMonthHistoryData(JSON.parse(cachedData)); } catch(e) {} }
+                        try {
+                            const cachedData = localStorage.getItem(cacheKey);
+                            if (cachedData) { setMonthHistoryData(JSON.parse(cachedData)); }
+                        } catch(e) {}
                     } finally { 
                         setIsLoadingHistory(false); 
                         setLastFetchedMonth(selectedMonth);
@@ -804,10 +821,12 @@
 
                 if (selectedMonth !== lastFetchedMonth || refreshTrigger > 0) {
                     const cacheKey = `history_data_${selectedMonth}`;
-                    const cachedData = localStorage.getItem(cacheKey);
-                    if (cachedData && selectedMonth !== lastFetchedMonth) { 
-                        try { setMonthHistoryData(JSON.parse(cachedData)); } catch(e) {} 
-                    }
+                    try {
+                        const cachedData = localStorage.getItem(cacheKey);
+                        if (cachedData && selectedMonth !== lastFetchedMonth) { 
+                            setMonthHistoryData(JSON.parse(cachedData)); 
+                        }
+                    } catch(e) {}
                     fetchHistory();
                 }
             }, [isActive, selectedMonth, refreshTrigger]);
@@ -1127,8 +1146,10 @@
 
         function App() {
             const [userProfile, setUserProfile] = useState(() => {
-                const saved = localStorage.getItem('liff_profile_cache');
-                return saved ? JSON.parse(saved) : null;
+                try {
+                    const saved = localStorage.getItem('liff_profile_cache');
+                    return saved ? JSON.parse(saved) : null;
+                } catch(e) { return null; }
             });
             const [isLiffReady, setIsLiffReady] = useState(false);
             const [activeTab, setActiveTab] = useState('scan');
@@ -1150,10 +1171,10 @@
                         if (liff.isLoggedIn()) {
                             const profile = await liff.getProfile();
                             setUserProfile(profile);
-                            localStorage.setItem('liff_profile_cache', JSON.stringify(profile));
+                            try { localStorage.setItem('liff_profile_cache', JSON.stringify(profile)); } catch(e) {}
                         } else {
                             setUserProfile(null);
-                            localStorage.removeItem('liff_profile_cache');
+                            try { localStorage.removeItem('liff_profile_cache'); } catch(e) {}
                         }
                         setIsLiffReady(true);
                     } catch (err) {
@@ -1211,7 +1232,7 @@
                                 <span className="text-base font-bold text-slate-800">{userProfile.displayName}</span>
                             </div>
                         </div>
-                        <button onClick={() => {liff.logout(); setUserProfile(null); localStorage.removeItem('liff_profile_cache');}} className="btn-bouncy text-[11px] text-rose-500 bg-white/80 backdrop-blur-md px-4 py-2 rounded-[1rem] font-semibold shadow-sm border border-white">ออกจากระบบ</button>
+                        <button onClick={() => {liff.logout(); setUserProfile(null); try { localStorage.removeItem('liff_profile_cache'); } catch(e){} }} className="btn-bouncy text-[11px] text-rose-500 bg-white/80 backdrop-blur-md px-4 py-2 rounded-[1rem] font-semibold shadow-sm border border-white">ออกจากระบบ</button>
                     </div>
 
                     <ScannerTab 
