@@ -22,6 +22,9 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
@@ -35,7 +38,6 @@
             min-height: 100vh;
         }
 
-        /* 🟢 ขอบการ์ดใหญ่สีขาวหนา 2px */
         .glass-card {
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(8px);
@@ -44,7 +46,6 @@
             box-shadow: 0 10px 30px -5px rgba(31, 38, 135, 0.15);
         }
 
-        /* 🟢 ขอบสีขาวหม่นสำหรับส่วนประกอบภายในการ์ด */
         .glass-inner-border {
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
@@ -91,6 +92,22 @@
 
         const { useState, useEffect, useRef, useCallback } = React;
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYAYulOU-9KV7t4y08pz_GhicwWL2S9laTWsRkTqHvo5Fk_UIbGPF_EI0-kHzyY1P57A/exec';
+
+        // 🟢 ตั้งค่า Firebase ด้วย Config ของคุณ
+        const firebaseConfig = {
+            apiKey: "AIzaSyAbqUh6x0KiIL5rK3VhWc1ECE4R5X_gq2w",
+            authDomain: "bill-pj.firebaseapp.com",
+            databaseURL: "https://bill-pj-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "bill-pj",
+            storageBucket: "bill-pj.firebasestorage.app",
+            messagingSenderId: "99092363681",
+            appId: "1:99092363681:web:629ddf90c27a1d0db333e0"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
 
         const CustomAlertModal = ({ message, onClose }) => {
             if (!message) return null;
@@ -162,9 +179,9 @@
         };
 
         const ScannerTab = ({ isActive, userProfile, onSaveSuccess }) => {
-            const [currentItems, setCurrentItems] = useState(() => {
-                try { return JSON.parse(localStorage.getItem('delivery_basket')) || []; } catch (e) { return []; }
-            });
+            // 🟢 เปลี่ยนสถานะตะกร้าเริ่มต้นเป็นค่าว่าง (รอโหลดจาก Firebase)
+            const [currentItems, setCurrentItems] = useState([]);
+            
             const [inputValue, setInputValue] = useState('');
             const [dueDate, setDueDate] = useState(() => {
                 const now = new Date(); now.setDate(now.getDate() + 2);
@@ -216,7 +233,31 @@
             useEffect(() => { currentItemsRef.current = currentItems; }, [currentItems]);
             useEffect(() => { allSentCodesCacheRef.current = allSentCodesCache; }, [allSentCodesCache]);
             useEffect(() => { showUrgencyModalRef.current = showUrgencyModal; }, [showUrgencyModal]);
-            useEffect(() => { try { localStorage.setItem('delivery_basket', JSON.stringify(currentItems)); } catch (e) {} }, [currentItems]);
+
+            // 🟢 ฟังก์ชันสำหรับอัปเดตข้อมูลขึ้น Firebase
+            const updateCartInFirebase = (newItems) => {
+                if (userProfile && userProfile.userId) {
+                    database.ref('carts/' + userProfile.userId).set(newItems);
+                }
+            };
+
+            // 🟢 ดึงข้อมูลแบบ Realtime จาก Firebase เมื่อมี User เข้าสู่ระบบ
+            useEffect(() => {
+                if (userProfile && userProfile.userId) {
+                    const cartRef = database.ref('carts/' + userProfile.userId);
+                    
+                    // on('value') จะทำงานอัตโนมัติเมื่อมีข้อมูลอัปเดตจากเครื่องไหนก็ตาม
+                    cartRef.on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        setCurrentItems(data || []);
+                    });
+
+                    // เมื่อออกจากระบบ หรือ Component หายไปให้หยุดฟัง
+                    return () => cartRef.off();
+                } else {
+                    setCurrentItems([]);
+                }
+            }, [userProfile]);
 
             useEffect(() => {
                 const fetchAllCodes = async () => {
@@ -264,14 +305,17 @@
                     setShowUrgencyModal(true);
                 } else {
                     playBeep();
-                    setCurrentItems(prev => [{ code: finalCode, dueDate: itemDueDate, urgencyTag: null, remark: '' }, ...prev]);
+                    // 🟢 โยนข้อมูลขึ้น Firebase แทนการเซฟลง State ปกติ
+                    const newItems = [{ code: finalCode, dueDate: itemDueDate, urgencyTag: null, remark: '' }, ...currentItems];
+                    updateCartInFirebase(newItems);
                 }
             };
 
             const handleConfirmUrgency = (tag) => {
                 if (pendingItem) {
                     playBeep();
-                    setCurrentItems(prev => [{ ...pendingItem, urgencyTag: tag, remark: '' }, ...prev]);
+                    const newItems = [{ ...pendingItem, urgencyTag: tag, remark: '' }, ...currentItems];
+                    updateCartInFirebase(newItems);
                 }
                 setShowUrgencyModal(false);
                 setPendingItem(null);
@@ -308,7 +352,6 @@
                                 let rawCode = decodedText.trim();
                                 const yy = String(new Date().getFullYear()).slice(-2);
                                 
-                                // 🟢 ตรวจสอบเงื่อนไขถ้าสแกนต้องเป็น 10 หลัก และขึ้นต้นด้วยปีปัจจุบัน
                                 if (rawCode.length !== 10 || !rawCode.startsWith(yy)) {
                                     setAlertMsg(`บาร์โค้ดไม่ถูกต้อง!\nต้องมี 10 หลัก และขึ้นต้นด้วยปี ${yy} เท่านั้น\n(คุณสแกนได้: ${rawCode})`);
                                     setTimeout(() => { lastScannedRef.current = null }, 3000);
@@ -358,7 +401,6 @@
                 const now = new Date();
                 const yy = String(now.getFullYear()).slice(-2);
                 
-                // 🟢 ตรวจสอบเงื่อนไขถ้าพิมพ์ 10 หลัก ต้องขึ้นต้นด้วยปีปัจจุบัน
                 if (val.length === 10 && !val.startsWith(yy)) {
                     setAlertMsg(`เลขบิล 10 หลักต้องขึ้นต้นด้วยปีปัจจุบัน (${yy}) เท่านั้นครับ`);
                     return;
@@ -394,7 +436,9 @@
 
                 const existingTag = newItems[editingIndex].urgencyTag || null;
                 newItems[editingIndex] = { ...newItems[editingIndex], code: finalCode, dueDate: editDueDate, urgencyTag: existingTag, remark: editRemark.trim() };
-                setCurrentItems(newItems);
+                
+                // 🟢 อัปเดตข้อมูลขึ้น Firebase
+                updateCartInFirebase(newItems);
                 setEditingIndex(null);
             };
 
@@ -429,7 +473,8 @@
                         setIsSaving(false); return; 
                     }
 
-                    setCurrentItems([]); 
+                    // 🟢 ส่งเข้า GAS สำเร็จ ลบตะกร้าทิ้งได้เลย
+                    updateCartInFirebase([]); 
                     try { localStorage.removeItem('delivery_basket'); } catch(e) {}
                     setSaveSuccess(true);
                     
@@ -537,7 +582,7 @@
                                 </div>
                                 <div className="flex gap-4">
                                     <button onClick={() => setShowClearConfirmModal(false)} className="btn-bouncy flex-1 py-4 bg-slate-100 rounded-[2rem] font-semibold shadow-sm text-slate-600">เปลี่ยนใจ</button>
-                                    <button onClick={() => { setCurrentItems([]); setShowClearConfirmModal(false); }} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-[2rem] font-semibold shadow-sm">ล้างทั้งหมด</button>
+                                    <button onClick={() => { updateCartInFirebase([]); setShowClearConfirmModal(false); }} className="btn-bouncy flex-1 py-4 bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-[2rem] font-semibold shadow-sm">ล้างทั้งหมด</button>
                                 </div>
                             </div>
                         </div>
@@ -579,7 +624,7 @@
                         </div>
                     )}
 
-                    {/* 🟢 หน้าต่างยืนยันการส่งข้อมูลที่หายไปกลับมาแล้ว */}
+                    {/* 🟢 หน้าต่างยืนยันการส่งข้อมูล */}
                     {showConfirmModal && (
                         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity animate-in fade-in duration-200">
                             <div className="bg-white/95 rounded-[3rem] p-8 w-full max-w-sm shadow-xl glass-inner-border">
@@ -694,7 +739,8 @@
                                                     </div>
                                                     <div className="flex gap-2 items-center shrink-0">
                                                         <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); setEditIsUpcountry(isUpcountry); setEditRemark(item.remark || ''); }} className="btn-bouncy text-slate-500 w-11 h-11 bg-white border border-slate-200 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-pen-to-square"></i></button>
-                                                        <button onClick={() => setCurrentItems(prev => prev.filter((_, i) => i !== index))} className="btn-bouncy text-rose-400 w-11 h-11 bg-rose-50 border border-rose-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-trash-can"></i></button>
+                                                        {/* 🟢 การลบให้โยน Array ที่กรองแล้วขึ้น Firebase เลย */}
+                                                        <button onClick={() => updateCartInFirebase(currentItems.filter((_, i) => i !== index))} className="btn-bouncy text-rose-400 w-11 h-11 bg-rose-50 border border-rose-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-trash-can"></i></button>
                                                     </div>
                                                 </div>
                                             )
