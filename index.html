@@ -22,6 +22,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
+    <!-- 🟢 เพิ่ม Firebase SDK ผ่าน CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 
@@ -179,7 +180,6 @@
         };
 
         const ScannerTab = ({ isActive, userProfile, onSaveSuccess }) => {
-            // 🟢 เปลี่ยนสถานะตะกร้าเริ่มต้นเป็นค่าว่าง (รอโหลดจาก Firebase)
             const [currentItems, setCurrentItems] = useState([]);
             
             const [inputValue, setInputValue] = useState('');
@@ -234,7 +234,7 @@
             useEffect(() => { allSentCodesCacheRef.current = allSentCodesCache; }, [allSentCodesCache]);
             useEffect(() => { showUrgencyModalRef.current = showUrgencyModal; }, [showUrgencyModal]);
 
-            // 🟢 ฟังก์ชันสำหรับอัปเดตข้อมูลขึ้น Firebase
+            // 🟢 อัปเดตข้อมูลขึ้น Firebase
             const updateCartInFirebase = (newItems) => {
                 if (userProfile && userProfile.userId) {
                     database.ref('carts/' + userProfile.userId).set(newItems);
@@ -245,14 +245,10 @@
             useEffect(() => {
                 if (userProfile && userProfile.userId) {
                     const cartRef = database.ref('carts/' + userProfile.userId);
-                    
-                    // on('value') จะทำงานอัตโนมัติเมื่อมีข้อมูลอัปเดตจากเครื่องไหนก็ตาม
                     cartRef.on('value', (snapshot) => {
                         const data = snapshot.val();
                         setCurrentItems(data || []);
                     });
-
-                    // เมื่อออกจากระบบ หรือ Component หายไปให้หยุดฟัง
                     return () => cartRef.off();
                 } else {
                     setCurrentItems([]);
@@ -298,6 +294,7 @@
                 return false;
             }, []);
 
+            // ✅ บังคับใช้ currentItemsRef.current เพื่อป้องกันบั๊กสแกนแล้วทับของเดิม
             const processNewItem = (finalCode, itemDueDate) => {
                 if (checkDuplicate(finalCode)) return;
                 if (checkIsUrgent(itemDueDate)) {
@@ -305,8 +302,7 @@
                     setShowUrgencyModal(true);
                 } else {
                     playBeep();
-                    // 🟢 โยนข้อมูลขึ้น Firebase แทนการเซฟลง State ปกติ
-                    const newItems = [{ code: finalCode, dueDate: itemDueDate, urgencyTag: null, remark: '' }, ...currentItems];
+                    const newItems = [{ code: finalCode, dueDate: itemDueDate, urgencyTag: null, remark: '' }, ...currentItemsRef.current];
                     updateCartInFirebase(newItems);
                 }
             };
@@ -314,7 +310,7 @@
             const handleConfirmUrgency = (tag) => {
                 if (pendingItem) {
                     playBeep();
-                    const newItems = [{ ...pendingItem, urgencyTag: tag, remark: '' }, ...currentItems];
+                    const newItems = [{ ...pendingItem, urgencyTag: tag, remark: '' }, ...currentItemsRef.current];
                     updateCartInFirebase(newItems);
                 }
                 setShowUrgencyModal(false);
@@ -419,7 +415,8 @@
 
             const saveEditItem = () => {
                 if (editingIndex === null) return;
-                const newItems = [...currentItems];
+                // ✅ บังคับใช้ currentItemsRef.current
+                const newItems = [...currentItemsRef.current];
                 let baseCode = newItems[editingIndex].code.replace('(รับโรงตัด)', '').replace('(ตจว.)', '').trim();
                 
                 let finalCode = editIsFactory ? `${baseCode}(รับโรงตัด)` : baseCode;
@@ -437,13 +434,12 @@
                 const existingTag = newItems[editingIndex].urgencyTag || null;
                 newItems[editingIndex] = { ...newItems[editingIndex], code: finalCode, dueDate: editDueDate, urgencyTag: existingTag, remark: editRemark.trim() };
                 
-                // 🟢 อัปเดตข้อมูลขึ้น Firebase
                 updateCartInFirebase(newItems);
                 setEditingIndex(null);
             };
 
             const executeSaveBatch = async () => {
-                if (currentItems.length === 0) return;
+                if (currentItemsRef.current.length === 0) return;
                 setIsSaving(true); setSaveSuccess(false);
 
                 const now = new Date();
@@ -452,7 +448,7 @@
 
                 const newBatch = {
                     id: "BATCH-" + Date.now().toString().slice(-6),
-                    items: [...currentItems], date: currentDateStr, time: currentTimeStr, 
+                    items: [...currentItemsRef.current], date: currentDateStr, time: currentTimeStr, 
                     dueDate: dueDate, timestamp: now.getTime(),
                     userId: userProfile ? userProfile.userId : null
                 };
@@ -473,7 +469,6 @@
                         setIsSaving(false); return; 
                     }
 
-                    // 🟢 ส่งเข้า GAS สำเร็จ ลบตะกร้าทิ้งได้เลย
                     updateCartInFirebase([]); 
                     try { localStorage.removeItem('delivery_basket'); } catch(e) {}
                     setSaveSuccess(true);
@@ -624,7 +619,6 @@
                         </div>
                     )}
 
-                    {/* 🟢 หน้าต่างยืนยันการส่งข้อมูล */}
                     {showConfirmModal && (
                         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity animate-in fade-in duration-200">
                             <div className="bg-white/95 rounded-[3rem] p-8 w-full max-w-sm shadow-xl glass-inner-border">
@@ -739,8 +733,8 @@
                                                     </div>
                                                     <div className="flex gap-2 items-center shrink-0">
                                                         <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditIsFactory(isFactory); setEditIsUpcountry(isUpcountry); setEditRemark(item.remark || ''); }} className="btn-bouncy text-slate-500 w-11 h-11 bg-white border border-slate-200 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-pen-to-square"></i></button>
-                                                        {/* 🟢 การลบให้โยน Array ที่กรองแล้วขึ้น Firebase เลย */}
-                                                        <button onClick={() => updateCartInFirebase(currentItems.filter((_, i) => i !== index))} className="btn-bouncy text-rose-400 w-11 h-11 bg-rose-50 border border-rose-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-trash-can"></i></button>
+                                                        {/* ✅ ใช้ currentItemsRef.current เพื่อไม่ให้มีปัญหาตอนลบ */}
+                                                        <button onClick={() => updateCartInFirebase(currentItemsRef.current.filter((_, i) => i !== index))} className="btn-bouncy text-rose-400 w-11 h-11 bg-rose-50 border border-rose-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-trash-can"></i></button>
                                                     </div>
                                                 </div>
                                             )
