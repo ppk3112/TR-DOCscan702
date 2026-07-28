@@ -144,6 +144,17 @@
         .nav-item.active {
             color: var(--tva-orange);
         }
+
+        /* Yggdrasil Animation */
+        @keyframes yggdrasil-pulse {
+            0% { filter: drop-shadow(0 0 5px rgba(34,197,94,0.4)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 15px rgba(34,197,94,0.8)); transform: scale(1.02); }
+            100% { filter: drop-shadow(0 0 5px rgba(34,197,94,0.4)); transform: scale(1); }
+        }
+        .animate-yggdrasil {
+            animation: yggdrasil-pulse 4s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
     </style>
 </head>
 <body>
@@ -998,20 +1009,20 @@
 
                 // ใช้สีส้ม TVA ในกราฟ
                 const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                gradient.addColorStop(0, 'rgba(217, 106, 41, 0.9)');   
-                gradient.addColorStop(1, 'rgba(217, 106, 41, 0.1)');   
+                gradient.addColorStop(0, 'rgba(34, 197, 94, 0.8)');   
+                gradient.addColorStop(1, 'rgba(234, 179, 8, 0.1)');   
 
                 Chart.defaults.color = '#a89b8d';
                 Chart.defaults.font.family = "'Space Mono', 'Prompt', monospace";
 
                 chartInstance.current = new window.Chart(ctx, {
                     type: 'bar',
-                    data: { labels: labels, datasets: [{ label: 'รวมเที่ยวส่ง', data: dataTotals, backgroundColor: gradient, borderColor: '#d96a29', borderWidth: 1, borderRadius: 2 }] },
+                    data: { labels: labels, datasets: [{ label: 'รวมเที่ยวส่ง', data: dataTotals, backgroundColor: gradient, borderColor: '#eab308', borderWidth: 1, borderRadius: 2 }] },
                     options: { 
                         responsive: true, maintainAspectRatio: false, 
                         plugins: { legend: { display: false } }, 
                         scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(59, 50, 42, 0.5)' } }, x: { grid: { display: false } } }, 
-                        animation: { duration: 500 } 
+                        animation: { duration: 1500 } 
                     }
                 });
             }, [stats, isActive, daysInMonth]);
@@ -1198,15 +1209,25 @@
                         </div>
                     </div>
 
-                    <div className="tva-box-accent bg-[#1c1714] p-5 text-center overflow-hidden relative">
-                        <div className="relative z-10">
-                            <h3 className="text-[#d96a29] text-xs font-bold uppercase tracking-widest mb-1 font-mono-tva">รวมยอดส่งบิลเดือนนี้</h3>
+                    <div className="tva-box-accent bg-[#0d1a12] p-6 text-center overflow-hidden relative border-[#15803d] shadow-[4px_4px_0px_#064e3b]">
+                        <div className="absolute inset-0 flex justify-center items-end opacity-70 animate-yggdrasil pointer-events-none">
+                            <svg viewBox="0 0 200 150" className="w-full h-full max-h-[150px]">
+                                <path d="M100 150 Q90 100 40 70 Q20 50 10 20" fill="none" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" />
+                                <path d="M100 150 Q110 110 160 80 Q180 60 190 30" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M100 150 Q100 90 95 50 Q90 20 100 0" fill="none" stroke="#eab308" strokeWidth="3" strokeLinecap="round" className="drop-shadow-[0_0_8px_rgba(234,179,8,1)]" />
+                                <path d="M100 150 Q80 120 60 90 Q40 70 30 40" fill="none" stroke="#22c55e" strokeWidth="1" strokeLinecap="round" />
+                                <path d="M100 150 Q120 120 140 90 Q160 70 170 40" fill="none" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" />
+                                <path d="M96 150 L104 150 L102 110 L98 110 Z" fill="#eab308" />
+                            </svg>
+                        </div>
+                        <div className="relative z-10 pt-4">
+                            <h3 className="text-[#22c55e] text-xs font-bold uppercase tracking-widest mb-1 font-mono-tva drop-shadow-md">รวมยอดส่งบิล (Yggdrasil Time Tree)</h3>
                             <div className="flex justify-center items-baseline gap-2">
-                                <span className="text-6xl font-crt text-[#f59e0b] drop-shadow-md">{totalMonthCount}</span>
-                                <span className="text-[#a89b8d] font-bold font-mono-tva">เที่ยว</span>
+                                <span className="text-6xl font-crt text-[#eab308] drop-shadow-[0_0_15px_rgba(234,179,8,0.8)]">{totalMonthCount}</span>
+                                <span className="text-[#22c55e] font-bold font-mono-tva">เที่ยว</span>
                             </div>
                         </div>
-                        <button onClick={forceRefresh} className="absolute top-3 right-3 text-[#a89b8d] active:text-[#f0e6d3]"><i className={`fa-solid fa-rotate-right text-lg ${isLoadingHistory ? 'animate-spin' : ''}`}></i></button>
+                        <button onClick={forceRefresh} className="absolute top-3 right-3 text-[#22c55e] active:text-[#eab308] z-20"><i className={`fa-solid fa-rotate-right text-lg ${isLoadingHistory ? 'animate-spin' : ''}`}></i></button>
                     </div>
                     
                     <div className="grid grid-cols-4 gap-2 font-mono-tva">
