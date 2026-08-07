@@ -35,7 +35,8 @@
             -webkit-tap-highlight-color: transparent; 
             margin: 0;
             padding-bottom: env(safe-area-inset-bottom);
-            background-color: #f1f5f9;
+            /* ปรับลดความสว่างของพื้นหลัง ให้สบายตาขึ้น */
+            background-color: #cbd5e1;
             min-height: 100vh;
         }
 
@@ -43,19 +44,22 @@
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            border: 2px solid rgba(255, 255, 255, 1);
+            /* ปรับกรอบให้ชัดเจนขึ้นด้วยสีเทาโปร่งแสง */
+            border: 2px solid rgba(100, 116, 139, 0.4);
             box-shadow: 0 10px 30px -5px rgba(31, 38, 135, 0.15);
         }
 
         .glass-inner-border {
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            /* ปรับกรอบให้ชัดเจนขึ้นด้วยสีเทาโปร่งแสง */
+            border: 1px solid rgba(100, 116, 139, 0.3);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .glass-input {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            /* ปรับกรอบให้ชัดเจนขึ้นด้วยสีเทาโปร่งแสง */
+            border: 1px solid rgba(100, 116, 139, 0.4);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
         .glass-input:focus {
@@ -1187,7 +1191,7 @@
                     </div>
                 </div>
             );
-        };
+        }
 
         function App() {
             const [userProfile, setUserProfile] = useState(() => {
