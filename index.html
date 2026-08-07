@@ -128,6 +128,7 @@
             );
         };
 
+        // 🟢 ฟังก์ชันป้องกันบั้ก Timezone ของ Safari (Parse Date อย่างปลอดภัย)
         const parseDateSafe = (dateString) => {
             if (!dateString) return new Date();
             if (dateString.includes('-')) {
@@ -145,8 +146,7 @@
 
         const checkIsUrgent = (dateStr) => {
             if (!dateStr) return false;
-            // 🛠️ แก้บัควันที่เพี้ยน (สร้าง Date Object ใหม่)
-            const targetDate = new Date(parseDateSafe(dateStr)); 
+            const targetDate = parseDateSafe(dateStr); 
             targetDate.setHours(0, 0, 0, 0);
             const today = new Date(); 
             today.setHours(0, 0, 0, 0);
@@ -174,26 +174,16 @@
                     window.speechSynthesis.cancel();
                     const utterance = new SpeechSynthesisUtterance('บิลซ้ำค่ะ');
                     utterance.lang = 'th-TH'; 
+                    const voices = window.speechSynthesis.getVoices();
+                    const thaiVoice = voices.find(voice => voice.lang.includes('th'));
+                    if (thaiVoice) utterance.voice = thaiVoice;
                     utterance.pitch = 1.3; utterance.rate = 1.0;
-                    
-                    // 🛠️ แก้บัคเสียงพูดเงียบหายในรอบแรก (Safari/iOS)
-                    const speakNow = () => {
-                        const voices = window.speechSynthesis.getVoices();
-                        const thaiVoice = voices.find(voice => voice.lang.includes('th'));
-                        if (thaiVoice) utterance.voice = thaiVoice;
-                        window.speechSynthesis.speak(utterance);
-                    };
-
-                    if (window.speechSynthesis.getVoices().length === 0) {
-                        window.speechSynthesis.onvoiceschanged = speakNow;
-                        window.speechSynthesis.speak(utterance); // Fallback
-                    } else {
-                        speakNow();
-                    }
+                    window.speechSynthesis.speak(utterance);
                 }
             } catch (e) {}
         };
 
+        // 🟢 อัปเกรดระบบ Copy ให้รองรับอุปกรณ์ใหม่ๆ และมี Fallback
         const handleCopyTextGlobal = async (text, onSuccess, onError) => {
             if (navigator.clipboard && window.isSecureContext) {
                 try {
@@ -205,6 +195,7 @@
                 }
             }
             
+            // Fallback for older browsers
             const textArea = document.createElement("textarea");
             textArea.value = text;
             textArea.style.position = "fixed"; 
@@ -269,16 +260,12 @@
             const allSentCodesCacheRef = useRef(allSentCodesCache);
             const showUrgencyModalRef = useRef(false);
 
-            // 🛠️ แก้บัคกล้องค้าง Stale Closure
-            const isScanningRef = useRef(false);
-
             useEffect(() => { dueDateRef.current = dueDate; }, [dueDate]);
             useEffect(() => { deliveryTypeRef.current = deliveryType; }, [deliveryType]);
             useEffect(() => { deliveryZoneRef.current = deliveryZone; }, [deliveryZone]);
             useEffect(() => { currentItemsRef.current = currentItems; }, [currentItems]);
             useEffect(() => { allSentCodesCacheRef.current = allSentCodesCache; }, [allSentCodesCache]);
             useEffect(() => { showUrgencyModalRef.current = showUrgencyModal; }, [showUrgencyModal]);
-            useEffect(() => { isScanningRef.current = isScanning; }, [isScanning]);
 
             const updateCartInFirebase = (newItems) => {
                 if (userProfile && userProfile.userId) {
@@ -314,6 +301,7 @@
                             const uppercaseCodes = json.data.map(code => String(code).trim().toUpperCase());
                             setAllSentCodesCache(new Set(uppercaseCodes));
                             try { 
+                                // ป้องกัน LocalStorage ขยะล้น โดยเก็บแค่ 10,000 รายการล่าสุด
                                 const slicedCache = uppercaseCodes.slice(-10000); 
                                 localStorage.setItem('all_sent_codes_backup', JSON.stringify(slicedCache)); 
                             } catch(e) {}
@@ -321,8 +309,7 @@
                     } catch (e) {}
                 };
                 fetchAllCodes();
-                // 🛠️ แก้บัคกล้องค้าง: ใช้ isScanningRef แทน isScanning
-                return () => { if (html5QrCodeRef.current && isScanningRef.current) html5QrCodeRef.current.stop().catch(() => {}); }
+                return () => { if (html5QrCodeRef.current && isScanning) html5QrCodeRef.current.stop().catch(() => {}); }
             }, []);
 
             const checkDuplicate = useCallback((code) => {
@@ -374,6 +361,7 @@
                 const isLineApp = navigator.userAgent.indexOf("Line") > -1;
                 if (isLineApp) setAlertMsg("ตรวจพบการใช้งานผ่านแอป LINE\nกรุณากดไอคอน '3 จุด' แล้วเลือก 'เปิดใน Safari / Browser'");
 
+                // 🟢 ปลดล็อก Audio Policy บน iOS ตอนผู้ใช้กดปุ่มเปิดกล้อง
                 try {
                     const tempCtx = new (window.AudioContext || window.webkitAudioContext)();
                     tempCtx.resume();
@@ -478,6 +466,7 @@
                 let finalCode = editIsFactory ? `${baseCode}(รับโรงตัด)` : baseCode;
                 if (editIsUpcountry) finalCode += '(ตจว.)';
                 
+                // 🟢 แก้บั้กแก้ไขบิลทะลุการตรวจสอบฐานข้อมูล
                 const upperFinalCode = finalCode.toUpperCase();
                 const isDuplicateInCart = newItems.some((item, idx) => idx !== editingIndex && String(item.code).trim().toUpperCase() === upperFinalCode);
                 const isDuplicateInHistory = allSentCodesCacheRef.current.has(upperFinalCode);
@@ -564,8 +553,8 @@
             };
 
             return (
-                // 🛠️ อัปเดต CSS layout ให้โชว์ใน Desktop ได้พร้อมกัน (hidden lg:block w-full)
-                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden lg:block'} w-full`}>
+                /* 🛠️ เปลี่ยนการจัดเรียงซ้ายขวา ให้รองรับ lg:block เพื่อโชว์บนคอม */
+                <div className={`pt-6 px-4 sm:px-6 lg:px-8 w-full max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden lg:block'} lg:flex-1 lg:max-w-none`}>
                     <CustomAlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
 
                     {saveSuccess && (
@@ -698,8 +687,9 @@
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        <div className="lg:col-span-7 space-y-6">
+                    {/* 🛠️ เปลี่ยน grid เป็น flex-col เพื่อให้ตะกร้าอยู่ล่างสแกน */}
+                    <div className="flex flex-col gap-8 w-full">
+                        <div className="space-y-6 w-full">
                             
                             <div className="glass-card p-6 rounded-[2.5rem]">
                                 
@@ -753,7 +743,8 @@
                             </div>
                         </div>
 
-                        <div className="lg:col-span-5 flex flex-col">
+                        {/* 🛠️ เปลี่ยน col-span-5 เป็น w-full เรียงอยู่ด้านล่างสแกนบิล */}
+                        <div className="flex flex-col w-full">
                             <div className="flex flex-col glass-card rounded-[3rem] p-3 shadow-sm h-full">
                                 {isSaving && <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin mb-4"></div><span className="font-semibold text-emerald-600 text-base">กำลังส่งข้อมูล...</span></div>}
                                 
@@ -846,6 +837,7 @@
             const chartInstance = useRef(null);
 
             useEffect(() => {
+                // 🛠️ ข้ามเช็ค isActive ถ้าหน้าจอขนาดคอมพิวเตอร์ เพื่อให้กราฟทำงานได้เลยไม่ต้องรอกดแท็บ
                 if (!isActive && window.innerWidth < 1024) return;
 
                 const fetchHistory = async () => {
@@ -879,10 +871,9 @@
                     } catch(e) {}
                     fetchHistory();
                 }
-            }, [isActive, selectedMonth, refreshTrigger, lastFetchedMonth]);
+            }, [isActive, selectedMonth, refreshTrigger]);
 
-            // 🛠️ แก้บัคกราฟกระตุก: ใช้ useMemo ช่วยจำค่าไว้ ไม่ต้องเรนเดอร์ใหม่ตลอดเวลา
-            const { stats, daysInMonth, totalMonthCount, todayTotal, todayMorning, todayAfternoon, todayEvening } = React.useMemo(() => {
+            const getMonthlyStats = () => {
                 const year = parseInt(selectedMonth.split('-')[0]);
                 const month = parseInt(selectedMonth.split('-')[1]);
                 const daysInMonth = new Date(year, month, 0).getDate();
@@ -944,10 +935,14 @@
                     }
                 });
                 return { stats, daysInMonth, totalMonthCount, todayTotal, todayMorning, todayAfternoon, todayEvening };
-            }, [selectedMonth, monthHistoryData]);
+            };
+
+            const { stats, daysInMonth, totalMonthCount, todayTotal, todayMorning, todayAfternoon, todayEvening } = getMonthlyStats();
 
             useEffect(() => {
+                // 🛠️ ข้ามเช็ค isActive ถ้าหน้าจอขนาดคอมพิวเตอร์ เพื่อให้กราฟทำงานได้เลยบนหน้า Desktop
                 if ((!isActive && window.innerWidth < 1024) || !chartRef.current || !window.Chart) return;
+                
                 if (chartInstance.current) chartInstance.current.destroy();
                 
                 const ctx = chartRef.current.getContext('2d');
@@ -1104,8 +1099,8 @@
             };
 
             return (
-                // 🛠️ อัปเดต CSS layout ให้โชว์ใน Desktop ได้พร้อมกัน (hidden lg:block w-full)
-                <div className={`pt-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden lg:block'} w-full`}>
+                /* 🛠️ เปลี่ยนการจัดเรียงซ้ายขวา ให้รองรับ lg:block เพื่อโชว์บนคอม */
+                <div className={`pt-6 px-4 sm:px-6 lg:px-8 w-full max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden lg:block'} lg:flex-1 lg:max-w-none`}>
                     
                     <CustomAlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
 
@@ -1273,7 +1268,6 @@
             }
 
             return (
-                // 🛠️ อัปเดตโครงสร้าง App layout ให้รองรับ Desktop Flexbox ควบคู่กับ Mobile
                 <div className="min-h-screen pb-36 lg:pb-12 relative">
                     <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[100]">
                         <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="relative block btn-bouncy outline-none">
@@ -1304,8 +1298,8 @@
                         )}
                     </div>
 
-                    {/* 🛠️ เพิ่ม lg:flex สำหรับหน้าจอคอมพิวเตอร์ เพื่อให้ทั้ง 2 ส่วนอยู่หน้าเดียวกัน (ซ้าย-ขวา) */}
-                    <div className="lg:flex lg:flex-row lg:items-start lg:justify-center lg:gap-6 lg:max-w-[1600px] lg:mx-auto lg:px-4 lg:pt-10">
+                    {/* 🛠️ เพิ่ม lg:flex lg:flex-row เพื่อจับทั้ง 2 หน้าต่างเรียงซ้าย-ขวาบนจอคอมพิวเตอร์ */}
+                    <div className="lg:flex lg:flex-row lg:items-start lg:justify-center lg:gap-8 lg:max-w-[1600px] lg:mx-auto lg:px-4 lg:pt-6 w-full">
                         <ScannerTab 
                             isActive={activeTab === 'scan'} 
                             userProfile={userProfile} 
@@ -1318,7 +1312,7 @@
                         />
                     </div>
 
-                    {/* 🛠️ เพิ่ม lg:hidden เพื่อซ่อนเมนูสลับแท็บด้านล่างเมื่อเปิดบนคอมพิวเตอร์ */}
+                    {/* 🛠️ ซ่อนเมนูด้านล่างด้วย lg:hidden เฉพาะบนหน้าจอคอมพิวเตอร์ */}
                     <div className="fixed bottom-6 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)] flex justify-center px-6 pointer-events-none lg:hidden">
                         <div className="glass-card p-2 rounded-[3rem] flex w-full max-w-[360px] pointer-events-auto shadow-sm border-[2px] border-white/80 relative bg-white/60">
                             <button onClick={() => setActiveTab('scan')} className={`btn-bouncy flex-1 flex justify-center items-center h-16 rounded-[2.5rem] transition-all duration-300 z-10 ${activeTab === 'scan' ? 'bg-white shadow-sm text-indigo-600 glass-inner-border' : 'text-slate-500 hover:text-slate-700'}`}>
