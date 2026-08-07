@@ -20,7 +20,7 @@
         }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
@@ -31,6 +31,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
+    <!-- 🟢 เพิ่ม Firebase SDK ผ่าน CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 
@@ -47,9 +48,9 @@
             min-height: 100vh;
         }
 
-        /* 🟢 เพิ่ม CSS สำหรับรองรับ Dark Mode ใน Custom Classes */
+        /* 🟢 รองรับ Dark Mode ใน Custom CSS */
         .dark body {
-            background-color: #0f172a; /* slate-900 */
+            background-color: #0f172a;
         }
 
         .glass-card {
@@ -126,6 +127,7 @@
         const { useState, useEffect, useRef, useCallback } = React;
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYAYulOU-9KV7t4y08pz_GhicwWL2S9laTWsRkTqHvo5Fk_UIbGPF_EI0-kHzyY1P57A/exec';
 
+        // 🟢 ตั้งค่า Firebase ด้วย Config ของคุณ
         const firebaseConfig = {
             apiKey: "AIzaSyAbqUh6x0KiIL5rK3VhWc1ECE4R5X_gq2w",
             authDomain: "bill-pj.firebaseapp.com",
@@ -1219,7 +1221,7 @@
             const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0); 
             const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
             
-            // 🟢 State สำหรับจัดเก็บค่า Dark Mode
+            // 🟢 State เก็บค่าโหมดมืด
             const [isDarkMode, setIsDarkMode] = useState(false);
 
             const wakeLockRef = useRef(null);
@@ -1260,7 +1262,7 @@
                 };
             }, []);
 
-            // 🟢 โหลดค่า Dark Mode ตามบัญชี (เมื่อได้ userProfile แล้ว)
+            // 🟢 โหลดค่าโหมดมืดตามบัญชี
             useEffect(() => {
                 if (userProfile && userProfile.userId) {
                     try {
@@ -1320,7 +1322,7 @@
                                         <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">เข้าสู่ระบบโดย</p>
                                         <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{userProfile.displayName}</p>
                                     </div>
-
+                                    
                                     {/* 🟢 ปุ่มสลับโหมด Dark/Light ซ่อนในเมนูโปรไฟล์ */}
                                     <button 
                                         onClick={() => {
