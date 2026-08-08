@@ -35,6 +35,7 @@
             -webkit-tap-highlight-color: transparent; 
             margin: 0;
             padding-bottom: env(safe-area-inset-bottom);
+            /* ปรับลดความสว่างของพื้นหลัง ให้สบายตาขึ้น */
             background-color: #cbd5e1;
             min-height: 100vh;
         }
@@ -43,11 +44,13 @@
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
+            /* ปรับกรอบให้ชัดเจนขึ้นด้วยสีเทาโปร่งแสง */
             border: 2px solid rgba(100, 116, 139, 0.4);
             box-shadow: 0 10px 30px -5px rgba(31, 38, 135, 0.15);
         }
 
         .glass-inner-border {
+            /* ปรับกรอบให้ชัดเจนขึ้นด้วยสีเทาโปร่งแสง */
             border: 1px solid rgba(100, 116, 139, 0.3);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
@@ -55,6 +58,7 @@
         .glass-input {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(4px);
+            /* ปรับกรอบให้ชัดเจนขึ้นด้วยสีเทาโปร่งแสง */
             border: 1px solid rgba(100, 116, 139, 0.4);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
@@ -63,7 +67,7 @@
             border-color: #a18cd1;
         }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(161, 140, 209, 0.5); border-radius: 20px; }
         
@@ -94,6 +98,7 @@
         const { useState, useEffect, useRef, useCallback } = React;
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYAYulOU-9KV7t4y08pz_GhicwWL2S9laTWsRkTqHvo5Fk_UIbGPF_EI0-kHzyY1P57A/exec';
 
+        // 🟢 ตั้งค่า Firebase ด้วย Config ของคุณ
         const firebaseConfig = {
             apiKey: "AIzaSyAbqUh6x0KiIL5rK3VhWc1ECE4R5X_gq2w",
             authDomain: "bill-pj.firebaseapp.com",
@@ -127,6 +132,7 @@
             );
         };
 
+        // 🟢 ฟังก์ชันป้องกันบั้ก Timezone ของ Safari (Parse Date อย่างปลอดภัย)
         const parseDateSafe = (dateString) => {
             if (!dateString) return new Date();
             if (dateString.includes('-')) {
@@ -181,6 +187,7 @@
             } catch (e) {}
         };
 
+        // 🟢 อัปเกรดระบบ Copy ให้รองรับอุปกรณ์ใหม่ๆ และมี Fallback
         const handleCopyTextGlobal = async (text, onSuccess, onError) => {
             if (navigator.clipboard && window.isSecureContext) {
                 try {
@@ -191,6 +198,8 @@
                     console.warn("Clipboard API failed, falling back to execCommand");
                 }
             }
+            
+            // Fallback for older browsers
             const textArea = document.createElement("textarea");
             textArea.value = text;
             textArea.style.position = "fixed"; 
@@ -296,6 +305,7 @@
                             const uppercaseCodes = json.data.map(code => String(code).trim().toUpperCase());
                             setAllSentCodesCache(new Set(uppercaseCodes));
                             try { 
+                                // ป้องกัน LocalStorage ขยะล้น โดยเก็บแค่ 10,000 รายการล่าสุด
                                 const slicedCache = uppercaseCodes.slice(-10000); 
                                 localStorage.setItem('all_sent_codes_backup', JSON.stringify(slicedCache)); 
                             } catch(e) {}
@@ -355,6 +365,7 @@
                 const isLineApp = navigator.userAgent.indexOf("Line") > -1;
                 if (isLineApp) setAlertMsg("ตรวจพบการใช้งานผ่านแอป LINE\nกรุณากดไอคอน '3 จุด' แล้วเลือก 'เปิดใน Safari / Browser'");
 
+                // 🟢 ปลดล็อก Audio Policy บน iOS ตอนผู้ใช้กดปุ่มเปิดกล้อง
                 try {
                     const tempCtx = new (window.AudioContext || window.webkitAudioContext)();
                     tempCtx.resume();
@@ -459,6 +470,7 @@
                 let finalCode = editIsFactory ? `${baseCode}(รับโรงตัด)` : baseCode;
                 if (editIsUpcountry) finalCode += '(ตจว.)';
                 
+                // 🟢 แก้บั้กแก้ไขบิลทะลุการตรวจสอบฐานข้อมูล
                 const upperFinalCode = finalCode.toUpperCase();
                 const isDuplicateInCart = newItems.some((item, idx) => idx !== editingIndex && String(item.code).trim().toUpperCase() === upperFinalCode);
                 const isDuplicateInHistory = allSentCodesCacheRef.current.has(upperFinalCode);
@@ -545,6 +557,7 @@
             };
 
             return (
+                /* 🛠️ เปลี่ยนการจัดเรียงซ้ายขวา ให้รองรับ lg:block เพื่อโชว์บนคอม */
                 <div className={`pt-6 px-4 sm:px-6 lg:px-8 w-full max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden lg:block'} lg:flex-1 lg:max-w-none`}>
                     <CustomAlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
 
@@ -678,6 +691,7 @@
                         </div>
                     )}
 
+                    {/* 🛠️ เปลี่ยน grid เป็น flex-col เพื่อให้ตะกร้าอยู่ล่างสแกน */}
                     <div className="flex flex-col gap-8 w-full">
                         <div className="space-y-6 w-full">
                             
@@ -733,6 +747,7 @@
                             </div>
                         </div>
 
+                        {/* 🛠️ เปลี่ยน col-span-5 เป็น w-full เรียงอยู่ด้านล่างสแกนบิล */}
                         <div className="flex flex-col w-full">
                             <div className="flex flex-col glass-card rounded-[3rem] p-3 shadow-sm h-full">
                                 {isSaving && <div className="absolute inset-0 bg-white/80 backdrop-blur-md z-50 flex flex-col items-center justify-center rounded-[3rem]"><div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin mb-4"></div><span className="font-semibold text-emerald-600 text-base">กำลังส่งข้อมูล...</span></div>}
@@ -822,57 +837,11 @@
             const [lineMessageToCopy, setLineMessageToCopy] = useState('');
             const [lastFetchedMonth, setLastFetchedMonth] = useState(null);
 
-            // 🟢 State สำหรับกราฟโหมดรายเดือน
-            const [chartMode, setChartMode] = useState('daily'); 
-            const [yearlyData, setYearlyData] = useState(Array(12).fill(0));
-            const [isLoadingYearly, setIsLoadingYearly] = useState(false);
-
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
 
-            // 🟢 ฟังก์ชันดึงข้อมูลกราฟรายเดือน (เพิ่มใหม่ ไม่กระทบฟังก์ชันเดิม)
-            const fetchYearlyData = async (year) => {
-                setIsLoadingYearly(true);
-                const cacheKey = `yearly_data_${year}`;
-                try {
-                    const cached = localStorage.getItem(cacheKey);
-                    if (cached) { setYearlyData(JSON.parse(cached)); }
-                    
-                    const promises = Array.from({length: 12}, (_, i) => {
-                        const monthStr = `${year}-${String(i + 1).padStart(2, '0')}`;
-                        return fetch(`${GOOGLE_SCRIPT_URL}?action=getHistory&month=${monthStr}`).then(r => r.text());
-                    });
-
-                    const results = await Promise.all(promises);
-                    const newYearlyData = results.map(text => {
-                        if (text.trim().startsWith('<')) return 0;
-                        try {
-                            const json = JSON.parse(text);
-                            if (json.status === 'success' && json.data) {
-                                return json.data.reduce((sum, item) => sum + (Number(item.count) || 0), 0);
-                            }
-                        } catch(e) {}
-                        return 0;
-                    });
-                    
-                    setYearlyData(newYearlyData);
-                    localStorage.setItem(cacheKey, JSON.stringify(newYearlyData));
-                } catch (error) {
-                    console.error(error);
-                } finally {
-                    setIsLoadingYearly(false);
-                }
-            };
-
             useEffect(() => {
-                if (chartMode === 'monthly' && isActive) {
-                    const year = selectedMonth.split('-')[0];
-                    fetchYearlyData(year);
-                }
-            }, [chartMode, selectedMonth, isActive, refreshTrigger]);
-
-            // ฟังก์ชันเดิมทำงานปกติ 100%
-            useEffect(() => {
+                // 🛠️ ข้ามเช็ค isActive ถ้าหน้าจอขนาดคอมพิวเตอร์ เพื่อให้กราฟทำงานได้เลยไม่ต้องรอกดแท็บ
                 if (!isActive && window.innerWidth < 1024) return;
 
                 const fetchHistory = async () => {
@@ -974,22 +943,15 @@
 
             const { stats, daysInMonth, totalMonthCount, todayTotal, todayMorning, todayAfternoon, todayEvening } = getMonthlyStats();
 
-            // 🟢 วาดกราฟ 2 โหมด (เพิ่มเงื่อนไขแสดงผล ไม่กระทบของเดิม)
             useEffect(() => {
+                // 🛠️ ข้ามเช็ค isActive ถ้าหน้าจอขนาดคอมพิวเตอร์ เพื่อให้กราฟทำงานได้เลยบนหน้า Desktop
                 if ((!isActive && window.innerWidth < 1024) || !chartRef.current || !window.Chart) return;
                 
                 if (chartInstance.current) chartInstance.current.destroy();
                 
                 const ctx = chartRef.current.getContext('2d');
-                
-                let labels, dataTotals;
-                if (chartMode === 'daily') {
-                    labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
-                    dataTotals = stats.map(d => d.total);
-                } else {
-                    labels = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-                    dataTotals = yearlyData;
-                }
+                const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
+                const dataTotals = stats.map(d => d.total);
 
                 const gradient = ctx.createLinearGradient(0, 0, 0, 400);
                 gradient.addColorStop(0, 'rgba(161, 140, 209, 1)');   
@@ -1000,9 +962,8 @@
                     data: { labels: labels, datasets: [{ label: 'รวมเที่ยวส่ง', data: dataTotals, backgroundColor: gradient, borderRadius: 12, borderSkipped: false }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: {family: "'Prompt', sans-serif"} }, grid: { borderDash: [5, 5], color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false }, ticks: { font: {family: "'Prompt', sans-serif", weight: 'bold'} } } }, animation: { duration: 1500, easing: 'easeOutQuart' } }
                 });
-            }, [stats, isActive, daysInMonth, chartMode, yearlyData]);
+            }, [stats, isActive, daysInMonth]);
 
-            // ฟังก์ชันเดิมทำงานปกติ 100%
             const handleExportExcel = async () => {
                 if (!window.ExcelJS) { setAlertMsg('ระบบสร้างไฟล์กำลังโหลด...'); return; }
                 setIsExporting(true);
@@ -1141,7 +1102,16 @@
                 setLastFetchedMonth(null); 
             };
 
+            // 🟢 เพิ่มฟังก์ชันสำหรับแปลงรูปแบบเดือนเป็นภาษาไทย
+            const formatMonthYearThai = (monthStr) => {
+                if (!monthStr) return '';
+                const [year, month] = monthStr.split('-');
+                const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+                return `${thaiMonths[parseInt(month, 10) - 1]} ${parseInt(year, 10) + 543}`;
+            };
+
             return (
+                /* 🛠️ เปลี่ยนการจัดเรียงซ้ายขวา ให้รองรับ lg:block เพื่อโชว์บนคอม */
                 <div className={`pt-6 px-4 sm:px-6 lg:px-8 w-full max-w-4xl mx-auto space-y-6 ${isActive ? 'block' : 'hidden lg:block'} lg:flex-1 lg:max-w-none`}>
                     
                     <CustomAlertModal message={alertMsg} onClose={() => setAlertMsg(null)} />
@@ -1164,76 +1134,6 @@
                         </div>
                     )}
 
-                    {/* 🟢 1. จัดเรียงอันดับแรก: กล่องเลือกเดือน + กล่องยอดรวมสีม่วง */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center glass-card px-8 py-6 rounded-[3rem] shadow-sm gap-6">
-                        <div className="flex items-center gap-4 w-full sm:w-auto">
-                            <div className="bg-white/80 p-4 rounded-[1.5rem] text-purple-500 shadow-inner glass-inner-border"><i className="fa-regular fa-calendar-days text-2xl"></i></div>
-                            <div className="flex-1">
-                                <label className="text-xs font-semibold text-slate-500 tracking-wider">เลือกเดือนที่ต้องการ</label>
-                                <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-xl font-bold text-slate-800 outline-none w-full mt-1" />
-                            </div>
-                        </div>
-                        <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} className="btn-bouncy w-full sm:w-auto flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-400 to-teal-400 text-white px-8 py-4 rounded-[2rem] font-bold text-lg shadow-sm glass-inner-border">
-                            {isExporting ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-file-excel"></i>} โหลดไฟล์ Excel
-                        </button>
-                    </div>
-
-                    <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[3rem] p-10 text-white flex justify-between items-center shadow-sm glass-inner-border">
-                        <div className="absolute top-[-50%] left-[-20%] w-[150%] h-[200%] bg-white/10 rotate-12 pointer-events-none"></div>
-                        <div className="relative z-10">
-                            <h3 className="text-white/90 text-sm font-semibold uppercase tracking-widest mb-3">รวมยอดส่งบิลเดือนนี้</h3>
-                            <div className="flex items-baseline gap-4">
-                                <span className="text-6xl font-bold drop-shadow-lg">{totalMonthCount}</span>
-                                <span className="text-white/90 font-semibold text-2xl">เที่ยว</span>
-                            </div>
-                        </div>
-                        <button onClick={forceRefresh} className="btn-bouncy relative z-10 bg-white/20 backdrop-blur-md p-5 rounded-full border border-white/40 shadow-sm hover:bg-white/30"><i className={`fa-solid fa-rotate-right text-2xl ${isLoadingHistory ? 'animate-spin' : ''}`}></i></button>
-                    </div>
-
-                    {/* 🟢 2. จัดเรียงอันดับสอง: กล่องกราฟที่สามารถเลื่อนได้และเปลี่ยนโหมดได้ */}
-                    <div className="glass-card rounded-[3rem] overflow-hidden shadow-sm relative">
-                        <div className="px-5 sm:px-8 py-5 border-b border-white/50 bg-white/30 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-3"><i className="fa-solid fa-chart-line text-purple-500 text-xl"></i> กราฟจำนวนเที่ยว</h3>
-                            <div className="flex bg-white/60 p-1.5 rounded-[1.5rem] border border-white/80 shadow-inner w-full sm:w-auto">
-                                <button onClick={() => setChartMode('daily')} className={`btn-bouncy flex-1 sm:flex-none px-6 py-2 text-sm font-bold rounded-[1rem] transition-all ${chartMode === 'daily' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>รายวัน</button>
-                                <button onClick={() => setChartMode('monthly')} className={`btn-bouncy flex-1 sm:flex-none px-6 py-2 text-sm font-bold rounded-[1rem] transition-all ${chartMode === 'monthly' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>รวมทุกเดือน</button>
-                            </div>
-                        </div>
-                        
-                        {/* 🟢 ครอบ div นี้เพื่อให้มือถือเลื่อนซ้ายขวาได้ */}
-                        <div className="p-4 sm:p-8 bg-transparent overflow-x-auto custom-scrollbar relative">
-                            {/* Loading State สำหรับตอนดึงกราฟรายเดือน */}
-                            {isLoadingYearly && chartMode === 'monthly' && (
-                                <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-sm flex items-center justify-center rounded-[2rem]">
-                                    <div className="flex flex-col items-center">
-                                        <i className="fa-solid fa-circle-notch animate-spin text-4xl text-indigo-500 mb-2"></i>
-                                        <span className="text-sm font-bold text-indigo-700">กำลังดึงข้อมูล...</span>
-                                    </div>
-                                </div>
-                            )}
-                            <div className="w-full min-w-[600px] h-72 relative">
-                                <canvas ref={chartRef}></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* 🟢 3. จัดเรียงอันดับสาม: สถิติ 4 ช่อง */}
-                    <div className="grid grid-cols-4 gap-3 sm:gap-4">
-                        <div className="glass-card rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-[11px] sm:text-xs font-semibold text-slate-500 mb-2">รวมวันนี้</span><span className="text-3xl sm:text-4xl font-bold text-slate-800">{todayTotal}</span>
-                        </div>
-                        <div className="bg-gradient-to-b from-orange-100/80 to-white/60 backdrop-blur-md border border-white/60 rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-[11px] sm:text-xs font-semibold text-orange-600 mb-2">ก่อนเที่ยง</span><span className="text-3xl sm:text-4xl font-bold text-orange-700">{todayMorning}</span>
-                        </div>
-                        <div className="bg-gradient-to-b from-amber-100/80 to-white/60 backdrop-blur-md border border-white/60 rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-[11px] sm:text-xs font-semibold text-amber-600 mb-2">รอบบ่าย</span><span className="text-3xl sm:text-4xl font-bold text-amber-700">{todayAfternoon}</span>
-                        </div>
-                        <div className="bg-gradient-to-b from-indigo-100/80 to-white/60 backdrop-blur-md border border-white/60 rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-[11px] sm:text-xs font-semibold text-indigo-600 mb-2">หลัง 18.00</span><span className="text-3xl sm:text-4xl font-bold text-indigo-700">{todayEvening}</span>
-                        </div>
-                    </div>
-
-                    {/* 🟢 4. จัดเรียงล่างสุด: เลือกวันที่ดึงสรุปยอด */}
                     <div className="flex flex-col sm:flex-row items-center justify-between glass-card p-3 sm:pl-6 rounded-[2.5rem] shadow-sm gap-3">
                         <div className="flex items-center gap-4 w-full sm:w-auto">
                             <div className="bg-white/80 p-3 rounded-[1.5rem] text-indigo-500 shadow-inner shrink-0 glass-inner-border">
@@ -1249,6 +1149,71 @@
                         </button>
                     </div>
 
+                    {/* 🛠️ เริ่มต้นกล่องใหม่: รวมส่วนเลือกเดือนและสรุปยอด (รวมเป็นกล่องเดียวกัน) */}
+                    <div className="glass-card p-4 sm:p-5 rounded-[3rem] shadow-sm flex flex-col gap-4">
+                        {/* ส่วนบน: เลือกเดือน */}
+                        <div className="flex items-center gap-4 px-4 sm:px-6">
+                            <div className="bg-white/80 p-4 rounded-[1.5rem] text-purple-500 shadow-inner glass-inner-border">
+                                <i className="fa-regular fa-calendar-days text-2xl"></i>
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-xs font-semibold text-slate-500 tracking-wider">เลือกเดือนที่ต้องการ</label>
+                                <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-xl font-bold text-slate-800 outline-none w-full mt-1" />
+                            </div>
+                        </div>
+
+                        {/* ส่วนล่าง: ยอดรวม + ปุ่มต่างๆ */}
+                        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[2.5rem] p-8 sm:p-10 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-sm glass-inner-border gap-6 sm:gap-0">
+                            <div className="absolute top-[-50%] left-[-20%] w-[150%] h-[200%] bg-white/10 rotate-12 pointer-events-none"></div>
+                            
+                            <div className="relative z-10">
+                                {/* แสดงข้อความ รวมยอดส่งบิลเดือน นั้นๆ */}
+                                <h3 className="text-white/90 text-sm font-semibold uppercase tracking-widest mb-3">
+                                    รวมยอดส่งบิลเดือน {formatMonthYearThai(selectedMonth)}
+                                </h3>
+                                <div className="flex items-baseline gap-4">
+                                    <span className="text-6xl font-bold drop-shadow-lg">{totalMonthCount}</span>
+                                    <span className="text-white/90 font-semibold text-2xl">เที่ยว</span>
+                                </div>
+                            </div>
+                            
+                            <div className="relative z-10 flex gap-3 w-full sm:w-auto justify-end">
+                                {/* ปุ่มไอคอนดาวน์โหลด Excel */}
+                                <button onClick={handleExportExcel} disabled={isLoadingHistory || isExporting} className="btn-bouncy bg-white/20 backdrop-blur-md w-16 h-16 flex items-center justify-center rounded-full border border-white/40 shadow-sm hover:bg-white/30 text-emerald-100" title="โหลดไฟล์ Excel">
+                                    {isExporting ? <i className="fa-solid fa-circle-notch animate-spin text-2xl"></i> : <i className="fa-solid fa-file-excel text-2xl"></i>}
+                                </button>
+                                {/* ปุ่มไอคอนรีเฟรชยอด */}
+                                <button onClick={forceRefresh} className="btn-bouncy bg-white/20 backdrop-blur-md w-16 h-16 flex items-center justify-center rounded-full border border-white/40 shadow-sm hover:bg-white/30 text-white" title="รีเฟรชข้อมูล">
+                                    <i className={`fa-solid fa-rotate-right text-2xl ${isLoadingHistory ? 'animate-spin' : ''}`}></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {/* 🛠️ สิ้นสุดกล่องใหม่ */}
+                    
+                    <div className="grid grid-cols-4 gap-3 sm:gap-4">
+                        <div className="glass-card rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-semibold text-slate-500 mb-2">รวมวันนี้</span><span className="text-3xl sm:text-4xl font-bold text-slate-800">{todayTotal}</span>
+                        </div>
+                        <div className="bg-gradient-to-b from-orange-100/80 to-white/60 backdrop-blur-md border border-white/60 rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-semibold text-orange-600 mb-2">ก่อนเที่ยง</span><span className="text-3xl sm:text-4xl font-bold text-orange-700">{todayMorning}</span>
+                        </div>
+                        <div className="bg-gradient-to-b from-amber-100/80 to-white/60 backdrop-blur-md border border-white/60 rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-semibold text-amber-600 mb-2">รอบบ่าย</span><span className="text-3xl sm:text-4xl font-bold text-amber-700">{todayAfternoon}</span>
+                        </div>
+                        <div className="bg-gradient-to-b from-indigo-100/80 to-white/60 backdrop-blur-md border border-white/60 rounded-[2rem] p-5 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-semibold text-indigo-600 mb-2">หลัง 18.00</span><span className="text-3xl sm:text-4xl font-bold text-indigo-700">{todayEvening}</span>
+                        </div>
+                    </div>
+
+                    <div className="glass-card rounded-[3rem] overflow-hidden shadow-sm">
+                        <div className="px-8 py-6 border-b border-white/50 bg-white/30"><h3 className="text-lg font-bold text-slate-800 flex items-center gap-3"><i className="fa-solid fa-chart-line text-purple-500 text-xl"></i> กราฟจำนวนเที่ยวรายวัน</h3></div>
+                        <div className="p-8 bg-transparent">
+                            <div className="w-full h-72 relative">
+                                <canvas ref={chartRef}></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -1362,6 +1327,7 @@
                         )}
                     </div>
 
+                    {/* 🛠️ เพิ่ม lg:flex lg:flex-row เพื่อจับทั้ง 2 หน้าต่างเรียงซ้าย-ขวาบนจอคอมพิวเตอร์ */}
                     <div className="lg:flex lg:flex-row lg:items-start lg:justify-center lg:gap-8 lg:max-w-[1600px] lg:mx-auto lg:px-4 lg:pt-6 w-full">
                         <ScannerTab 
                             isActive={activeTab === 'scan'} 
@@ -1375,6 +1341,7 @@
                         />
                     </div>
 
+                    {/* 🛠️ ซ่อนเมนูด้านล่างด้วย lg:hidden เฉพาะบนหน้าจอคอมพิวเตอร์ */}
                     <div className="fixed bottom-6 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)] flex justify-center px-6 pointer-events-none lg:hidden">
                         <div className="glass-card p-2 rounded-[3rem] flex w-full max-w-[360px] pointer-events-auto shadow-sm border-[2px] border-white/80 relative bg-white/60">
                             <button onClick={() => setActiveTab('scan')} className={`btn-bouncy flex-1 flex justify-center items-center h-16 rounded-[2.5rem] transition-all duration-300 z-10 ${activeTab === 'scan' ? 'bg-white shadow-sm text-indigo-600 glass-inner-border' : 'text-slate-500 hover:text-slate-700'}`}>
