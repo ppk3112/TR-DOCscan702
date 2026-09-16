@@ -22,7 +22,6 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-    <!-- 🟢 เพิ่ม Firebase SDK ผ่าน CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 
@@ -38,7 +37,6 @@
             background-color: #cbd5e1;
             min-height: 100vh;
         }
-
         .glass-card {
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(8px);
@@ -46,12 +44,10 @@
             border: 2px solid rgba(100, 116, 139, 0.4);
             box-shadow: 0 10px 30px -5px rgba(31, 38, 135, 0.15);
         }
-
         .glass-inner-border {
             border: 1px solid rgba(100, 116, 139, 0.3);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
-
         .glass-input {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(4px);
@@ -62,17 +58,11 @@
             background: rgba(255, 255, 255, 1);
             border-color: #a18cd1;
         }
-
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(161, 140, 209, 0.5); border-radius: 20px; }
-        
-        .btn-bouncy {
-            transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        .btn-bouncy:active {
-            transform: scale(0.96);
-        }
+        .btn-bouncy { transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .btn-bouncy:active { transform: scale(0.96); }
     </style>
 </head>
 <body class="text-slate-800">
@@ -92,7 +82,8 @@
         });
 
         const { useState, useEffect, useRef, useCallback } = React;
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbykjiAB1oekKMTmWcWDFrzbXLFPXyB6X4udrYfpj8RWadDgnXOCFe-zhrX1f74UkDixhA/exec';
+        // 🟢 เปลี่ยน URL เป็นเวอร์ชันล่าสุดที่ได้รับมา
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrhlCP0T5T5GJJ4ksg0wx8HQFeSQese0d9RKkXjb5IGmiK6hkSBVLG4cwGocZmqjdo6Q/exec';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAbqUh6x0KiIL5rK3VhWc1ECE4R5X_gq2w",
@@ -208,6 +199,12 @@
             document.body.removeChild(textArea);
         };
 
+        // 🟢 [แก้ไขบั๊ก 2]: ฟังก์ชันกลางสำหรับแยกตัดพวก (รับโรงตัด) ออกจากเลขบิล
+        const extractBaseCode = (code) => {
+            if (!code) return '';
+            return String(code).replace(/\(รับโรงตัด\)/g, '').replace(/\(อัครา\)/g, '').replace(/\(ตจว\.\)/g, '').replace(/ \[.*?\]/g, '').trim().toUpperCase();
+        };
+
         const ScannerTab = ({ isActive, userProfile, onSaveSuccess }) => {
             const [currentItems, setCurrentItems] = useState([]);
             
@@ -240,7 +237,7 @@
             
             const [editingIndex, setEditingIndex] = useState(null);
             const [editDueDate, setEditDueDate] = useState('');
-            const [editType, setEditType] = useState('DC'); // 🟢 เปลี่ยนจาก boolean เป็น string ('DC', 'FACTORY', 'AKARA')
+            const [editType, setEditType] = useState('DC'); 
             const [editIsUpcountry, setEditIsUpcountry] = useState(false); 
             const [editRemark, setEditRemark] = useState(''); 
 
@@ -256,12 +253,18 @@
             const allSentCodesCacheRef = useRef(allSentCodesCache);
             const showUrgencyModalRef = useRef(false);
 
+            // 🟢 [แก้ไขบั๊ก 1]: สร้าง Ref ไว้เก็บสถานะกล้องเพื่อใช้ปิดได้อย่างสมบูรณ์
+            const isScanningRef = useRef(isScanning);
+
             useEffect(() => { dueDateRef.current = dueDate; }, [dueDate]);
             useEffect(() => { deliveryTypeRef.current = deliveryType; }, [deliveryType]);
             useEffect(() => { deliveryZoneRef.current = deliveryZone; }, [deliveryZone]);
             useEffect(() => { currentItemsRef.current = currentItems; }, [currentItems]);
             useEffect(() => { allSentCodesCacheRef.current = allSentCodesCache; }, [allSentCodesCache]);
             useEffect(() => { showUrgencyModalRef.current = showUrgencyModal; }, [showUrgencyModal]);
+            
+            // 🟢 [แก้ไขบั๊ก 1]: อัปเดต Ref ทุกครั้งที่ state เปลี่ยน
+            useEffect(() => { isScanningRef.current = isScanning; }, [isScanning]);
 
             const updateCartInFirebase = (newItems) => {
                 if (userProfile && userProfile.userId) {
@@ -304,12 +307,15 @@
                     } catch (e) {}
                 };
                 fetchAllCodes();
-                return () => { if (html5QrCodeRef.current && isScanning) html5QrCodeRef.current.stop().catch(() => {}); }
+                // 🟢 [แก้ไขบั๊ก 1]: ใช้ isScanningRef แทน State ธรรมดา เพื่อให้แน่ใจว่ากล้องปิดจริงตอน Unmount
+                return () => { if (html5QrCodeRef.current && isScanningRef.current) html5QrCodeRef.current.stop().catch(() => {}); }
             }, []);
 
             const checkDuplicate = useCallback((code) => {
-                const cleanCode = String(code).trim().toUpperCase(); 
-                if (currentItemsRef.current.some(item => String(item.code).trim().toUpperCase() === cleanCode)) {
+                // 🟢 [แก้ไขบั๊ก 2]: ใช้ extractBaseCode ดึงเฉพาะตัวเลขมาเช็ค ป้องกันหลุดรอดจาก (รับโรงตัด), (อัครา)
+                const cleanCode = extractBaseCode(code);
+                
+                if (currentItemsRef.current.some(item => extractBaseCode(item.code) === cleanCode)) {
                     playDuplicateVoice();
                     setDuplicateWarning(`บิล ${cleanCode} สแกนไปแล้วในตะกร้า!`);
                     setTimeout(() => setDuplicateWarning(null), 5000); 
@@ -393,7 +399,6 @@
                                     return;
                                 }
 
-                                // 🟢 เพิ่มเงื่อนไขการต่อท้ายคำว่า (อัครา)
                                 let finalCode = rawCode;
                                 if (deliveryTypeRef.current === 'FACTORY') finalCode += '(รับโรงตัด)';
                                 else if (deliveryTypeRef.current === 'AKARA') finalCode += '(อัครา)';
@@ -450,7 +455,6 @@
                     val = `${yy}${mm}00${val}`; 
                 }
 
-                // 🟢 เพิ่มเงื่อนไขการต่อท้ายคำว่า (อัครา)
                 let finalCode = val;
                 if (deliveryType === 'FACTORY') finalCode += '(รับโรงตัด)';
                 else if (deliveryType === 'AKARA') finalCode += '(อัครา)';
@@ -463,8 +467,9 @@
             const saveEditItem = () => {
                 if (editingIndex === null) return;
                 const newItems = [...currentItemsRef.current];
-                // 🟢 ลบคำลงท้ายออกให้หมดก่อน แล้วค่อยจัดการประกอบใหม่
-                let baseCode = newItems[editingIndex].code.replace('(รับโรงตัด)', '').replace('(อัครา)', '').replace('(ตจว.)', '').trim();
+                
+                // 🟢 [แก้ไขบั๊ก 2]: ตอนแก้ไขก็ต้องใช้ extractBaseCode 
+                let baseCode = extractBaseCode(newItems[editingIndex].code);
                 
                 let finalCode = baseCode;
                 if (editType === 'FACTORY') finalCode += '(รับโรงตัด)';
@@ -472,13 +477,13 @@
 
                 if (editIsUpcountry) finalCode += '(ตจว.)';
                 
-                const upperFinalCode = finalCode.toUpperCase();
-                const isDuplicateInCart = newItems.some((item, idx) => idx !== editingIndex && String(item.code).trim().toUpperCase() === upperFinalCode);
+                const upperFinalCode = extractBaseCode(finalCode);
+                const isDuplicateInCart = newItems.some((item, idx) => idx !== editingIndex && extractBaseCode(item.code) === upperFinalCode);
                 const isDuplicateInHistory = allSentCodesCacheRef.current.has(upperFinalCode);
                 
                 if (isDuplicateInCart || isDuplicateInHistory) { 
                     playDuplicateVoice();
-                    setDuplicateWarning(`แก้ไขไม่ได้! บิลนี้ซ้ำกับในระบบหรือในตะกร้าแล้ว`);
+                    setDuplicateWarning(`แก้ไขไม่ได้! บิล ${upperFinalCode} ซ้ำกับในระบบหรือในตะกร้าแล้ว`);
                     setTimeout(() => setDuplicateWarning(null), 5000); 
                     return; 
                 }
@@ -512,7 +517,7 @@
                     });
 
                     const text = await response.text();
-                    if (text.trim().startsWith('<')) { setAlertMsg("เซิร์ฟเวอร์ตอบกลับผิดพลาด (URL อาจหมดอายุ)"); setIsSaving(false); return; }
+                    if (text.trim().startsWith('<')) { setAlertMsg("เซิร์ฟเวอร์ตอบกลับผิดพลาด (URL อาจหมดอายุ หรือ ต้อง Deploy ใหม่)"); setIsSaving(false); return; }
 
                     const result = JSON.parse(text);
                     if (result.status === 'error') {
@@ -542,7 +547,8 @@
                     onSaveSuccess();
                     
                     const newCodesSet = new Set(allSentCodesCache);
-                    newBatch.items.forEach(item => newCodesSet.add(item.code.trim().toUpperCase()));
+                    // 🟢 [แก้ไขบั๊ก 2]: เก็บ History แบบดึงเฉพาะ Base Code เท่านั้น
+                    newBatch.items.forEach(item => newCodesSet.add(extractBaseCode(item.code)));
                     setAllSentCodesCache(newCodesSet);
                     try {
                         const updatedArray = Array.from(newCodesSet).slice(-10000);
@@ -650,7 +656,6 @@
                                     <div>
                                         <label className="text-sm font-semibold text-slate-600 mb-1.5 block ml-2">ประเภทการรับ</label>
                                         <div className="flex bg-slate-50 p-2 rounded-[2rem] gap-2 border border-slate-200">
-                                            {/* 🟢 แบ่งเป็น 3 ปุ่มเพื่อเลือก DC, โรงตัด หรือ อัครา ในหน้าแก้ไข */}
                                             <button type="button" onClick={() => setEditType('DC')} className={`btn-bouncy flex-1 py-3 text-xs sm:text-sm font-semibold rounded-[1.5rem] flex items-center justify-center ${editType === 'DC' ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-sm' : 'text-slate-500'}`}><i className="fa-solid fa-warehouse mr-1 sm:mr-2"></i> DC</button>
                                             <button type="button" onClick={() => setEditType('FACTORY')} className={`btn-bouncy flex-1 py-3 text-xs sm:text-sm font-semibold rounded-[1.5rem] flex items-center justify-center ${editType === 'FACTORY' ? 'bg-gradient-to-r from-orange-400 to-rose-400 text-white shadow-sm' : 'text-slate-500'}`}><i className="fa-solid fa-scissors mr-1 sm:mr-2"></i> โรงตัด</button>
                                             <button type="button" onClick={() => setEditType('AKARA')} className={`btn-bouncy flex-1 py-3 text-xs sm:text-sm font-semibold rounded-[1.5rem] flex items-center justify-center ${editType === 'AKARA' ? 'bg-gradient-to-r from-purple-400 to-indigo-500 text-white shadow-sm' : 'text-slate-500'}`}><i className="fa-regular fa-building mr-1 sm:mr-2"></i> อัครา</button>
@@ -723,7 +728,6 @@
 
                                 <div className="mb-4 relative">
                                     <div className="flex glass-input p-2 rounded-[2rem] gap-2">
-                                        {/* 🟢 แบ่งเป็น 3 ปุ่มเพื่อเลือก DC, โรงตัด หรือ อัครา ในหน้าสแกนหลัก */}
                                         <button onClick={() => handleTypeToggle('DC')} className={`btn-bouncy flex-1 py-3 sm:py-4 font-semibold rounded-[1.5rem] flex justify-center items-center text-xs sm:text-sm ${deliveryType === 'DC' ? 'bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-sm glass-inner-border' : 'text-slate-500'}`}>
                                             <i className="fa-solid fa-warehouse mr-1 sm:mr-2"></i> DC {deliveryType === 'DC' && deliveryZone === 'UPCOUNTRY' && '(ตจว.)'}
                                             {deliveryType === 'DC' && <i className={`fa-solid fa-chevron-down ml-1 sm:ml-2 text-[10px] transition-transform ${showZoneDropdown ? 'rotate-180' : ''}`}></i>}
@@ -774,17 +778,14 @@
                                     ) : (
                                         currentItems.map((item, index) => {
                                             const isUrgent = checkIsUrgent(item.dueDate);
-                                            // 🟢 ตรวจสอบคำที่ต่อท้าย เพื่อกำหนดสี
                                             const isFactory = item.code.includes('(รับโรงตัด)');
                                             const isAkara = item.code.includes('(อัครา)');
                                             const isUpcountry = item.code.includes('(ตจว.)');
                                             
-                                            // 🟢 ตั้งค่าสีแยกตามประเภท
-                                            let textColorClass = 'text-slate-700'; // สีเริ่มต้นสำหรับ DC
+                                            let textColorClass = 'text-slate-700'; 
                                             if (isFactory) textColorClass = 'text-orange-600';
-                                            else if (isAkara) textColorClass = 'text-purple-600'; // อัคราสีม่วง
+                                            else if (isAkara) textColorClass = 'text-purple-600'; 
 
-                                            // 🟢 ตั้งค่าโหมดเพื่อโยนเข้าหน้าต่าง Edit
                                             let currentType = 'DC';
                                             if (isFactory) currentType = 'FACTORY';
                                             else if (isAkara) currentType = 'AKARA';
@@ -807,7 +808,6 @@
                                                         </span>
                                                     </div>
                                                     <div className="flex gap-2 items-center shrink-0">
-                                                        {/* 🟢 ส่งสถานะปัจจุบันเข้าไปให้ตัวแปร Edit */}
                                                         <button onClick={() => { setEditingIndex(index); setEditDueDate(item.dueDate); setEditType(currentType); setEditIsUpcountry(isUpcountry); setEditRemark(item.remark || ''); }} className="btn-bouncy text-slate-500 w-11 h-11 bg-white border border-slate-200 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-pen-to-square"></i></button>
                                                         <button onClick={() => updateCartInFirebase(currentItemsRef.current.filter((_, i) => i !== index))} className="btn-bouncy text-rose-400 w-11 h-11 bg-rose-50 border border-rose-100 rounded-full shadow-sm flex items-center justify-center"><i className="fa-solid fa-trash-can"></i></button>
                                                     </div>
@@ -918,7 +918,9 @@
                         totalMonthCount += count;
                         stats[day].total += count;
 
-                        const hour = parseInt(item.time.split(':')[0], 10);
+                        // 🟢 [แก้ไขบั๊ก 3]: เช็คก่อนว่ามีข้อมูล time ไหม ถ้าไม่มีให้ข้ามหรือให้เป็น 0 ป้องกัน split แล้วเว็บพัง
+                        const hour = item.time ? parseInt(String(item.time).split(':')[0], 10) : 0;
+                        
                         if (hour < 12) stats[day].morning += count;
                         else if (hour < 18) stats[day].afternoon += count;
                         else stats[day].evening += count;
@@ -949,7 +951,8 @@
 
                     if (item.date === todayStr) {
                         todayTotal += count;
-                        const hour = parseInt(item.time.split(':')[0], 10);
+                        // 🟢 [แก้ไขบั๊ก 3]: เช็คเวลาของสรุปวันนี้ด้วยเช่นกัน
+                        const hour = item.time ? parseInt(String(item.time).split(':')[0], 10) : 0;
                         if (hour < 12) todayMorning += count;
                         else if (hour < 18) todayAfternoon += count;
                         else todayEvening += count;
@@ -1104,7 +1107,7 @@
                     const targetDateStr = summaryDate || new Date().toLocaleDateString('en-CA');
                     const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailySummaryText&date=${targetDateStr}`);
                     const text = await response.text();
-                    if (text.trim().startsWith('<')) { setAlertMsg("เซิร์ฟเวอร์ตอบกลับผิดพลาด"); return; }
+                    if (text.trim().startsWith('<')) { setAlertMsg("เซิร์ฟเวอร์ตอบกลับผิดพลาด (URL อาจหมดอายุ หรือ ต้อง Deploy ใหม่)"); return; }
                     
                     const result = JSON.parse(text);
                     if (result.status === 'success') {
